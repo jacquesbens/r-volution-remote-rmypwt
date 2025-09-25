@@ -29,12 +29,17 @@ export default function MainScreen() {
     try {
       await scanNetwork();
     } catch (error) {
-      Alert.alert('Erreur', 'Erreur lors de la recherche d\'appareils');
+      Alert.alert('Erreur', 'Erreur lors de la recherche d\'appareils R_VOLUTION');
     }
   };
 
   const handleAddDevice = async (ip: string, port: number, name?: string) => {
-    await addDeviceManually(ip, port, name);
+    try {
+      await addDeviceManually(ip, port, name);
+      setIsAddModalVisible(false);
+    } catch (error) {
+      Alert.alert('Erreur', 'Impossible d\'ajouter l\'appareil. Vérifiez l\'adresse IP et que l\'appareil R_VOLUTION est accessible.');
+    }
   };
 
   const handleRemoveDevice = (deviceId: string, deviceName: string) => {
@@ -72,7 +77,7 @@ export default function MainScreen() {
     <SafeAreaView style={commonStyles.container}>
       <View style={styles.header}>
         <Text style={commonStyles.title}>R_VOLUTION Remote</Text>
-        <Text style={styles.subtitle}>Télécommande IP pour lecteurs multimédia</Text>
+        <Text style={styles.subtitle}>Télécommande IP pour lecteurs multimédia R_VOLUTION</Text>
       </View>
 
       <ScrollView
@@ -89,13 +94,13 @@ export default function MainScreen() {
         {/* Scan Controls */}
         <View style={styles.scanSection}>
           <Button
-            text={isScanning ? `Recherche... ${Math.round(scanProgress)}%` : "Rechercher des appareils"}
+            text={isScanning ? `Recherche R_VOLUTION... ${Math.round(scanProgress)}%` : "Rechercher appareils R_VOLUTION"}
             onPress={handleScanNetwork}
             style={[styles.scanButton, { opacity: isScanning ? 0.7 : 1 }]}
           />
           
           <Button
-            text="Ajouter manuellement"
+            text="Ajouter R_VOLUTION manuellement"
             onPress={() => setIsAddModalVisible(true)}
             style={styles.addButton}
           />
@@ -104,15 +109,15 @@ export default function MainScreen() {
         {/* Device List */}
         <View style={styles.deviceSection}>
           <Text style={styles.sectionTitle}>
-            Appareils découverts ({devices.length})
+            Appareils R_VOLUTION découverts ({devices.length})
           </Text>
 
           {devices.length === 0 ? (
             <View style={styles.emptyState}>
               <Icon name="search" size={48} color={colors.grey} style={styles.emptyIcon} />
-              <Text style={styles.emptyTitle}>Aucun appareil trouvé</Text>
+              <Text style={styles.emptyTitle}>Aucun appareil R_VOLUTION trouvé</Text>
               <Text style={styles.emptyText}>
-                Lancez une recherche automatique ou ajoutez un appareil manuellement
+                Lancez une recherche automatique pour découvrir les appareils R_VOLUTION sur le réseau ou ajoutez-en un manuellement
               </Text>
             </View>
           ) : (
@@ -131,13 +136,16 @@ export default function MainScreen() {
         <View style={styles.instructionsSection}>
           <Text style={styles.instructionsTitle}>Instructions</Text>
           <Text style={styles.instructionsText}>
-            • La recherche automatique scanne le réseau local pour trouver les appareils R_VOLUTION
+            • La recherche automatique scanne le réseau local pour trouver les appareils avec le nom réseau "R_VOLUTION"
           </Text>
           <Text style={styles.instructionsText}>
-            • Vous pouvez ajouter manuellement un appareil en saisissant son adresse IP
+            • Vous pouvez ajouter manuellement un appareil R_VOLUTION en saisissant son adresse IP
           </Text>
           <Text style={styles.instructionsText}>
-            • Assurez-vous que les appareils sont connectés au même réseau Wi-Fi
+            • Assurez-vous que les appareils R_VOLUTION sont connectés au même réseau Wi-Fi
+          </Text>
+          <Text style={styles.instructionsText}>
+            • Le port 80 est utilisé par défaut pour la découverte et le contrôle des appareils
           </Text>
         </View>
       </ScrollView>

@@ -26,7 +26,7 @@ const AddDeviceModal: React.FC<AddDeviceModalProps> = ({ visible, onClose, onAdd
     // Basic IP validation
     const ipRegex = /^(\d{1,3}\.){3}\d{1,3}$/;
     if (!ipRegex.test(ip.trim())) {
-      Alert.alert('Erreur', 'Format d\'adresse IP invalide');
+      Alert.alert('Erreur', 'Format d\'adresse IP invalide (ex: 192.168.1.100)');
       return;
     }
 
@@ -43,9 +43,9 @@ const AddDeviceModal: React.FC<AddDeviceModalProps> = ({ visible, onClose, onAdd
       setPort('80');
       setName('');
       onClose();
-      Alert.alert('Succès', 'Appareil ajouté avec succès');
+      Alert.alert('Succès', 'Appareil R_VOLUTION ajouté avec succès');
     } catch (error) {
-      Alert.alert('Erreur', error instanceof Error ? error.message : 'Impossible d\'ajouter l\'appareil');
+      Alert.alert('Erreur', error instanceof Error ? error.message : 'Impossible d\'ajouter l\'appareil R_VOLUTION');
     } finally {
       setIsLoading(false);
     }
@@ -68,15 +68,19 @@ const AddDeviceModal: React.FC<AddDeviceModalProps> = ({ visible, onClose, onAdd
       <View style={styles.overlay}>
         <View style={styles.modal}>
           <View style={styles.header}>
-            <Text style={styles.title}>Ajouter un appareil</Text>
+            <Text style={styles.title}>Ajouter appareil R_VOLUTION</Text>
             <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
               <Icon name="close" size={24} color={colors.text} />
             </TouchableOpacity>
           </View>
 
           <View style={styles.form}>
+            <Text style={styles.description}>
+              Ajoutez manuellement un appareil R_VOLUTION en saisissant son adresse IP sur le réseau local.
+            </Text>
+
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Adresse IP *</Text>
+              <Text style={styles.label}>Adresse IP de l'appareil R_VOLUTION *</Text>
               <TextInput
                 style={styles.input}
                 value={ip}
@@ -90,7 +94,7 @@ const AddDeviceModal: React.FC<AddDeviceModalProps> = ({ visible, onClose, onAdd
             </View>
 
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Port</Text>
+              <Text style={styles.label}>Port (défaut: 80)</Text>
               <TextInput
                 style={styles.input}
                 value={port}
@@ -112,6 +116,13 @@ const AddDeviceModal: React.FC<AddDeviceModalProps> = ({ visible, onClose, onAdd
                 autoCapitalize="words"
               />
             </View>
+
+            <View style={styles.infoBox}>
+              <Icon name="information-circle" size={16} color={colors.primary} />
+              <Text style={styles.infoText}>
+                L'appareil doit être connecté au même réseau Wi-Fi et avoir le nom réseau "R_VOLUTION"
+              </Text>
+            </View>
           </View>
 
           <View style={styles.buttons}>
@@ -122,7 +133,7 @@ const AddDeviceModal: React.FC<AddDeviceModalProps> = ({ visible, onClose, onAdd
               textStyle={styles.cancelButtonText}
             />
             <Button
-              text={isLoading ? "Ajout..." : "Ajouter"}
+              text={isLoading ? "Connexion..." : "Ajouter"}
               onPress={handleAddDevice}
               style={[styles.button, styles.addButton, { opacity: isLoading ? 0.5 : 1 }]}
             />
@@ -154,18 +165,25 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: 16,
   },
   title: {
     fontSize: 20,
     fontWeight: '600',
     color: colors.text,
+    flex: 1,
   },
   closeButton: {
     padding: 4,
   },
   form: {
     marginBottom: 24,
+  },
+  description: {
+    fontSize: 14,
+    color: colors.grey,
+    lineHeight: 20,
+    marginBottom: 20,
   },
   inputGroup: {
     marginBottom: 16,
@@ -184,6 +202,21 @@ const styles = StyleSheet.create({
     color: colors.text,
     borderWidth: 1,
     borderColor: colors.grey,
+  },
+  infoBox: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    backgroundColor: colors.background,
+    padding: 12,
+    borderRadius: 8,
+    marginTop: 8,
+    gap: 8,
+  },
+  infoText: {
+    fontSize: 12,
+    color: colors.grey,
+    lineHeight: 16,
+    flex: 1,
   },
   buttons: {
     flexDirection: 'row',
