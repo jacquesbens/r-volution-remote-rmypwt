@@ -36,7 +36,7 @@ export const useDeviceDiscovery = () => {
   }, []);
 
   // Check if device is reachable
-  const checkDeviceReachability = async (ip: string, port: number = 8080): Promise<boolean> => {
+  const checkDeviceReachability = async (ip: string, port: number = 80): Promise<boolean> => {
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), SCAN_TIMEOUT);
@@ -58,7 +58,7 @@ export const useDeviceDiscovery = () => {
   };
 
   // Get device info
-  const getDeviceInfo = async (ip: string, port: number = 8080): Promise<string | null> => {
+  const getDeviceInfo = async (ip: string, port: number = 80): Promise<string | null> => {
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), SCAN_TIMEOUT);
@@ -113,7 +113,7 @@ export const useDeviceDiscovery = () => {
                 id: `${ip}_${Date.now()}`,
                 name: deviceName,
                 ip: ip,
-                port: 8080,
+                port: 80,
                 isOnline: true,
                 lastSeen: new Date(),
                 isManuallyAdded: false,
@@ -141,7 +141,7 @@ export const useDeviceDiscovery = () => {
   }, [devices, saveDevices]);
 
   // Add device manually
-  const addDeviceManually = useCallback(async (ip: string, port: number = 8080, customName?: string) => {
+  const addDeviceManually = useCallback(async (ip: string, port: number = 80, customName?: string) => {
     try {
       const isReachable = await checkDeviceReachability(ip, port);
       

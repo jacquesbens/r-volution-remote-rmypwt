@@ -13,7 +13,7 @@ interface AddDeviceModalProps {
 
 const AddDeviceModal: React.FC<AddDeviceModalProps> = ({ visible, onClose, onAddDevice }) => {
   const [ip, setIp] = useState('');
-  const [port, setPort] = useState('8080');
+  const [port, setPort] = useState('80');
   const [name, setName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -40,7 +40,7 @@ const AddDeviceModal: React.FC<AddDeviceModalProps> = ({ visible, onClose, onAdd
     try {
       await onAddDevice(ip.trim(), portNumber, name.trim() || undefined);
       setIp('');
-      setPort('8080');
+      setPort('80');
       setName('');
       onClose();
       Alert.alert('Succès', 'Appareil ajouté avec succès');
@@ -53,7 +53,7 @@ const AddDeviceModal: React.FC<AddDeviceModalProps> = ({ visible, onClose, onAdd
 
   const handleClose = () => {
     setIp('');
-    setPort('8080');
+    setPort('80');
     setName('');
     onClose();
   };
@@ -95,7 +95,7 @@ const AddDeviceModal: React.FC<AddDeviceModalProps> = ({ visible, onClose, onAdd
                 style={styles.input}
                 value={port}
                 onChangeText={setPort}
-                placeholder="8080"
+                placeholder="80"
                 placeholderTextColor={colors.grey}
                 keyboardType="numeric"
               />
