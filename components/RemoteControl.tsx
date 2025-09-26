@@ -74,7 +74,7 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   
-  // Power and main controls - updated to use same design as Explorer
+  // Power and main controls - updated to include Di button
   powerSection: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -97,7 +97,7 @@ const styles = StyleSheet.create({
     elevation: 2,
     borderWidth: 1,
     borderColor: colors.border,
-    flex: 0.48,
+    flex: 0.31,
   },
   
   powerButtonText: {
@@ -281,6 +281,40 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginTop: 3,
   },
+
+  // Info, 3D, Zoom buttons section - positioned above directional pad
+  infoButtonsSection: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    marginBottom: 20,
+  },
+
+  infoButton: {
+    backgroundColor: colors.surface,
+    borderRadius: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 1,
+    borderWidth: 1,
+    borderColor: colors.border,
+    flex: 0.31,
+  },
+
+  infoButtonText: {
+    color: colors.text,
+    fontSize: 10,
+    fontWeight: '600',
+    textAlign: 'center',
+    marginTop: 3,
+  },
   
   // Navigation - INCREASED SIZE
   navigationSection: {
@@ -404,39 +438,6 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 18,
     fontWeight: '700',
-  },
-  
-  // Function buttons grid - Updated to remove Audio and Subtitle buttons
-  functionGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    marginBottom: 20,
-  },
-  
-  functionButton: {
-    backgroundColor: colors.surface,
-    borderRadius: 10,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: '23%',
-    marginBottom: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 1,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  
-  functionButtonText: {
-    color: colors.text,
-    fontSize: 10,
-    fontWeight: '600',
-    textAlign: 'center',
   },
   
   // Color function buttons
@@ -737,7 +738,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
   return (
     <View style={styles.container}>
       <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
-        {/* Power Controls - Updated to remove toggle and use Explorer button design */}
+        {/* Power Controls - Updated to include Di button to the right of Off */}
         <View style={styles.powerSection}>
           <ModernButton
             onPress={() => handleCommand('Power On', irCodes.PowerOn)}
@@ -753,6 +754,14 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
           >
             <Icon name="power" size={16} color="#fff" />
             <Text style={styles.powerButtonText}>OFF</Text>
+          </ModernButton>
+
+          <ModernButton
+            onPress={() => handleCommand('Dimmer', irCodes.Dimmer)}
+            style={styles.powerButton}
+          >
+            <Icon name="sunny" size={16} color="#fff" />
+            <Text style={styles.powerButtonText}>Di</Text>
           </ModernButton>
         </View>
 
@@ -876,6 +885,33 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
 
         {/* Separator after repeat, subtitle and audio buttons - IDENTICAL TO REDUCED SEPARATOR */}
         <View style={styles.separator} />
+
+        {/* Info, 3D, Zoom buttons - positioned above directional pad */}
+        <View style={styles.infoButtonsSection}>
+          <ModernButton
+            onPress={() => handleCommand('Info', irCodes.Info)}
+            style={styles.infoButton}
+          >
+            <Icon name="information-circle" size={16} color={colors.text} />
+            <Text style={styles.infoButtonText}>Info</Text>
+          </ModernButton>
+          
+          <ModernButton
+            onPress={() => handleCommand('3D', irCodes['3D'])}
+            style={styles.infoButton}
+          >
+            <Icon name="cube" size={16} color={colors.text} />
+            <Text style={styles.infoButtonText}>3D</Text>
+          </ModernButton>
+          
+          <ModernButton
+            onPress={() => handleCommand('Zoom', irCodes.Zoom)}
+            style={styles.infoButton}
+          >
+            <Icon name="search" size={16} color={colors.text} />
+            <Text style={styles.infoButtonText}>Zoom</Text>
+          </ModernButton>
+        </View>
 
         {/* Navigation */}
         <View style={styles.navigationSection}>
@@ -1006,41 +1042,6 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
 
         {/* Separator after numeric keypad - IDENTICAL TO REDUCED SEPARATOR */}
         <View style={styles.separator} />
-
-        {/* Function Buttons - Updated to remove Audio and Subtitle buttons */}
-        <View style={styles.functionGrid}>
-          <ModernButton
-            onPress={() => handleCommand('Info', irCodes.Info)}
-            style={styles.functionButton}
-          >
-            <Icon name="information-circle" size={16} color={colors.text} />
-            <Text style={styles.functionButtonText}>Info</Text>
-          </ModernButton>
-          
-          <ModernButton
-            onPress={() => handleCommand('3D', irCodes['3D'])}
-            style={styles.functionButton}
-          >
-            <Icon name="cube" size={16} color={colors.text} />
-            <Text style={styles.functionButtonText}>3D</Text>
-          </ModernButton>
-          
-          <ModernButton
-            onPress={() => handleCommand('Zoom', irCodes.Zoom)}
-            style={styles.functionButton}
-          >
-            <Icon name="search" size={16} color={colors.text} />
-            <Text style={styles.functionButtonText}>Zoom</Text>
-          </ModernButton>
-          
-          <ModernButton
-            onPress={() => handleCommand('Dimmer', irCodes.Dimmer)}
-            style={styles.functionButton}
-          >
-            <Icon name="sunny" size={16} color={colors.text} />
-            <Text style={styles.functionButtonText}>Dimmer</Text>
-          </ModernButton>
-        </View>
 
         {/* Volume Controls - Now positioned above R_Video and Explorer with Explorer button design */}
         <View style={styles.volumeSection}>
