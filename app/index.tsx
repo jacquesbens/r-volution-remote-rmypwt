@@ -246,6 +246,11 @@ const MainScreen: React.FC = () => {
     }
   };
 
+  const handleNavigateToAddDevice = () => {
+    console.log('🔗 Navigating to add device page');
+    router.push('/add-device');
+  };
+
   return (
     <SafeAreaView style={[commonStyles.container, styles.container]}>
       <View style={styles.header}>
@@ -325,7 +330,7 @@ const MainScreen: React.FC = () => {
         
         <TouchableOpacity
           style={styles.addButton}
-          onPress={() => setIsAddModalVisible(true)}
+          onPress={handleNavigateToAddDevice}
         >
           <Icon name="add" size={24} color={colors.background} />
         </TouchableOpacity>
