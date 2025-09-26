@@ -9,6 +9,63 @@ export const useDeviceControl = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const sendIRCommand = useCallback(async (device: RVolutionDevice, irCode: string) => {
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      console.log(`🎮 Sending IR command to ${device.name} (${device.ip}:${device.port}):`, irCode);
+      
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), COMMAND_TIMEOUT);
+      
+      // Build IR command URL as specified in the document
+      const commandUrl = `http://${device.ip}:${device.port}${CGI_ENDPOINT}cmd=ir_code&ir_code=${irCode}`;
+      
+      console.log(`🚀 IR command URL: ${commandUrl}`);
+      
+      const response = await fetch(commandUrl, {
+        method: 'GET',
+        signal: controller.signal,
+        headers: {
+          'Accept': '*/*',
+          'User-Agent': 'R_volution-Remote/1.0',
+          'Cache-Control': 'no-cache',
+        },
+      });
+      
+      clearTimeout(timeoutId);
+      
+      if (!response.ok) {
+        throw new Error(`Command failed: ${response.status} ${response.statusText}`);
+      }
+      
+      let result: any = { success: true };
+      try {
+        const contentType = response.headers.get('content-type') || '';
+        if (contentType.includes('application/json')) {
+          result = await response.json();
+        } else {
+          const textResult = await response.text();
+          result = { success: true, response: textResult };
+        }
+      } catch (parseError) {
+        // If we can't parse the response, but got a 200, consider it successful
+        result = { success: true, response: 'command_sent' };
+      }
+      
+      console.log('✅ IR Command sent successfully:', irCode, result);
+      return result;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      setError(errorMessage);
+      console.log('❌ Error sending IR command:', errorMessage);
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
   const sendCommand = useCallback(async (device: RVolutionDevice, command: DeviceCommand) => {
     setIsLoading(true);
     setError(null);
@@ -38,7 +95,7 @@ export const useDeviceControl = () => {
         signal: controller.signal,
         headers: {
           'Accept': '*/*',
-          'User-Agent': 'R_VOLUTION-Remote/1.0',
+          'User-Agent': 'R_volution-Remote/1.0',
           'Cache-Control': 'no-cache',
         },
       });
@@ -75,25 +132,51 @@ export const useDeviceControl = () => {
     }
   }, []);
 
-  // Media control commands using R_VOLUTION specific command names
+  // IR Commands based on the document provided
+  const next = useCallback((device: RVolutionDevice) => {
+    return sendIRCommand(device, 'E11E4040');
+  }, [sendIRCommand]);
+
+  const previous = useCallback((device: RVolutionDevice) => {
+    return sendIRCommand(device, 'E01F4040');
+  }, [sendIRCommand]);
+
+  const fastForward = useCallback((device: RVolutionDevice) => {
+    return sendIRCommand(device, 'E41B8F00');
+  }, [sendIRCommand]);
+
+  const fastReverse = useCallback((device: RVolutionDevice) => {
+    return sendIRCommand(device, 'E31C8F00');
+  }, [sendIRCommand]);
+
+  // Additional Skip & Toggle Commands
+  const stop = useCallback((device: RVolutionDevice) => {
+    return sendIRCommand(device, 'BD424040');
+  }, [sendIRCommand]);
+
+  const skip60Forward = useCallback((device: RVolutionDevice) => {
+    return sendIRCommand(device, 'EE114040');
+  }, [sendIRCommand]);
+
+  const skip60Rewind = useCallback((device: RVolutionDevice) => {
+    return sendIRCommand(device, 'EF104040');
+  }, [sendIRCommand]);
+
+  const skip10Forward = useCallback((device: RVolutionDevice) => {
+    return sendIRCommand(device, 'BF404040');
+  }, [sendIRCommand]);
+
+  const skip10Rewind = useCallback((device: RVolutionDevice) => {
+    return sendIRCommand(device, 'DF204040');
+  }, [sendIRCommand]);
+
+  // Media control commands using R_volution specific command names
   const play = useCallback((device: RVolutionDevice) => {
     return sendCommand(device, { action: 'play' });
   }, [sendCommand]);
 
   const pause = useCallback((device: RVolutionDevice) => {
     return sendCommand(device, { action: 'pause' });
-  }, [sendCommand]);
-
-  const stop = useCallback((device: RVolutionDevice) => {
-    return sendCommand(device, { action: 'stop' });
-  }, [sendCommand]);
-
-  const next = useCallback((device: RVolutionDevice) => {
-    return sendCommand(device, { action: 'next' });
-  }, [sendCommand]);
-
-  const previous = useCallback((device: RVolutionDevice) => {
-    return sendCommand(device, { action: 'prev' }); // Often 'prev' instead of 'previous'
   }, [sendCommand]);
 
   const volumeUp = useCallback((device: RVolutionDevice) => {
@@ -117,7 +200,7 @@ export const useDeviceControl = () => {
     return sendCommand(device, { action: 'seek', value: position });
   }, [sendCommand]);
 
-  // Additional R_VOLUTION specific commands
+  // Additional R_volution specific commands
   const power = useCallback((device: RVolutionDevice) => {
     return sendCommand(device, { action: 'power' });
   }, [sendCommand]);
@@ -154,15 +237,44 @@ export const useDeviceControl = () => {
     return sendCommand(device, { action: 'right' });
   }, [sendCommand]);
 
+  // Number pad commands
+  const number = useCallback((device: RVolutionDevice, num: number) => {
+    return sendCommand(device, { action: 'number', value: num });
+  }, [sendCommand]);
+
+  // TV/VOD/Guide/Info commands
+  const tv = useCallback((device: RVolutionDevice) => {
+    return sendCommand(device, { action: 'tv' });
+  }, [sendCommand]);
+
+  const vod = useCallback((device: RVolutionDevice) => {
+    return sendCommand(device, { action: 'vod' });
+  }, [sendCommand]);
+
+  const guide = useCallback((device: RVolutionDevice) => {
+    return sendCommand(device, { action: 'guide' });
+  }, [sendCommand]);
+
+  const info = useCallback((device: RVolutionDevice) => {
+    return sendCommand(device, { action: 'info' });
+  }, [sendCommand]);
+
   return {
     isLoading,
     error,
     sendCommand,
+    sendIRCommand,
     play,
     pause,
     stop,
     next,
     previous,
+    fastForward,
+    fastReverse,
+    skip60Forward,
+    skip60Rewind,
+    skip10Forward,
+    skip10Rewind,
     volumeUp,
     volumeDown,
     setVolume,
@@ -177,5 +289,10 @@ export const useDeviceControl = () => {
     down,
     left,
     right,
+    number,
+    tv,
+    vod,
+    guide,
+    info,
   };
 };
