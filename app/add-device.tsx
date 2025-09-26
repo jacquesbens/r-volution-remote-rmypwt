@@ -233,12 +233,12 @@ const AddDeviceScreen: React.FC = () => {
                     onRemove={() => handleRemoveDevice(device.id)}
                   />
                   
-                  {/* Rename button */}
+                  {/* Rename button with white background and black text */}
                   <TouchableOpacity
                     style={styles.renameButton}
                     onPress={() => handleRenameDevice(device)}
                   >
-                    <Icon name="create-outline" size={20} color={colors.primary} />
+                    <Icon name="create-outline" size={20} color="#000000" />
                     <Text style={styles.renameButtonText}>Renommer</Text>
                   </TouchableOpacity>
                 </View>
@@ -364,17 +364,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.background,
+    backgroundColor: '#FFFFFF',
     borderRadius: 8,
     paddingVertical: 8,
     paddingHorizontal: 12,
     gap: 6,
     borderWidth: 1,
-    borderColor: colors.primary + '30',
+    borderColor: '#E0E0E0',
   },
   renameButtonText: {
     fontSize: 14,
-    color: colors.primary,
+    color: '#000000',
     fontWeight: '500',
   },
   emptyState: {
