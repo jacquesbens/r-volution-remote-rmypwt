@@ -271,9 +271,8 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 
-  // NEW: Subtitle and Audio buttons section - positioned below media controls extended
-  // Updated to include Repeat button on the left of Subtitle
-  subtitleAudioSection: {
+  // NEW: First row - Info, Home aligned to left of Repeat button
+  firstControlRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -281,7 +280,25 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
 
-  subtitleAudioButton: {
+  // NEW: Second row - Repeat, Subtitle, Audio buttons
+  secondControlRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    marginBottom: 20,
+  },
+
+  // NEW: Third row - 3D, Menu, Zoom, Back aligned to right of Audio button
+  thirdControlRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    marginBottom: 20,
+  },
+
+  controlButton: {
     backgroundColor: colors.primary,
     borderRadius: 10,
     paddingVertical: 10,
@@ -298,46 +315,13 @@ const styles = StyleSheet.create({
     flex: 0.32,
   },
 
-  subtitleAudioButtonText: {
+  controlButtonText: {
     color: '#fff',
     fontSize: 11,
     fontWeight: '600',
     marginTop: 3,
   },
 
-  // Info, 3D, Zoom buttons section - positioned above directional pad
-  infoButtonsSection: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    marginBottom: 20,
-  },
-
-  infoButton: {
-    backgroundColor: colors.primary,
-    borderRadius: 10,
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-    borderWidth: 1,
-    borderColor: colors.border,
-    flex: 0.3,
-  },
-
-  infoButtonText: {
-    color: '#fff',
-    fontSize: 11,
-    fontWeight: '600',
-    marginTop: 3,
-  },
-  
   // Navigation - INCREASED SIZE
   navigationSection: {
     alignItems: 'center',
@@ -393,39 +377,6 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 20,      // Increased from 16
     fontWeight: '700',
-  },
-
-  // Home, Menu, Back buttons section - positioned below navigation with same design as special buttons
-  navigationControlsSection: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    marginBottom: 20,
-  },
-
-  navigationControlButton: {
-    backgroundColor: colors.primary,
-    borderRadius: 10,
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-    borderWidth: 1,
-    borderColor: colors.border,
-    flex: 0.3,
-  },
-
-  navigationControlButtonText: {
-    color: '#fff',
-    fontSize: 11,
-    fontWeight: '600',
-    marginTop: 3,
   },
   
   // Number pad - Updated to use same design as Explorer button
@@ -588,40 +539,6 @@ const styles = StyleSheet.create({
     width: 120,
     height: 120,
     resizeMode: 'contain',
-  },
-
-  // Bottom buttons section - Removed since Repeat is now with Subtitle/Audio
-  bottomButtonsSection: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    marginBottom: 20,
-    marginTop: 10,
-  },
-
-  bottomButton: {
-    backgroundColor: colors.primary,
-    borderRadius: 10,
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-    borderWidth: 1,
-    borderColor: colors.border,
-    flex: 0.48,
-  },
-
-  bottomButtonText: {
-    color: '#fff',
-    fontSize: 11,
-    fontWeight: '600',
-    marginTop: 3,
   },
   
   // Loading overlay
@@ -891,62 +808,98 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
           </ModernButton>
         </View>
 
-        {/* NEW: Repeat, Subtitle and Audio Buttons Section - Repeat moved to left of Subtitle */}
-        <View style={styles.subtitleAudioSection}>
+        {/* First Control Row - Info and Home aligned to left of Repeat */}
+        <View style={styles.firstControlRow}>
+          <ModernButton
+            onPress={() => handleCommand('Info', irCodes.Info)}
+            style={styles.controlButton}
+          >
+            <Icon name="information-circle" size={16} color="#fff" />
+            <Text style={styles.controlButtonText}>Info</Text>
+          </ModernButton>
+          
+          <ModernButton
+            onPress={() => handleCommand('Home', irCodes.Home)}
+            style={styles.controlButton}
+          >
+            <Icon name="home" size={16} color="#fff" />
+            <Text style={styles.controlButtonText}>Home</Text>
+          </ModernButton>
+          
+          <View style={styles.controlButton} />
+        </View>
+
+        {/* Second Control Row - Repeat, Subtitle, Audio buttons */}
+        <View style={styles.secondControlRow}>
           <ModernButton
             onPress={() => handleCommand('Repeat', irCodes.Repeat)}
-            style={styles.subtitleAudioButton}
+            style={styles.controlButton}
           >
             <Icon name="repeat" size={16} color="#fff" />
-            <Text style={styles.subtitleAudioButtonText}>Repeat</Text>
+            <Text style={styles.controlButtonText}>Repeat</Text>
           </ModernButton>
           
           <ModernButton
             onPress={() => handleCommand('Subtitle', irCodes.Subtitle)}
-            style={styles.subtitleAudioButton}
+            style={styles.controlButton}
           >
             <Icon name="text" size={16} color="#fff" />
-            <Text style={styles.subtitleAudioButtonText}>Subtitle</Text>
+            <Text style={styles.controlButtonText}>Subtitle</Text>
           </ModernButton>
           
           <ModernButton
             onPress={() => handleCommand('Audio', irCodes.Audio)}
-            style={styles.subtitleAudioButton}
+            style={styles.controlButton}
           >
             <Icon name="musical-notes" size={16} color="#fff" />
-            <Text style={styles.subtitleAudioButtonText}>Audio</Text>
+            <Text style={styles.controlButtonText}>Audio</Text>
           </ModernButton>
         </View>
 
-        {/* Separator after repeat, subtitle and audio buttons - IDENTICAL TO REDUCED SEPARATOR */}
-        <View style={styles.separator} />
-
-        {/* Info, 3D, Zoom buttons - positioned above directional pad */}
-        <View style={styles.infoButtonsSection}>
-          <ModernButton
-            onPress={() => handleCommand('Info', irCodes.Info)}
-            style={styles.infoButton}
-          >
-            <Icon name="information-circle" size={16} color="#fff" />
-            <Text style={styles.infoButtonText}>Info</Text>
-          </ModernButton>
+        {/* Third Control Row - 3D, Menu, Zoom and Back aligned to right of Audio */}
+        <View style={styles.thirdControlRow}>
+          <View style={styles.controlButton} />
           
           <ModernButton
             onPress={() => handleCommand('3D', irCodes['3D'])}
-            style={styles.infoButton}
+            style={styles.controlButton}
           >
             <Icon name="cube" size={16} color="#fff" />
-            <Text style={styles.infoButtonText}>3D</Text>
+            <Text style={styles.controlButtonText}>3D</Text>
           </ModernButton>
           
           <ModernButton
-            onPress={() => handleCommand('Zoom', irCodes.Zoom)}
-            style={styles.infoButton}
+            onPress={() => handleCommand('Menu', irCodes.Menu)}
+            style={styles.controlButton}
           >
-            <Icon name="search" size={16} color="#fff" />
-            <Text style={styles.infoButtonText}>Zoom</Text>
+            <Icon name="menu" size={16} color="#fff" />
+            <Text style={styles.controlButtonText}>Menu</Text>
           </ModernButton>
         </View>
+
+        {/* Fourth Control Row - Zoom and Back aligned to right of Audio */}
+        <View style={styles.thirdControlRow}>
+          <View style={styles.controlButton} />
+          
+          <ModernButton
+            onPress={() => handleCommand('Zoom', irCodes.Zoom)}
+            style={styles.controlButton}
+          >
+            <Icon name="search" size={16} color="#fff" />
+            <Text style={styles.controlButtonText}>Zoom</Text>
+          </ModernButton>
+          
+          <ModernButton
+            onPress={() => handleCommand('Return', irCodes.Return)}
+            style={styles.controlButton}
+          >
+            <Icon name="arrow-back" size={16} color="#fff" />
+            <Text style={styles.controlButtonText}>Back</Text>
+          </ModernButton>
+        </View>
+
+        {/* Separator before navigation - IDENTICAL TO REDUCED SEPARATOR */}
+        <View style={styles.separator} />
 
         {/* Navigation */}
         <View style={styles.navigationSection}>
@@ -988,37 +941,10 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
           </View>
         </View>
 
-        {/* Home, Menu, Back buttons - positioned below navigation with Back moved to the right of Menu */}
-        <View style={styles.navigationControlsSection}>
-          <ModernButton
-            onPress={() => handleCommand('Home', irCodes.Home)}
-            style={styles.navigationControlButton}
-          >
-            <Icon name="home" size={16} color="#fff" />
-            <Text style={styles.navigationControlButtonText}>Home</Text>
-          </ModernButton>
-          
-          <ModernButton
-            onPress={() => handleCommand('Menu', irCodes.Menu)}
-            style={styles.navigationControlButton}
-          >
-            <Icon name="menu" size={16} color="#fff" />
-            <Text style={styles.navigationControlButtonText}>Menu</Text>
-          </ModernButton>
-
-          <ModernButton
-            onPress={() => handleCommand('Return', irCodes.Return)}
-            style={styles.navigationControlButton}
-          >
-            <Icon name="arrow-back" size={16} color="#fff" />
-            <Text style={styles.navigationControlButtonText}>Back</Text>
-          </ModernButton>
-        </View>
-
         {/* Separator before numeric keypad - IDENTICAL TO REDUCED SEPARATOR */}
         <View style={styles.separator} />
 
-        {/* Number Pad - NOW POSITIONED BELOW HOME, MENU, BACK BUTTONS */}
+        {/* Number Pad - NOW POSITIONED BELOW NAVIGATION */}
         <View style={styles.numberPad}>
           <View style={styles.numberRow}>
             {[1, 2, 3].map(num => (
