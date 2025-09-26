@@ -592,6 +592,69 @@ export const useDeviceDiscovery = () => {
     console.log('✅ Device renamed successfully');
   }, [devices, saveDevices]);
 
+  // Update device (name and/or IP)
+  const updateDevice = useCallback(async (deviceId: string, updates: { name?: string; ip?: string; port?: number }) => {
+    console.log('✏️ Updating device:', deviceId, 'with updates:', updates);
+    
+    try {
+      // Find the device to update
+      const deviceToUpdate = devices.find(d => d.id === deviceId);
+      if (!deviceToUpdate) {
+        throw new Error('Device not found');
+      }
+
+      // If IP is being changed, validate it and check for duplicates
+      if (updates.ip && updates.ip !== deviceToUpdate.ip) {
+        // Validate IP format
+        const ipRegex = /^(\d{1,3}\.){3}\d{1,3}$/;
+        if (!ipRegex.test(updates.ip)) {
+          throw new Error('Format d\'adresse IP invalide. Utilisez le format: 192.168.1.100');
+        }
+
+        // Validate IP ranges (0-255 for each octet)
+        const octets = updates.ip.split('.');
+        const invalidOctet = octets.find(octet => {
+          const num = parseInt(octet, 10);
+          return isNaN(num) || num < 0 || num > 255;
+        });
+        
+        if (invalidOctet) {
+          throw new Error('Adresse IP invalide. Chaque partie doit être entre 0 et 255');
+        }
+
+        // Check if another device already uses this IP
+        const existingDevice = devices.find(d => d.id !== deviceId && d.ip === updates.ip && d.port === (updates.port || deviceToUpdate.port));
+        if (existingDevice) {
+          throw new Error('Un autre appareil utilise déjà cette adresse IP');
+        }
+      }
+
+      // Create updated device
+      const updatedDevice = {
+        ...deviceToUpdate,
+        ...(updates.name && { name: updates.name.trim() }),
+        ...(updates.ip && { ip: updates.ip.trim() }),
+        ...(updates.port && { port: updates.port }),
+        // Reset online status if IP changed, will be updated on next status check
+        ...(updates.ip && updates.ip !== deviceToUpdate.ip && { isOnline: false, lastSeen: new Date(0) }),
+      };
+
+      // Update devices array
+      const updatedDevices = devices.map(device => 
+        device.id === deviceId ? updatedDevice : device
+      );
+
+      setDevices(updatedDevices);
+      await saveDevices(updatedDevices);
+      console.log('✅ Device updated successfully');
+      
+      return updatedDevice;
+    } catch (error) {
+      console.log('❌ Device update failed:', error);
+      throw error;
+    }
+  }, [devices, saveDevices]);
+
   // Update device status with enhanced checking
   const updateDeviceStatus = useCallback(async () => {
     if (devices.length === 0) {
@@ -788,6 +851,7 @@ export const useDeviceDiscovery = () => {
     addDeviceManually,
     removeDevice,
     renameDevice,
+    updateDevice,
     updateDeviceStatus,
     testDeviceConnectivity,
     verifyRVolutionDevice,

@@ -9,10 +9,11 @@ interface DeviceCardProps {
   device: RVolutionDevice;
   onPress: () => void;
   onRemove: () => void;
+  onEdit?: () => void;
   onTest?: (device: RVolutionDevice) => Promise<boolean>;
 }
 
-const DeviceCard: React.FC<DeviceCardProps> = ({ device, onPress, onRemove, onTest }) => {
+const DeviceCard: React.FC<DeviceCardProps> = ({ device, onPress, onRemove, onEdit, onTest }) => {
   const [isTesting, setIsTesting] = useState(false);
   const [lastTestResult, setLastTestResult] = useState<{
     success: boolean;
@@ -182,6 +183,15 @@ const DeviceCard: React.FC<DeviceCardProps> = ({ device, onPress, onRemove, onTe
         >
           <Icon name="information-circle" size={16} color={colors.grey} />
         </TouchableOpacity>
+
+        {onEdit && (
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={onEdit}
+          >
+            <Icon name="create-outline" size={16} color={colors.primary} />
+          </TouchableOpacity>
+        )}
 
         <TouchableOpacity
           style={[styles.actionButton, styles.removeButton]}

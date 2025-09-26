@@ -7,7 +7,9 @@ import { colors } from '../styles/commonStyles';
 import Icon from '../components/Icon';
 import Button from '../components/Button';
 import DeviceCard from '../components/DeviceCard';
+import EditDeviceModal from '../components/EditDeviceModal';
 import { useDeviceDiscovery } from '../hooks/useDeviceDiscovery';
+import { RVolutionDevice } from '../types/Device';
 
 const AddDeviceScreen: React.FC = () => {
   const router = useRouter();
@@ -16,7 +18,7 @@ const AddDeviceScreen: React.FC = () => {
     scanNetwork, 
     addDeviceManually, 
     removeDevice, 
-    renameDevice,
+    updateDevice,
     isScanning, 
     scanProgress 
   } = useDeviceDiscovery();
@@ -24,6 +26,8 @@ const AddDeviceScreen: React.FC = () => {
   const [deviceName, setDeviceName] = useState('');
   const [ipAddress, setIpAddress] = useState('');
   const [isAdding, setIsAdding] = useState(false);
+  const [editModalVisible, setEditModalVisible] = useState(false);
+  const [deviceToEdit, setDeviceToEdit] = useState<RVolutionDevice | null>(null);
 
   const handleScanNetwork = async () => {
     console.log('🔍 Starting automatic network scan');
@@ -96,52 +100,39 @@ const AddDeviceScreen: React.FC = () => {
   };
 
   const handleRemoveDevice = async (deviceId: string) => {
-    Alert.alert(
-      'Supprimer l\'appareil',
-      'Êtes-vous sûr de vouloir supprimer cet appareil ?',
-      [
-        { text: 'Annuler', style: 'cancel' },
-        { 
-          text: 'Supprimer', 
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await removeDevice(deviceId);
-              console.log('✅ Device removed successfully');
-            } catch (error) {
-              console.log('❌ Failed to remove device:', error);
-              Alert.alert('Erreur', 'Impossible de supprimer l\'appareil.');
-            }
-          }
-        }
-      ]
-    );
+    try {
+      await removeDevice(deviceId);
+      console.log('✅ Device removed successfully');
+    } catch (error) {
+      console.log('❌ Failed to remove device:', error);
+      Alert.alert('Erreur', 'Impossible de supprimer l\'appareil.');
+    }
   };
 
-  const handleRenameDevice = (device: any) => {
-    Alert.prompt(
-      'Renommer l\'appareil',
-      'Entrez le nouveau nom :',
-      [
-        { text: 'Annuler', style: 'cancel' },
-        {
-          text: 'Renommer',
-          onPress: async (newName) => {
-            if (newName && newName.trim()) {
-              try {
-                await renameDevice(device.id, newName.trim());
-                console.log('✅ Device renamed successfully');
-              } catch (error) {
-                console.log('❌ Failed to rename device:', error);
-                Alert.alert('Erreur', 'Impossible de renommer l\'appareil.');
-              }
-            }
-          }
-        }
-      ],
-      'plain-text',
-      device.name
-    );
+  const handleEditDevice = (device: RVolutionDevice) => {
+    console.log('✏️ Edit device pressed:', device.name);
+    setDeviceToEdit(device);
+    setEditModalVisible(true);
+  };
+
+  const handleUpdateDevice = async (deviceId: string, updates: { name?: string; ip?: string; port?: number }) => {
+    try {
+      await updateDevice(deviceId, updates);
+      console.log('✅ Device updated successfully');
+      Alert.alert(
+        'Appareil modifié',
+        'Les modifications ont été enregistrées avec succès.',
+        [{ text: 'OK' }]
+      );
+    } catch (error) {
+      console.log('❌ Failed to update device:', error);
+      throw error; // Re-throw to let the modal handle the error display
+    }
+  };
+
+  const handleCloseEditModal = () => {
+    setEditModalVisible(false);
+    setDeviceToEdit(null);
   };
 
   return (
@@ -226,22 +217,13 @@ const AddDeviceScreen: React.FC = () => {
             
             <View style={styles.devicesList}>
               {devices.map((device) => (
-                <View key={device.id} style={styles.deviceCardContainer}>
-                  <DeviceCard
-                    device={device}
-                    onPress={() => handleDevicePress(device)}
-                    onRemove={() => handleRemoveDevice(device.id)}
-                  />
-                  
-                  {/* Rename button with white background and black text */}
-                  <TouchableOpacity
-                    style={styles.renameButton}
-                    onPress={() => handleRenameDevice(device)}
-                  >
-                    <Icon name="create-outline" size={20} color="#000000" />
-                    <Text style={styles.renameButtonText}>Renommer</Text>
-                  </TouchableOpacity>
-                </View>
+                <DeviceCard
+                  key={device.id}
+                  device={device}
+                  onPress={() => handleDevicePress(device)}
+                  onRemove={() => handleRemoveDevice(device.id)}
+                  onEdit={() => handleEditDevice(device)}
+                />
               ))}
             </View>
           </View>
@@ -258,6 +240,14 @@ const AddDeviceScreen: React.FC = () => {
           </View>
         )}
       </ScrollView>
+
+      {/* Edit Device Modal */}
+      <EditDeviceModal
+        visible={editModalVisible}
+        device={deviceToEdit}
+        onClose={handleCloseEditModal}
+        onUpdateDevice={handleUpdateDevice}
+      />
     </SafeAreaView>
   );
 };
@@ -356,26 +346,6 @@ const styles = StyleSheet.create({
   },
   devicesList: {
     gap: 12,
-  },
-  deviceCardContainer: {
-    gap: 8,
-  },
-  renameButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 8,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    gap: 6,
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-  },
-  renameButtonText: {
-    fontSize: 14,
-    color: '#000000',
-    fontWeight: '500',
   },
   emptyState: {
     alignItems: 'center',
