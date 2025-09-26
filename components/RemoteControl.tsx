@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Alert, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, Alert, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { useDeviceControl } from '../hooks/useDeviceControl';
 import { RVolutionDevice } from '../types/Device';
 import Icon from './Icon';
@@ -461,6 +461,39 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
   },
+
+  // Air Video and Explorer buttons section - NOW POSITIONED BELOW NUMERIC KEYPAD
+  specialButtonsSection: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    marginBottom: 20,
+  },
+  
+  specialButton: {
+    backgroundColor: colors.primary,
+    borderRadius: 10,        // Reduced from 12
+    paddingVertical: 10,     // Reduced from 16
+    paddingHorizontal: 14,   // Reduced from 20
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: colors.border,
+    flex: 0.48,
+  },
+  
+  specialButtonText: {
+    color: '#fff',
+    fontSize: 11,            // Reduced from 12
+    fontWeight: '600',
+    marginTop: 3,            // Reduced from 4
+  },
   
   // Color function buttons
   colorButton: {
@@ -534,39 +567,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginTop: 3,
   },
-  
-  // R_Video and Explorer buttons section - REDUCED SIZE
-  specialButtonsSection: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    marginBottom: 20,
-  },
-  
-  specialButton: {
-    backgroundColor: colors.primary,
-    borderRadius: 10,        // Reduced from 12
-    paddingVertical: 10,     // Reduced from 16
-    paddingHorizontal: 14,   // Reduced from 20
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-    borderWidth: 1,
-    borderColor: colors.border,
-    flex: 0.48,
-  },
-  
-  specialButtonText: {
-    color: '#fff',
-    fontSize: 11,            // Reduced from 12
-    fontWeight: '600',
-    marginTop: 3,            // Reduced from 4
-  },
 
   // Color buttons section - positioned below special buttons
   colorButtonsSection: {
@@ -575,6 +575,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 20,
     marginBottom: 20,
+  },
+
+  // Logo section - positioned below color buttons
+  logoSection: {
+    alignItems: 'center',
+    marginBottom: 20,
+    paddingHorizontal: 20,
+  },
+
+  logo: {
+    width: 120,
+    height: 120,
+    resizeMode: 'contain',
   },
 
   // Bottom buttons section - Removed since Repeat is now with Subtitle/Audio
@@ -1062,10 +1075,29 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
           </View>
         </View>
 
-        {/* Separator after numeric keypad - IDENTICAL TO REDUCED SEPARATOR */}
+        {/* Air Video and Explorer Buttons - NOW POSITIONED BELOW NUMERIC KEYPAD */}
+        <View style={styles.specialButtonsSection}>
+          <ModernButton
+            onPress={() => handleCommand('Air Video', irCodes.RVideo)}
+            style={styles.specialButton}
+          >
+            <Icon name="videocam" size={16} color="#fff" />
+            <Text style={styles.specialButtonText}>Air Video</Text>
+          </ModernButton>
+          
+          <ModernButton
+            onPress={() => handleCommand('Explorer', irCodes.Explorer)}
+            style={styles.specialButton}
+          >
+            <Icon name="folder" size={16} color="#fff" />
+            <Text style={styles.specialButtonText}>Explorer</Text>
+          </ModernButton>
+        </View>
+
+        {/* Separator after Air Video and Explorer buttons */}
         <View style={styles.separator} />
 
-        {/* Volume Controls - Now positioned above R_Video and Explorer with Explorer button design */}
+        {/* Volume Controls - Now positioned above color buttons with Explorer button design */}
         <View style={styles.volumeSection}>
           <ModernButton
             onPress={() => handleCommand('Volume Down', irCodes.VolumeDown)}
@@ -1091,26 +1123,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
           </ModernButton>
         </View>
 
-        {/* R_Video and Explorer Buttons - Now positioned below Volume with REDUCED SIZE */}
-        <View style={styles.specialButtonsSection}>
-          <ModernButton
-            onPress={() => handleCommand('R_Video', irCodes.RVideo)}
-            style={styles.specialButton}
-          >
-            <Icon name="videocam" size={16} color="#fff" />
-            <Text style={styles.specialButtonText}>R_Video</Text>
-          </ModernButton>
-          
-          <ModernButton
-            onPress={() => handleCommand('Explorer', irCodes.Explorer)}
-            style={styles.specialButton}
-          >
-            <Icon name="folder" size={16} color="#fff" />
-            <Text style={styles.specialButtonText}>Explorer</Text>
-          </ModernButton>
-        </View>
-
-        {/* Color Function Buttons - Positioned below R_Video and Explorer */}
+        {/* Color Function Buttons - Positioned below Volume */}
         <View style={styles.colorButtonsSection}>
           <ModernButton
             onPress={() => handleCommand('Function Red', irCodes.FunctionRed)}
@@ -1139,6 +1152,14 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
           >
             <Text style={styles.colorButtonText}>Bleu</Text>
           </ModernButton>
+        </View>
+
+        {/* Logo Section - Positioned below color buttons */}
+        <View style={styles.logoSection}>
+          <Image 
+            source={require('../assets/images/490033b5-b48d-4f21-bd74-a10b28ac45b8.png')}
+            style={styles.logo}
+          />
         </View>
 
         {/* Loading Overlay */}
