@@ -321,7 +321,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   
-  // R_Video and Explorer buttons section
+  // R_Video and Explorer buttons section - REDUCED SIZE
   specialButtonsSection: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -332,9 +332,9 @@ const styles = StyleSheet.create({
   
   specialButton: {
     backgroundColor: colors.primary,
-    borderRadius: 12,
-    paddingVertical: 16,
-    paddingHorizontal: 20,
+    borderRadius: 10,        // Reduced from 12
+    paddingVertical: 10,     // Reduced from 16
+    paddingHorizontal: 14,   // Reduced from 20
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
@@ -349,9 +349,9 @@ const styles = StyleSheet.create({
   
   specialButtonText: {
     color: '#fff',
-    fontSize: 12,
+    fontSize: 11,            // Reduced from 12
     fontWeight: '600',
-    marginTop: 4,
+    marginTop: 3,            // Reduced from 4
   },
 
   // Color buttons section - positioned below special buttons
@@ -776,13 +776,13 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
           </ModernButton>
         </View>
 
-        {/* R_Video and Explorer Buttons - Now positioned below Volume */}
+        {/* R_Video and Explorer Buttons - Now positioned below Volume with REDUCED SIZE */}
         <View style={styles.specialButtonsSection}>
           <ModernButton
             onPress={() => handleCommand('R_Video', irCodes.RVideo)}
             style={styles.specialButton}
           >
-            <Icon name="videocam" size={18} color="#fff" />
+            <Icon name="videocam" size={16} color="#fff" />
             <Text style={styles.specialButtonText}>R_Video</Text>
           </ModernButton>
           
@@ -790,7 +790,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
             onPress={() => handleCommand('Explorer', irCodes.Explorer)}
             style={styles.specialButton}
           >
-            <Icon name="folder" size={18} color="#fff" />
+            <Icon name="folder" size={16} color="#fff" />
             <Text style={styles.specialButtonText}>Explorer</Text>
           </ModernButton>
         </View>
