@@ -1,10 +1,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, StyleSheet, Alert, Modal, TouchableOpacity, ActivityIndicator, ScrollView } from 'react-native';
-import Button from './Button';
-import { colors } from '../styles/commonStyles';
-import Icon from './Icon';
 import { RVolutionDevice } from '../types/Device';
+import Button from './Button';
+import Icon from './Icon';
+import { colors } from '../styles/commonStyles';
 
 interface EditDeviceModalProps {
   visible: boolean;
@@ -19,7 +19,6 @@ const EditDeviceModal: React.FC<EditDeviceModalProps> = ({ visible, device, onCl
   const [isLoading, setIsLoading] = useState(false);
   const [isTestingConnection, setIsTestingConnection] = useState(false);
 
-  // Initialize form with device data when modal opens
   useEffect(() => {
     if (device && visible) {
       setName(device.name);
@@ -28,8 +27,6 @@ const EditDeviceModal: React.FC<EditDeviceModalProps> = ({ visible, device, onCl
   }, [device, visible]);
 
   const handleUpdateDevice = async () => {
-    if (!device) return;
-
     if (!name.trim()) {
       Alert.alert('Erreur', 'Veuillez entrer un nom pour l\'appareil.');
       return;
@@ -40,34 +37,31 @@ const EditDeviceModal: React.FC<EditDeviceModalProps> = ({ visible, device, onCl
       return;
     }
 
+    // Validate IP address format
+    const ipRegex = /^(\d{1,3}\.){3}\d{1,3}$/;
+    if (!ipRegex.test(ip.trim())) {
+      Alert.alert('Erreur', 'Veuillez entrer une adresse IP valide (ex: 192.168.1.20).');
+      return;
+    }
+
+    if (!device) return;
+
     setIsLoading(true);
     try {
-      const updates: { name?: string; ip?: string; port?: number } = {};
-      
-      if (name.trim() !== device.name) {
-        updates.name = name.trim();
-      }
-      
-      if (ip.trim() !== device.ip) {
-        updates.ip = ip.trim();
-      }
-      
-      // Always use port 80
-      if (device.port !== 80) {
-        updates.port = 80;
-      }
-
-      if (Object.keys(updates).length === 0) {
-        Alert.alert('Information', 'Aucune modification détectée.');
-        handleClose();
-        return;
-      }
-
-      await onUpdateDevice(device.id, updates);
+      console.log('✏️ Updating device:', { id: device.id, name: name.trim(), ip: ip.trim() });
+      await onUpdateDevice(device.id, { 
+        name: name.trim(), 
+        ip: ip.trim(),
+        port: 80 // Always use HTTP port 80
+      });
       handleClose();
     } catch (error) {
       console.log('EditDeviceModal: Error updating device:', error);
-      Alert.alert('Erreur', error.message || 'Impossible de modifier l\'appareil.');
+      Alert.alert(
+        'Erreur de modification',
+        error.message || 'Impossible de modifier l\'appareil.',
+        [{ text: 'OK' }]
+      );
     } finally {
       setIsLoading(false);
     }
@@ -81,9 +75,9 @@ const EditDeviceModal: React.FC<EditDeviceModalProps> = ({ visible, device, onCl
 
     setIsTestingConnection(true);
     try {
-      console.log(`Testing connection to ${ip.trim()}:80`);
+      console.log(`Testing connection to ${ip.trim()}:80 (HTTP)`);
       
-      // Simple connectivity test using port 80
+      // Simple HTTP connectivity test on port 80
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 8000);
       
@@ -97,7 +91,7 @@ const EditDeviceModal: React.FC<EditDeviceModalProps> = ({ visible, device, onCl
       if (response.ok || response.status < 500) {
         Alert.alert(
           'Test de connexion',
-          `✅ L'appareil à l'adresse ${ip.trim()}:80 répond.\n\nStatus: ${response.status} ${response.statusText}`,
+          `✅ L'appareil à l'adresse ${ip.trim()}:80 répond via HTTP.\n\nStatus: ${response.status} ${response.statusText}`,
           [{ text: 'OK' }]
         );
       } else {
@@ -111,7 +105,7 @@ const EditDeviceModal: React.FC<EditDeviceModalProps> = ({ visible, device, onCl
       console.log('Connection test failed:', error);
       Alert.alert(
         'Test de connexion',
-        `❌ Impossible de se connecter à ${ip.trim()}:80.\n\nErreur: ${error.message}`,
+        `❌ Impossible de se connecter à ${ip.trim()}:80 via HTTP.\n\nErreur: ${error.message}`,
         [{ text: 'OK' }]
       );
     } finally {
@@ -120,6 +114,8 @@ const EditDeviceModal: React.FC<EditDeviceModalProps> = ({ visible, device, onCl
   };
 
   const handleClose = () => {
+    setName('');
+    setIp('');
     setIsLoading(false);
     setIsTestingConnection(false);
     onClose();
@@ -143,7 +139,11 @@ const EditDeviceModal: React.FC<EditDeviceModalProps> = ({ visible, device, onCl
           <View style={styles.placeholder} />
         </View>
 
-        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        <ScrollView 
+          style={styles.content} 
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollContent}
+        >
           <View style={styles.section}>
             <Text style={styles.label}>Nom de l'appareil *</Text>
             <TextInput
@@ -170,17 +170,17 @@ const EditDeviceModal: React.FC<EditDeviceModalProps> = ({ visible, device, onCl
             />
           </View>
 
-          <View style={styles.portInfoSection}>
+          <View style={styles.protocolInfoSection}>
             <Icon name="information-circle" size={20} color={colors.primary} />
-            <View style={styles.portInfoContent}>
-              <Text style={styles.portInfoTitle}>Port utilisé :</Text>
-              <Text style={styles.portInfoText}>Port 80 (HTTP standard) - utilisé automatiquement</Text>
+            <View style={styles.protocolInfoContent}>
+              <Text style={styles.protocolInfoTitle}>Protocole utilisé :</Text>
+              <Text style={styles.protocolInfoText}>HTTP sur port 80 (standard web) - utilisé automatiquement</Text>
             </View>
           </View>
 
           <View style={styles.testSection}>
             <Button
-              text={isTestingConnection ? "Test en cours..." : "Tester la connexion"}
+              text={isTestingConnection ? "Test en cours..." : "Tester la connexion HTTP"}
               onPress={handleTestConnection}
               style={[styles.testButton, { opacity: isTestingConnection ? 0.6 : 1 }]}
             />
@@ -192,11 +192,11 @@ const EditDeviceModal: React.FC<EditDeviceModalProps> = ({ visible, device, onCl
           <View style={styles.infoSection}>
             <Icon name="information-circle" size={20} color={colors.primary} />
             <View style={styles.infoContent}>
-              <Text style={styles.infoTitle}>Conseils :</Text>
-              <Text style={styles.infoText}>• Assurez-vous que l'appareil est allumé et connecté au Wi-Fi</Text>
-              <Text style={styles.infoText}>• Vérifiez que vous êtes sur le même réseau</Text>
-              <Text style={styles.infoText}>• L'appareil utilise automatiquement le port 80 (HTTP standard)</Text>
-              <Text style={styles.infoText}>• Consultez la documentation de votre appareil R_VOLUTION</Text>
+              <Text style={styles.infoTitle}>Informations :</Text>
+              <Text style={styles.infoText}>• L'appareil doit être allumé et connecté au Wi-Fi</Text>
+              <Text style={styles.infoText}>• Vous devez être sur le même réseau</Text>
+              <Text style={styles.infoText}>• Le protocole HTTP sur port 80 est utilisé automatiquement</Text>
+              <Text style={styles.infoText}>• Vérifiez que l'appareil accepte les connexions HTTP</Text>
             </View>
           </View>
         </ScrollView>
@@ -209,12 +209,12 @@ const EditDeviceModal: React.FC<EditDeviceModalProps> = ({ visible, device, onCl
             textStyle={styles.cancelButtonText}
           />
           <Button
-            text={isLoading ? "Modification..." : "Modifier"}
+            text={isLoading ? "Modification..." : "Enregistrer"}
             onPress={handleUpdateDevice}
-            style={[styles.updateButton, { opacity: isLoading ? 0.6 : 1 }]}
+            style={[styles.saveButton, { opacity: isLoading ? 0.6 : 1 }]}
           />
           {isLoading && (
-            <ActivityIndicator size="small" color={colors.background} style={styles.updateLoader} />
+            <ActivityIndicator size="small" color={colors.background} style={styles.saveLoader} />
           )}
         </View>
       </View>
@@ -251,6 +251,10 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 20,
   },
+  scrollContent: {
+    flexGrow: 1,
+    paddingBottom: 20,
+  },
   section: {
     marginTop: 24,
   },
@@ -270,7 +274,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: colors.text,
   },
-  portInfoSection: {
+  protocolInfoSection: {
     flexDirection: 'row',
     backgroundColor: colors.primary + '10',
     borderRadius: 8,
@@ -278,16 +282,16 @@ const styles = StyleSheet.create({
     marginTop: 24,
     gap: 12,
   },
-  portInfoContent: {
+  protocolInfoContent: {
     flex: 1,
   },
-  portInfoTitle: {
+  protocolInfoTitle: {
     fontSize: 14,
     fontWeight: '600',
     color: colors.text,
     marginBottom: 4,
   },
-  portInfoText: {
+  protocolInfoText: {
     fontSize: 13,
     color: colors.grey,
     lineHeight: 18,
@@ -349,11 +353,11 @@ const styles = StyleSheet.create({
   cancelButtonText: {
     color: colors.text,
   },
-  updateButton: {
+  saveButton: {
     flex: 1,
     backgroundColor: colors.primary,
   },
-  updateLoader: {
+  saveLoader: {
     position: 'absolute',
     right: 32,
     top: 26,

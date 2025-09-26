@@ -9,6 +9,7 @@ export const colors = {
   text: '#e3e3e3',       // Keeping light text
   grey: '#90CAF9',       // Light Blue Grey
   card: '#193cb8',       // Keeping dark card background
+  success: '#4CAF50',    // Green for success states
 };
 
 export const buttonStyles = StyleSheet.create({
