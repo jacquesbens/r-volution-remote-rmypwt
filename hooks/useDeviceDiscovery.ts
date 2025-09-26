@@ -234,7 +234,7 @@ export const useDeviceDiscovery = () => {
     }
   }, [devices, saveDevices]);
 
-  // Add device manually - SIMPLIFIED AND MORE PERMISSIVE
+  // Add device manually - COMPLETELY SIMPLIFIED VERSION
   const addDeviceManually = useCallback(async (ip: string, port: number = 80, customName?: string) => {
     console.log(`=== MANUAL DEVICE ADDITION STARTED ===`);
     console.log(`IP: ${ip}, Port: ${port}, Custom Name: ${customName}`);
@@ -244,78 +244,24 @@ export const useDeviceDiscovery = () => {
       const existingDevice = devices.find(d => d.ip === ip && d.port === port);
       if (existingDevice) {
         console.log('Device already exists:', existingDevice);
-        throw new Error('Cet appareil R_VOLUTION est déjà dans la liste');
+        throw new Error('Cet appareil est déjà dans la liste');
       }
 
-      console.log(`Checking basic reachability for manual addition: ${ip}:${port}`);
-      
-      // Simplified reachability check - just try to connect
-      let isReachable = false;
-      try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 3000);
-        
-        const response = await fetch(`http://${ip}:${port}/`, {
-          method: 'GET',
-          signal: controller.signal,
-        });
-        
-        clearTimeout(timeoutId);
-        // Accept any response that doesn't timeout - even errors indicate the device exists
-        isReachable = true;
-        console.log(`Device responded at ${ip}:${port} with status: ${response.status}`);
-      } catch (error) {
-        console.log(`Basic connectivity test failed for ${ip}:${port}:`, error);
-        // Try one more endpoint
-        try {
-          const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 3000);
-          
-          const response = await fetch(`http://${ip}:${port}/status`, {
-            method: 'GET',
-            signal: controller.signal,
-          });
-          
-          clearTimeout(timeoutId);
-          isReachable = true;
-          console.log(`Device responded at ${ip}:${port}/status with status: ${response.status}`);
-        } catch (secondError) {
-          console.log(`Second connectivity test also failed for ${ip}:${port}:`, secondError);
-        }
-      }
-      
-      if (!isReachable) {
-        console.log(`Manual addition failed: Device not reachable at ${ip}:${port}`);
-        throw new Error(`Aucun appareil trouvé à l'adresse ${ip}:${port}. Vérifiez que l'appareil est allumé et connecté au réseau.`);
-      }
-      
-      console.log(`Device is reachable, proceeding with manual addition...`);
-      
-      // For manual addition, we'll be more permissive and allow adding any reachable device
-      let deviceName = customName || `${TARGET_DEVICE_NAME} (Manuel)`;
-      
-      // Try to get actual device info if possible, but don't fail if we can't
-      try {
-        const actualName = await getDeviceInfo(ip, port);
-        if (actualName) {
-          deviceName = actualName;
-          console.log(`Got actual device name: ${actualName}`);
-        }
-      } catch (error) {
-        console.log(`Could not get device info, using default name: ${deviceName}`);
-      }
+      // For manual addition, we'll be very permissive
+      // Just create the device without extensive verification
+      const deviceName = customName || `${TARGET_DEVICE_NAME} (${ip})`;
       
       const newDevice: RVolutionDevice = {
         id: `manual_${ip}_${port}_${Date.now()}`,
         name: deviceName,
         ip: ip,
         port: port,
-        isOnline: true,
+        isOnline: true, // Assume online for manual addition
         lastSeen: new Date(),
         isManuallyAdded: true,
       };
       
-      console.log('Creating new device:', newDevice);
+      console.log('Creating new device without verification:', newDevice);
       
       const updatedDevices = [...devices, newDevice];
       setDevices(updatedDevices);
@@ -345,7 +291,26 @@ export const useDeviceDiscovery = () => {
     console.log('Updating device status for all devices...');
     const updatedDevices = await Promise.all(
       devices.map(async (device) => {
-        const isOnline = await checkDeviceReachability(device.ip, device.port);
+        // For manually added devices, we'll do a simple ping test
+        let isOnline = device.isOnline; // Keep current status as default
+        
+        try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 2000); // Shorter timeout for status check
+          
+          const response = await fetch(`http://${device.ip}:${device.port}/`, {
+            method: 'HEAD', // Use HEAD for lighter request
+            signal: controller.signal,
+          });
+          
+          clearTimeout(timeoutId);
+          isOnline = true; // If we get any response, consider it online
+          console.log(`Device ${device.ip} is online (status: ${response.status})`);
+        } catch (error) {
+          isOnline = false;
+          console.log(`Device ${device.ip} appears offline:`, error);
+        }
+        
         return {
           ...device,
           isOnline,

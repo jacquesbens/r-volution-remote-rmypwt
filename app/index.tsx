@@ -50,8 +50,8 @@ export default function MainScreen() {
       
       console.log('Showing success alert...');
       Alert.alert(
-        'Succès', 
-        `Appareil "${result.name}" ajouté avec succès à l'adresse ${ip}:${port}`,
+        'Appareil ajouté', 
+        `L'appareil "${result.name}" a été ajouté avec succès.\n\nAdresse: ${ip}:${port}\n\nVous pouvez maintenant le sélectionner dans la liste pour le contrôler.`,
         [{ 
           text: 'OK', 
           onPress: () => {
@@ -84,7 +84,7 @@ export default function MainScreen() {
     console.log('Removing device:', { deviceId, deviceName });
     Alert.alert(
       'Supprimer l\'appareil',
-      `Êtes-vous sûr de vouloir supprimer "${deviceName}" ?`,
+      `Êtes-vous sûr de vouloir supprimer "${deviceName}" de la liste ?`,
       [
         { text: 'Annuler', style: 'cancel', onPress: () => console.log('Remove cancelled') },
         { text: 'Supprimer', style: 'destructive', onPress: () => {
@@ -175,7 +175,7 @@ export default function MainScreen() {
         {/* Device List */}
         <View style={styles.deviceSection}>
           <Text style={styles.sectionTitle}>
-            Appareils R_VOLUTION découverts ({devices.length})
+            Appareils R_VOLUTION ({devices.length})
           </Text>
 
           {devices.length === 0 ? (
@@ -183,7 +183,7 @@ export default function MainScreen() {
               <Icon name="search" size={48} color={colors.grey} style={styles.emptyIcon} />
               <Text style={styles.emptyTitle}>Aucun appareil R_VOLUTION trouvé</Text>
               <Text style={styles.emptyText}>
-                Lancez une recherche automatique pour découvrir les appareils R_VOLUTION sur le réseau ou ajoutez-en un manuellement
+                Lancez une recherche automatique pour découvrir les appareils R_VOLUTION sur le réseau ou ajoutez-en un manuellement avec son adresse IP
               </Text>
             </View>
           ) : (
@@ -200,22 +200,43 @@ export default function MainScreen() {
 
         {/* Instructions */}
         <View style={styles.instructionsSection}>
-          <Text style={styles.instructionsTitle}>Instructions</Text>
-          <Text style={styles.instructionsText}>
-            • La recherche automatique scanne le réseau local pour trouver les appareils avec le nom réseau "R_VOLUTION"
-          </Text>
-          <Text style={styles.instructionsText}>
-            • Vous pouvez ajouter manuellement un appareil R_VOLUTION en saisissant son adresse IP
-          </Text>
-          <Text style={styles.instructionsText}>
-            • Assurez-vous que les appareils R_VOLUTION sont connectés au même réseau Wi-Fi
-          </Text>
-          <Text style={styles.instructionsText}>
-            • Le port 80 est utilisé par défaut pour la découverte et le contrôle des appareils
-          </Text>
-          <Text style={styles.instructionsText}>
-            • L'ajout manuel accepte tout appareil qui répond à l'adresse IP spécifiée
-          </Text>
+          <Text style={styles.instructionsTitle}>Instructions d'utilisation</Text>
+          
+          <View style={styles.instructionItem}>
+            <Icon name="wifi" size={16} color={colors.primary} />
+            <Text style={styles.instructionsText}>
+              <Text style={styles.bold}>Recherche automatique:</Text> Scanne le réseau local pour trouver les appareils avec le nom réseau "R_VOLUTION"
+            </Text>
+          </View>
+          
+          <View style={styles.instructionItem}>
+            <Icon name="add-circle" size={16} color={colors.primary} />
+            <Text style={styles.instructionsText}>
+              <Text style={styles.bold}>Ajout manuel:</Text> Ajoutez directement un appareil en saisissant son adresse IP (ex: 192.168.1.100)
+            </Text>
+          </View>
+          
+          <View style={styles.instructionItem}>
+            <Icon name="checkmark-circle" size={16} color={colors.primary} />
+            <Text style={styles.instructionsText}>
+              <Text style={styles.bold}>Réseau:</Text> Assurez-vous que les appareils R_VOLUTION sont connectés au même réseau Wi-Fi
+            </Text>
+          </View>
+          
+          <View style={styles.instructionItem}>
+            <Icon name="settings" size={16} color={colors.primary} />
+            <Text style={styles.instructionsText}>
+              <Text style={styles.bold}>Port:</Text> Le port 80 est utilisé par défaut pour la découverte et le contrôle des appareils
+            </Text>
+          </View>
+
+          <View style={styles.tipBox}>
+            <Icon name="bulb" size={16} color="#ff9500" />
+            <Text style={styles.tipText}>
+              <Text style={styles.bold}>Astuce:</Text> L'ajout manuel fonctionne même si l'appareil ne répond pas immédiatement. 
+              Vous pourrez tester la connexion après l'ajout.
+            </Text>
+          </View>
         </View>
       </ScrollView>
 
@@ -302,12 +323,37 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: colors.text,
+    marginBottom: 16,
+  },
+  instructionItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
     marginBottom: 12,
+    gap: 8,
   },
   instructionsText: {
     fontSize: 14,
     color: colors.grey,
     lineHeight: 20,
-    marginBottom: 8,
+    flex: 1,
+  },
+  bold: {
+    fontWeight: '600',
+    color: colors.text,
+  },
+  tipBox: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    backgroundColor: '#fff3cd',
+    padding: 12,
+    borderRadius: 8,
+    marginTop: 8,
+    gap: 8,
+  },
+  tipText: {
+    fontSize: 12,
+    color: '#856404',
+    lineHeight: 16,
+    flex: 1,
   },
 });

@@ -35,6 +35,19 @@ const AddDeviceModal: React.FC<AddDeviceModalProps> = ({ visible, onClose, onAdd
       return;
     }
 
+    // Validate IP ranges (0-255 for each octet)
+    const octets = ip.trim().split('.');
+    const invalidOctet = octets.find(octet => {
+      const num = parseInt(octet, 10);
+      return isNaN(num) || num < 0 || num > 255;
+    });
+    
+    if (invalidOctet) {
+      console.log('Validation failed: Invalid IP range');
+      Alert.alert('Erreur', 'Adresse IP invalide. Chaque partie doit être entre 0 et 255');
+      return;
+    }
+
     const portNumber = parseInt(port, 10);
     if (isNaN(portNumber) || portNumber < 1 || portNumber > 65535) {
       console.log('Validation failed: Invalid port');
@@ -97,7 +110,7 @@ const AddDeviceModal: React.FC<AddDeviceModalProps> = ({ visible, onClose, onAdd
             </Text>
 
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Adresse IP de l'appareil R_VOLUTION *</Text>
+              <Text style={styles.label}>Adresse IP de l'appareil *</Text>
               <TextInput
                 style={styles.input}
                 value={ip}
@@ -146,7 +159,15 @@ const AddDeviceModal: React.FC<AddDeviceModalProps> = ({ visible, onClose, onAdd
             <View style={styles.infoBox}>
               <Icon name="information-circle" size={16} color={colors.primary} />
               <Text style={styles.infoText}>
-                L'appareil doit être connecté au même réseau Wi-Fi et avoir le nom réseau "R_VOLUTION"
+                L'appareil sera ajouté directement à la liste sans vérification préalable. 
+                Vous pourrez tester la connexion après l'ajout.
+              </Text>
+            </View>
+
+            <View style={styles.warningBox}>
+              <Icon name="warning" size={16} color="#ff9500" />
+              <Text style={styles.warningText}>
+                Assurez-vous que l'appareil R_VOLUTION est allumé et connecté au même réseau Wi-Fi.
               </Text>
             </View>
           </View>
@@ -159,7 +180,7 @@ const AddDeviceModal: React.FC<AddDeviceModalProps> = ({ visible, onClose, onAdd
               textStyle={styles.cancelButtonText}
             />
             <Button
-              text={isLoading ? "Connexion..." : "Ajouter"}
+              text={isLoading ? "Ajout..." : "Ajouter"}
               onPress={() => {
                 console.log('Add button pressed, isLoading:', isLoading);
                 if (!isLoading) {
@@ -246,6 +267,21 @@ const styles = StyleSheet.create({
   infoText: {
     fontSize: 12,
     color: colors.grey,
+    lineHeight: 16,
+    flex: 1,
+  },
+  warningBox: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    backgroundColor: '#fff3cd',
+    padding: 12,
+    borderRadius: 8,
+    marginTop: 8,
+    gap: 8,
+  },
+  warningText: {
+    fontSize: 12,
+    color: '#856404',
     lineHeight: 16,
     flex: 1,
   },
