@@ -655,7 +655,7 @@ export const useDeviceDiscovery = () => {
     }
   }, [devices, saveDevices]);
 
-  // Update device status with enhanced checking
+  // Update device status with enhanced checking - FIXED VERSION
   const updateDeviceStatus = useCallback(async () => {
     if (devices.length === 0) {
       console.log('📊 No devices to update status for');
@@ -667,25 +667,42 @@ export const useDeviceDiscovery = () => {
     const updatedDevices = await Promise.all(
       devices.map(async (device) => {
         try {
-          console.log(`🔄 Checking ${device.name} (${device.ip}:${device.port})`);
+          console.log(`🔄 Checking ${device.name} (${device.ip}:${device.port}) - Manual: ${device.isManuallyAdded}`);
           
-          const result = await verifyRVolutionDevice(device.ip, device.port);
-          const isOnline = result.isRVolution;
+          let isOnline = false;
+          let deviceName = device.name;
+          let actualPort = device.port;
           
-          if (isOnline) {
-            console.log(`✅ ${device.name} is online and verified`);
+          if (device.isManuallyAdded) {
+            // For manually added devices, use basic connectivity check
+            console.log(`   📱 Manual device - using basic connectivity check`);
+            isOnline = await checkDeviceReachability(device.ip, device.port, 1);
+            console.log(`   ${isOnline ? '✅' : '❌'} Manual device ${device.name} is ${isOnline ? 'reachable' : 'offline'}`);
           } else {
-            // If not verified as R_VOLUTION, check basic connectivity
-            const isReachable = await checkDeviceReachability(device.ip, device.port);
-            console.log(`${isReachable ? '🔗' : '❌'} ${device.name} is ${isReachable ? 'reachable but not verified' : 'offline'}`);
+            // For auto-discovered devices, use full R_VOLUTION verification
+            console.log(`   🤖 Auto-discovered device - using R_VOLUTION verification`);
+            const result = await verifyRVolutionDevice(device.ip, device.port);
+            isOnline = result.isRVolution;
+            
+            if (isOnline) {
+              deviceName = result.deviceName || device.name;
+              actualPort = result.actualPort || device.port;
+              console.log(`   ✅ Auto device ${device.name} is online and verified`);
+            } else {
+              // If not verified as R_VOLUTION, check basic connectivity as fallback
+              const isReachable = await checkDeviceReachability(device.ip, device.port);
+              console.log(`   ${isReachable ? '🔗' : '❌'} Auto device ${device.name} is ${isReachable ? 'reachable but not verified' : 'offline'}`);
+              // For auto-discovered devices, we still require R_VOLUTION verification
+              isOnline = false;
+            }
           }
           
           return {
             ...device,
             isOnline,
             lastSeen: isOnline ? new Date() : device.lastSeen,
-            name: result.deviceName || device.name,
-            port: result.actualPort || device.port, // Update port if different one was found
+            name: deviceName,
+            port: actualPort,
           };
         } catch (error) {
           console.log(`❌ ${device.name} status check failed:`, error.message);
