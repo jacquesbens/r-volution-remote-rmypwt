@@ -312,7 +312,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   
-  // Volume controls - moved above special buttons
+  // Volume controls - moved above special buttons and updated to use Explorer button design
   volumeSection: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -322,10 +322,10 @@ const styles = StyleSheet.create({
   },
   
   volumeButton: {
-    backgroundColor: colors.surface,
-    borderRadius: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 20,
+    backgroundColor: colors.primary,
+    borderRadius: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
@@ -353,9 +353,10 @@ const styles = StyleSheet.create({
   },
   
   volumeText: {
-    color: colors.text,
-    fontSize: 12,
+    color: '#fff',
+    fontSize: 11,
     fontWeight: '600',
+    marginTop: 3,
   },
   
   // R_Video and Explorer buttons section - REDUCED SIZE
@@ -789,14 +790,14 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
           </ModernButton>
         </View>
 
-        {/* Volume Controls - Now positioned above R_Video and Explorer */}
+        {/* Volume Controls - Now positioned above R_Video and Explorer with Explorer button design */}
         <Text style={styles.sectionHeader}>Volume</Text>
         <View style={styles.volumeSection}>
           <ModernButton
             onPress={() => handleCommand('Volume Down', irCodes.VolumeDown)}
             style={styles.volumeButton}
           >
-            <Icon name="volume-low" size={18} color={colors.text} />
+            <Icon name="volume-low" size={16} color="#fff" />
             <Text style={styles.volumeText}>Vol -</Text>
           </ModernButton>
           
@@ -811,7 +812,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
             onPress={() => handleCommand('Volume Up', irCodes.VolumeUp)}
             style={styles.volumeButton}
           >
-            <Icon name="volume-high" size={18} color={colors.text} />
+            <Icon name="volume-high" size={16} color="#fff" />
             <Text style={styles.volumeText}>Vol +</Text>
           </ModernButton>
         </View>
