@@ -215,6 +215,39 @@ const styles = StyleSheet.create({
     fontSize: 20,      // Increased from 16
     fontWeight: '700',
   },
+
+  // Home, Menu, Back buttons section - positioned below navigation with same design as special buttons
+  navigationControlsSection: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    marginBottom: 20,
+  },
+
+  navigationControlButton: {
+    backgroundColor: colors.primary,
+    borderRadius: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: colors.border,
+    flex: 0.31,
+  },
+
+  navigationControlButtonText: {
+    color: '#fff',
+    fontSize: 11,
+    fontWeight: '600',
+    marginTop: 3,
+  },
   
   // Function buttons grid
   functionGrid: {
@@ -657,25 +690,36 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
           </View>
         </View>
 
-        {/* Function Buttons */}
-        <Text style={styles.sectionHeader}>Fonctions</Text>
-        <View style={styles.functionGrid}>
+        {/* Home, Menu, Back buttons - positioned below navigation with same design as special buttons */}
+        <View style={styles.navigationControlsSection}>
           <ModernButton
             onPress={() => handleCommand('Home', irCodes.Home)}
-            style={styles.functionButton}
+            style={styles.navigationControlButton}
           >
-            <Icon name="home" size={16} color={colors.text} />
-            <Text style={styles.functionButtonText}>Home</Text>
+            <Icon name="home" size={16} color="#fff" />
+            <Text style={styles.navigationControlButtonText}>Home</Text>
           </ModernButton>
           
           <ModernButton
             onPress={() => handleCommand('Menu', irCodes.Menu)}
-            style={styles.functionButton}
+            style={styles.navigationControlButton}
           >
-            <Icon name="menu" size={16} color={colors.text} />
-            <Text style={styles.functionButtonText}>Menu</Text>
+            <Icon name="menu" size={16} color="#fff" />
+            <Text style={styles.navigationControlButtonText}>Menu</Text>
           </ModernButton>
           
+          <ModernButton
+            onPress={() => handleCommand('Return', irCodes.Return)}
+            style={styles.navigationControlButton}
+          >
+            <Icon name="arrow-back" size={16} color="#fff" />
+            <Text style={styles.navigationControlButtonText}>Back</Text>
+          </ModernButton>
+        </View>
+
+        {/* Function Buttons - removed Home, Menu, and Back from here */}
+        <Text style={styles.sectionHeader}>Fonctions</Text>
+        <View style={styles.functionGrid}>
           <ModernButton
             onPress={() => handleCommand('Info', irCodes.Info)}
             style={styles.functionButton}
