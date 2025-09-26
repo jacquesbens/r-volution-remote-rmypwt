@@ -63,18 +63,6 @@ const DeviceCard: React.FC<DeviceCardProps> = ({ device, onPress, onRemove, onEd
     return date.toLocaleDateString();
   };
 
-  const getStatusColor = () => {
-    if (device.isOnline) return '#4CAF50';
-    if (lastTestResult?.success) return '#FF9500';
-    return '#F44336';
-  };
-
-  const getStatusText = () => {
-    if (device.isOnline) return 'En ligne';
-    if (lastTestResult?.success) return 'Testé OK';
-    return 'Hors ligne';
-  };
-
   // Helper function to safely check if lastSeen is valid
   const isValidLastSeen = (lastSeen: any): boolean => {
     if (!lastSeen) return false;
@@ -117,37 +105,21 @@ const DeviceCard: React.FC<DeviceCardProps> = ({ device, onPress, onRemove, onEd
               {device.ip}:{device.port}
             </Text>
           </View>
-
-          <View style={[styles.statusIndicator, { backgroundColor: getStatusColor() }]} />
         </View>
 
-        <View style={styles.details}>
-          <View style={styles.statusRow}>
-            <Text style={[styles.statusText, { color: getStatusColor() }]}>
-              {getStatusText()}
+        {lastTestResult && (
+          <View style={styles.testResult}>
+            <Icon 
+              name={lastTestResult.success ? 'checkmark-circle' : 'close-circle'} 
+              size={12} 
+              color={lastTestResult.success ? '#4CAF50' : '#F44336'} 
+            />
+            <Text style={styles.testResultText}>
+              Dernier test: {lastTestResult.success ? 'Réussi' : 'Échoué'} 
+              {' '}({formatLastSeen(lastTestResult.timestamp)})
             </Text>
-            
-            {isValidLastSeen(device.lastSeen) && (
-              <Text style={styles.lastSeenText}>
-                {formatLastSeen(device.lastSeen instanceof Date ? device.lastSeen : new Date(device.lastSeen))}
-              </Text>
-            )}
           </View>
-
-          {lastTestResult && (
-            <View style={styles.testResult}>
-              <Icon 
-                name={lastTestResult.success ? 'checkmark-circle' : 'close-circle'} 
-                size={12} 
-                color={lastTestResult.success ? '#4CAF50' : '#F44336'} 
-              />
-              <Text style={styles.testResultText}>
-                Dernier test: {lastTestResult.success ? 'Réussi' : 'Échoué'} 
-                {' '}({formatLastSeen(lastTestResult.timestamp)})
-              </Text>
-            </View>
-          )}
-        </View>
+        )}
       </TouchableOpacity>
 
       <View style={styles.actions}>
@@ -162,7 +134,6 @@ const DeviceCard: React.FC<DeviceCardProps> = ({ device, onPress, onRemove, onEd
               'Informations de l\'appareil',
               `Nom: ${device.name}\n` +
               `Adresse: ${device.ip}:${device.port}\n` +
-              `Statut: ${getStatusText()}\n` +
               `Type: ${device.isManuallyAdded ? 'Ajout manuel' : 'Découverte automatique'}\n` +
               `Dernière connexion: ${lastSeenText}`,
               [{ text: 'OK' }]
@@ -253,32 +224,11 @@ const styles = StyleSheet.create({
     color: colors.grey,
     fontFamily: 'monospace',
   },
-  statusIndicator: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    marginTop: 4,
-  },
-  details: {
-    gap: 6,
-  },
-  statusRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  statusText: {
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  lastSeenText: {
-    fontSize: 12,
-    color: colors.grey,
-  },
   testResult: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
+    marginTop: 8,
   },
   testResultText: {
     fontSize: 12,
