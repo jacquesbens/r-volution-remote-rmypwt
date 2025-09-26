@@ -153,18 +153,6 @@ const DeviceCard: React.FC<DeviceCardProps> = ({ device, onPress, onRemove, onEd
       <View style={styles.actions}>
         <TouchableOpacity
           style={styles.actionButton}
-          onPress={handleTestConnection}
-          disabled={isTesting}
-        >
-          {isTesting ? (
-            <ActivityIndicator size="small" color={colors.primary} />
-          ) : (
-            <Icon name="wifi" size={16} color={colors.primary} />
-          )}
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.actionButton}
           onPress={() => {
             const lastSeenText = isValidLastSeen(device.lastSeen) 
               ? formatLastSeen(device.lastSeen instanceof Date ? device.lastSeen : new Date(device.lastSeen))
@@ -186,7 +174,7 @@ const DeviceCard: React.FC<DeviceCardProps> = ({ device, onPress, onRemove, onEd
 
         {onEdit && (
           <TouchableOpacity
-            style={styles.actionButton}
+            style={[styles.actionButton, styles.editButton]}
             onPress={onEdit}
           >
             <Icon name="create-outline" size={16} color={colors.primary} />
@@ -311,6 +299,11 @@ const styles = StyleSheet.create({
     minWidth: 32,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  editButton: {
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: colors.grey + '30',
   },
   removeButton: {
     backgroundColor: '#F44336' + '10',
