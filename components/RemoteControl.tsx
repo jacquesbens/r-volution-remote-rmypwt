@@ -239,6 +239,39 @@ const styles = StyleSheet.create({
     marginTop: 2,
     textAlign: 'center',
   },
+
+  // NEW: Subtitle and Audio buttons section - positioned below media controls extended
+  subtitleAudioSection: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    marginBottom: 20,
+  },
+
+  subtitleAudioButton: {
+    backgroundColor: colors.primary,
+    borderRadius: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: colors.border,
+    flex: 0.48,
+  },
+
+  subtitleAudioButtonText: {
+    color: '#fff',
+    fontSize: 11,
+    fontWeight: '600',
+    marginTop: 3,
+  },
   
   // Number pad - Updated to use same design as Explorer button
   numberPad: {
@@ -364,7 +397,7 @@ const styles = StyleSheet.create({
     marginTop: 3,
   },
   
-  // Function buttons grid
+  // Function buttons grid - Updated to remove Audio and Subtitle buttons
   functionGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -802,6 +835,25 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
           </ModernButton>
         </View>
 
+        {/* NEW: Subtitle and Audio Buttons Section - positioned below media controls extended */}
+        <View style={styles.subtitleAudioSection}>
+          <ModernButton
+            onPress={() => handleCommand('Subtitle', irCodes.Subtitle)}
+            style={styles.subtitleAudioButton}
+          >
+            <Icon name="text" size={16} color="#fff" />
+            <Text style={styles.subtitleAudioButtonText}>Subtitle</Text>
+          </ModernButton>
+          
+          <ModernButton
+            onPress={() => handleCommand('Audio', irCodes.Audio)}
+            style={styles.subtitleAudioButton}
+          >
+            <Icon name="musical-notes" size={16} color="#fff" />
+            <Text style={styles.subtitleAudioButtonText}>Audio</Text>
+          </ModernButton>
+        </View>
+
         {/* Number Pad - Updated to use same design as Explorer button */}
         <View style={styles.numberPad}>
           <View style={styles.numberRow}>
@@ -926,7 +978,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
           </ModernButton>
         </View>
 
-        {/* Function Buttons - Mouse button removed */}
+        {/* Function Buttons - Updated to remove Audio and Subtitle buttons */}
         <View style={styles.functionGrid}>
           <ModernButton
             onPress={() => handleCommand('Info', irCodes.Info)}
@@ -942,22 +994,6 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
           >
             <Icon name="cube" size={16} color={colors.text} />
             <Text style={styles.functionButtonText}>3D</Text>
-          </ModernButton>
-          
-          <ModernButton
-            onPress={() => handleCommand('Audio', irCodes.Audio)}
-            style={styles.functionButton}
-          >
-            <Icon name="musical-notes" size={16} color={colors.text} />
-            <Text style={styles.functionButtonText}>Audio</Text>
-          </ModernButton>
-          
-          <ModernButton
-            onPress={() => handleCommand('Subtitle', irCodes.Subtitle)}
-            style={styles.functionButton}
-          >
-            <Icon name="text" size={16} color={colors.text} />
-            <Text style={styles.functionButtonText}>Subtitle</Text>
           </ModernButton>
           
           <ModernButton
