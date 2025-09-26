@@ -150,7 +150,7 @@ const EditDeviceModal: React.FC<EditDeviceModalProps> = ({ visible, device, onCl
               style={styles.input}
               value={name}
               onChangeText={setName}
-              placeholder="Mon lecteur R_VOLUTION"
+              placeholder="Mon lecteur R_volution"
               placeholderTextColor={colors.grey}
               autoCapitalize="words"
             />

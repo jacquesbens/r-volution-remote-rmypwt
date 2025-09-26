@@ -6,7 +6,7 @@ import { Platform } from 'react-native';
 
 const STORAGE_KEY = 'rvolution_devices';
 const FAST_SCAN_TIMEOUT = 800; // Much faster timeout
-const TARGET_DEVICE_NAME = 'R_VOLUTION';
+const TARGET_DEVICE_NAME = 'R_volution';
 const CONCURRENT_REQUESTS = 50; // Much higher concurrency
 const HTTP_PORT = 80; // Fixed port for HTTP protocol
 const CGI_ENDPOINT = '/cgi-bin/do?'; // The fast endpoint you mentioned
@@ -166,8 +166,9 @@ export const useDeviceDiscovery = () => {
           responseText = 'response_received';
         }
 
-        // Enhanced R_VOLUTION detection patterns - more comprehensive
+        // Enhanced R_volution detection patterns - more comprehensive
         const detectionPatterns = [
+          'R_volution',
           'R_VOLUTION',
           'R-VOLUTION', 
           'RVOLUTION',
@@ -179,12 +180,12 @@ export const useDeviceDiscovery = () => {
           'REVOLUTION',
         ];
         
-        // Check for R_VOLUTION patterns in response
+        // Check for R_volution patterns in response
         const hasRVolutionPattern = detectionPatterns.some(pattern => 
           responseText.toLowerCase().includes(pattern.toLowerCase())
         );
         
-        // Check for R_VOLUTION patterns in response data
+        // Check for R_volution patterns in response data
         const hasRVolutionInData = responseData && (
           responseData.name?.toLowerCase().includes('volution') ||
           responseData.deviceName?.toLowerCase().includes('volution') ||
@@ -221,13 +222,13 @@ export const useDeviceDiscovery = () => {
           
           // If we found a pattern in the response text, try to extract a better name
           if (hasRVolutionPattern) {
-            const match = responseText.match(/R[_-]?VOLUTION[^"'\s]*/i);
+            const match = responseText.match(/R[_-]?volution[^"'\s]*/i);
             if (match) {
               deviceName = match[0];
             }
           }
           
-          console.log(`✅ R_VOLUTION device found: ${deviceName} at ${ip}:${HTTP_PORT}`);
+          console.log(`✅ R_volution device found: ${deviceName} at ${ip}:${HTTP_PORT}`);
           
           return { 
             isRVolution: true, 
@@ -304,7 +305,7 @@ export const useDeviceDiscovery = () => {
       
       const promise = verifyRVolutionDevice(ip).then(async (result) => {
         if (result.isRVolution) {
-          console.log(`🎉 R_VOLUTION device discovered: ${result.deviceName} at ${ip}:${HTTP_PORT}`);
+          console.log(`🎉 R_volution device discovered: ${result.deviceName} at ${ip}:${HTTP_PORT}`);
           
           // Generate unique ID with timestamp and random component to avoid duplicates
           const uniqueId = `discovered_${ip}_${HTTP_PORT}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -353,7 +354,7 @@ export const useDeviceDiscovery = () => {
     setDiscoveredDevices([]);
     
     try {
-      console.log('🚀 Starting COMPREHENSIVE R_VOLUTION device discovery...');
+      console.log('🚀 Starting COMPREHENSIVE R_volution device discovery...');
       console.log(`🎯 Target device name: ${TARGET_DEVICE_NAME}`);
       console.log(`🔌 Protocol: HTTP on port ${HTTP_PORT}`);
       console.log(`🚀 Fast endpoint: ${CGI_ENDPOINT}`);
@@ -390,7 +391,7 @@ export const useDeviceDiscovery = () => {
             const batchDevices = await scanIPBatch(baseIP, start, end);
             
             if (batchDevices.length > 0) {
-              console.log(`✅ Found ${batchDevices.length} R_VOLUTION devices in batch ${baseIP}.${start}-${end}`);
+              console.log(`✅ Found ${batchDevices.length} R_volution devices in batch ${baseIP}.${start}-${end}`);
               
               // Add to network devices
               networkDevices.push(...batchDevices);
@@ -442,21 +443,21 @@ export const useDeviceDiscovery = () => {
       // Update final discovered devices list
       setDiscoveredDevices(uniqueDevices);
       
-      console.log(`🎉 COMPREHENSIVE discovery completed! Found ${uniqueDevices.length} unique R_VOLUTION devices total:`);
+      console.log(`🎉 COMPREHENSIVE discovery completed! Found ${uniqueDevices.length} unique R_volution devices total:`);
       uniqueDevices.forEach((device, index) => {
         console.log(`   ${index + 1}. ${device.name} at ${device.ip}:${device.port}`);
       });
       
       if (uniqueDevices.length === 0) {
-        console.log(`🔍 Comprehensive discovery completed. No R_VOLUTION devices found.`);
+        console.log(`🔍 Comprehensive discovery completed. No R_volution devices found.`);
         console.log(`💡 Troubleshooting suggestions:`);
-        console.log(`   1. Verify R_VOLUTION devices are powered on`);
+        console.log(`   1. Verify R_volution devices are powered on`);
         console.log(`   2. Ensure devices are connected to Wi-Fi`);
         console.log(`   3. Check that devices are on the same network`);
         console.log(`   4. Verify devices respond to ${CGI_ENDPOINT} endpoint`);
         console.log(`   5. Try manual addition with known IP address`);
       } else {
-        console.log(`✅ SUCCESS: Found ${uniqueDevices.length} R_VOLUTION device${uniqueDevices.length > 1 ? 's' : ''} on the network!`);
+        console.log(`✅ SUCCESS: Found ${uniqueDevices.length} R_volution device${uniqueDevices.length > 1 ? 's' : ''} on the network!`);
       }
       
     } catch (error) {
@@ -549,8 +550,8 @@ export const useDeviceDiscovery = () => {
       const isReachable = await checkDeviceReachability(ip);
       console.log(`🔗 Device reachability: ${isReachable ? 'YES' : 'NO'}`);
       
-      // Try to verify as R_VOLUTION device using fast method
-      console.log('🎵 Fast verification as R_VOLUTION device...');
+      // Try to verify as R_volution device using fast method
+      console.log('🎵 Fast verification as R_volution device...');
       const verificationResult = await verifyRVolutionDevice(ip);
       
       let deviceName = customName || `${TARGET_DEVICE_NAME} (${ip})`;
@@ -558,9 +559,9 @@ export const useDeviceDiscovery = () => {
       
       if (isVerified) {
         deviceName = verificationResult.deviceName || deviceName;
-        console.log(`✅ Device verified as R_VOLUTION: ${deviceName}`);
+        console.log(`✅ Device verified as R_volution: ${deviceName}`);
       } else if (isReachable) {
-        console.log(`⚠️  Device is reachable but not verified as R_VOLUTION`);
+        console.log(`⚠️  Device is reachable but not verified as R_volution`);
         console.log(`   Adding anyway as manual device`);
       } else {
         console.log(`❌ Device is not reachable`);
@@ -725,10 +726,10 @@ export const useDeviceDiscovery = () => {
               deviceName = result.deviceName || device.name;
               console.log(`   ✅ Auto device ${device.name} is online and verified`);
             } else {
-              // If not verified as R_VOLUTION, check basic connectivity as fallback
+              // If not verified as R_volution, check basic connectivity as fallback
               const isReachable = await checkDeviceReachability(device.ip);
               console.log(`   ${isReachable ? '🔗' : '❌'} Auto device ${device.name} is ${isReachable ? 'reachable but not verified' : 'offline'}`);
-              // For auto-discovered devices, we still require R_VOLUTION verification
+              // For auto-discovered devices, we still require R_volution verification
               isOnline = false;
             }
           }
@@ -805,7 +806,7 @@ export const useDeviceDiscovery = () => {
       console.log(`   ${rvolutionDevices.length} R_VOLUTION devices found`);
       
       if (rvolutionDevices.length > 0) {
-        console.log('🎉 R_VOLUTION devices found:');
+        console.log('🎉 R_volution devices found:');
         rvolutionDevices.forEach(device => {
           console.log(`   🎵 ${device.deviceName || 'Unknown'} at ${device.ip}:${HTTP_PORT}`);
         });

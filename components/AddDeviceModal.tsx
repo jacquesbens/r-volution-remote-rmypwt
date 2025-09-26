@@ -136,7 +136,7 @@ const AddDeviceModal: React.FC<AddDeviceModalProps> = ({ visible, onClose, onAdd
               style={styles.input}
               value={name}
               onChangeText={setName}
-              placeholder="Mon lecteur R_VOLUTION"
+              placeholder="Mon lecteur R_volution"
               placeholderTextColor={colors.grey}
               autoCapitalize="words"
             />
@@ -147,7 +147,7 @@ const AddDeviceModal: React.FC<AddDeviceModalProps> = ({ visible, onClose, onAdd
             <View style={styles.protocolInfoContent}>
               <Text style={styles.protocolInfoTitle}>Protocole utilisé :</Text>
               <Text style={styles.protocolInfoText}>HTTP sur port 80 (protocole web standard) - utilisé automatiquement</Text>
-              <Text style={styles.protocolInfoSubtext}>Optimisé pour la découverte automatique des appareils R_VOLUTION</Text>
+              <Text style={styles.protocolInfoSubtext}>Optimisé pour la découverte automatique des appareils R_volution</Text>
             </View>
           </View>
 
@@ -170,7 +170,7 @@ const AddDeviceModal: React.FC<AddDeviceModalProps> = ({ visible, onClose, onAdd
               <Text style={styles.infoText}>• Vérifiez que vous êtes sur le même réseau</Text>
               <Text style={styles.infoText}>• L'appareil utilise automatiquement le protocole HTTP sur port 80</Text>
               <Text style={styles.infoText}>• Vérifiez que l'appareil accepte les connexions HTTP</Text>
-              <Text style={styles.infoText}>• Consultez la documentation de votre appareil R_VOLUTION</Text>
+              <Text style={styles.infoText}>• Consultez la documentation de votre appareil R_volution</Text>
             </View>
           </View>
         </ScrollView>

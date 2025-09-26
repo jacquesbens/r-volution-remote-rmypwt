@@ -39,8 +39,8 @@ const AddDeviceScreen: React.FC = () => {
       Alert.alert(
         'Scan terminé',
         foundCount > 0 
-          ? `${foundCount} appareil${foundCount > 1 ? 's' : ''} R_VOLUTION trouvé${foundCount > 1 ? 's' : ''} ! Vous pouvez maintenant les ajouter à votre liste.`
-          : 'Aucun appareil R_VOLUTION trouvé sur le réseau. Vérifiez que vos appareils sont allumés et connectés au Wi-Fi.',
+          ? `${foundCount} appareil${foundCount > 1 ? 's' : ''} R_volution trouvé${foundCount > 1 ? 's' : ''} ! Vous pouvez maintenant les ajouter à votre liste.`
+          : 'Aucun appareil R_volution trouvé sur le réseau. Vérifiez que vos appareils sont allumés et connectés au Wi-Fi.',
         [{ text: 'OK' }]
       );
     } catch (error) {
@@ -183,7 +183,7 @@ const AddDeviceScreen: React.FC = () => {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Ajout automatique</Text>
             <Text style={styles.sectionDescription}>
-              Scannez votre réseau pour trouver des appareils R_VOLUTION
+              Scannez votre réseau pour trouver des appareils R_volution
             </Text>
             
             <Button
@@ -205,7 +205,7 @@ const AddDeviceScreen: React.FC = () => {
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Appareils découverts ({discoveredDevices.length})</Text>
               <Text style={styles.sectionDescription}>
-                Appareils R_VOLUTION trouvés sur le réseau. Appuyez sur "Ajouter" pour les sauvegarder.
+                Appareils R_volution trouvés sur le réseau. Appuyez sur "Ajouter" pour les sauvegarder.
               </Text>
               
               <View style={styles.devicesList}>
