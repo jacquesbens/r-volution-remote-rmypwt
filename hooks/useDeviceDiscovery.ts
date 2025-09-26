@@ -565,6 +565,19 @@ export const useDeviceDiscovery = () => {
     console.log('✅ Device removed successfully');
   }, [devices, saveDevices]);
 
+  // Rename device
+  const renameDevice = useCallback(async (deviceId: string, newName: string) => {
+    console.log('✏️ Renaming device:', deviceId, 'to', newName);
+    const updatedDevices = devices.map(device => 
+      device.id === deviceId 
+        ? { ...device, name: newName.trim() }
+        : device
+    );
+    setDevices(updatedDevices);
+    await saveDevices(updatedDevices);
+    console.log('✅ Device renamed successfully');
+  }, [devices, saveDevices]);
+
   // Update device status with enhanced checking
   const updateDeviceStatus = useCallback(async () => {
     if (devices.length === 0) {
@@ -746,6 +759,7 @@ export const useDeviceDiscovery = () => {
     scanNetwork,
     addDeviceManually,
     removeDevice,
+    renameDevice,
     updateDeviceStatus,
     verifyRVolutionDevice,
     checkDeviceReachability,
