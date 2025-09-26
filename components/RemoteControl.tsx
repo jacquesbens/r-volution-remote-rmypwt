@@ -129,6 +129,40 @@ const styles = StyleSheet.create({
     height: 64,
     borderRadius: 32,
   },
+
+  // New media control buttons section
+  mediaControlsExtended: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    marginBottom: 20,
+  },
+
+  mediaControlButton: {
+    backgroundColor: colors.primary,
+    borderRadius: 10,
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: colors.border,
+    flex: 0.18,
+  },
+
+  mediaControlButtonText: {
+    color: '#fff',
+    fontSize: 9,
+    fontWeight: '600',
+    marginTop: 2,
+    textAlign: 'center',
+  },
   
   // Number pad - Updated to use same design as Explorer button
   numberPad: {
@@ -478,6 +512,13 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
     'VolumeDown': 'E8174040',
     'VolumeUp': 'E7184040',
     'Zoom': 'E2104040',
+    
+    // New requested buttons
+    'Stop': 'BD424040',
+    'Skip60Forward': 'EE114040',
+    'Skip60Rewind': 'EF104040',
+    'Skip10Forward': 'BF404040',
+    'Skip10Rewind': 'DF204040',
   };
 
   const handleCommand = async (commandName: string, irCode: string) => {
@@ -584,6 +625,49 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
             style={styles.mediaButton}
           >
             <Icon name="play-skip-forward" size={20} color={colors.text} />
+          </ModernButton>
+        </View>
+
+        {/* New Media Control Buttons - Stop, Skip Forward/Rewind */}
+        <View style={styles.mediaControlsExtended}>
+          <ModernButton
+            onPress={() => handleCommand('Stop', irCodes.Stop)}
+            style={styles.mediaControlButton}
+          >
+            <Icon name="stop" size={14} color="#fff" />
+            <Text style={styles.mediaControlButtonText}>Stop</Text>
+          </ModernButton>
+          
+          <ModernButton
+            onPress={() => handleCommand('10s Rewind', irCodes.Skip10Rewind)}
+            style={styles.mediaControlButton}
+          >
+            <Icon name="play-back" size={12} color="#fff" />
+            <Text style={styles.mediaControlButtonText}>-10s</Text>
+          </ModernButton>
+          
+          <ModernButton
+            onPress={() => handleCommand('10s Forward', irCodes.Skip10Forward)}
+            style={styles.mediaControlButton}
+          >
+            <Icon name="play-forward" size={12} color="#fff" />
+            <Text style={styles.mediaControlButtonText}>+10s</Text>
+          </ModernButton>
+          
+          <ModernButton
+            onPress={() => handleCommand('60s Rewind', irCodes.Skip60Rewind)}
+            style={styles.mediaControlButton}
+          >
+            <Icon name="play-back" size={12} color="#fff" />
+            <Text style={styles.mediaControlButtonText}>-60s</Text>
+          </ModernButton>
+          
+          <ModernButton
+            onPress={() => handleCommand('60s Forward', irCodes.Skip60Forward)}
+            style={styles.mediaControlButton}
+          >
+            <Icon name="play-forward" size={12} color="#fff" />
+            <Text style={styles.mediaControlButtonText}>+60s</Text>
           </ModernButton>
         </View>
 
