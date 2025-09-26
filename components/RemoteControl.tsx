@@ -149,37 +149,7 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
   },
 
-  // Stop button - positioned below play button
-  stopButtonContainer: {
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-
-  stopButton: {
-    backgroundColor: colors.primary,
-    borderRadius: 10,
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-    borderWidth: 1,
-    borderColor: colors.border,
-    minWidth: 80,
-  },
-
-  stopButtonText: {
-    color: '#fff',
-    fontSize: 11,
-    fontWeight: '600',
-    marginTop: 3,
-  },
-
-  // Page buttons section - positioned below CH buttons
+  // Page buttons section - positioned below CH buttons with Stop button on same line as Page-
   pageButtonsSection: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -206,6 +176,30 @@ const styles = StyleSheet.create({
   },
 
   pageButtonText: {
+    color: '#fff',
+    fontSize: 11,
+    fontWeight: '600',
+    marginTop: 3,
+  },
+
+  stopButton: {
+    backgroundColor: colors.primary,
+    borderRadius: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: colors.border,
+    minWidth: 80,
+  },
+
+  stopButtonText: {
     color: '#fff',
     fontSize: 11,
     fontWeight: '600',
@@ -746,7 +740,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
           </ModernButton>
         </View>
 
-        {/* Page Buttons Section - positioned below CH buttons */}
+        {/* Page Buttons Section - positioned below CH buttons with Stop button on same line as Page- */}
         <View style={styles.pageButtonsSection}>
           <ModernButton
             onPress={() => handleCommand('Page Down', irCodes.PageDown)}
@@ -756,7 +750,13 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
             <Text style={styles.pageButtonText}>Page -</Text>
           </ModernButton>
           
-          <View style={{ flex: 0.3 }} />
+          <ModernButton
+            onPress={() => handleCommand('Stop', irCodes.Stop)}
+            style={styles.stopButton}
+          >
+            <Icon name="stop" size={16} color="#fff" />
+            <Text style={styles.stopButtonText}>Stop</Text>
+          </ModernButton>
           
           <ModernButton
             onPress={() => handleCommand('Page Up', irCodes.PageUp)}
@@ -764,17 +764,6 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
           >
             <Icon name="arrow-up" size={16} color="#fff" />
             <Text style={styles.pageButtonText}>Page +</Text>
-          </ModernButton>
-        </View>
-
-        {/* Stop Button - positioned below play button */}
-        <View style={styles.stopButtonContainer}>
-          <ModernButton
-            onPress={() => handleCommand('Stop', irCodes.Stop)}
-            style={styles.stopButton}
-          >
-            <Icon name="stop" size={16} color="#fff" />
-            <Text style={styles.stopButtonText}>Stop</Text>
           </ModernButton>
         </View>
 
@@ -937,7 +926,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
           </ModernButton>
         </View>
 
-        {/* Function Buttons */}
+        {/* Function Buttons - Mouse button removed */}
         <View style={styles.functionGrid}>
           <ModernButton
             onPress={() => handleCommand('Info', irCodes.Info)}
@@ -977,14 +966,6 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
           >
             <Icon name="search" size={16} color={colors.text} />
             <Text style={styles.functionButtonText}>Zoom</Text>
-          </ModernButton>
-          
-          <ModernButton
-            onPress={() => handleCommand('Mouse', irCodes.Mouse)}
-            style={styles.functionButton}
-          >
-            <Icon name="hand-left" size={16} color={colors.text} />
-            <Text style={styles.functionButtonText}>Mouse</Text>
           </ModernButton>
           
           <ModernButton
