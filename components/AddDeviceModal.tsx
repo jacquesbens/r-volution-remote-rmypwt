@@ -13,7 +13,6 @@ interface AddDeviceModalProps {
 
 const AddDeviceModal: React.FC<AddDeviceModalProps> = ({ visible, onClose, onAddDevice }) => {
   const [ip, setIp] = useState('');
-  const [port, setPort] = useState('80');
   const [name, setName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isTestingConnection, setIsTestingConnection] = useState(false);
@@ -24,15 +23,10 @@ const AddDeviceModal: React.FC<AddDeviceModalProps> = ({ visible, onClose, onAdd
       return;
     }
 
-    const portNumber = parseInt(port, 10);
-    if (isNaN(portNumber) || portNumber < 1 || portNumber > 65535) {
-      Alert.alert('Erreur', 'Le port doit être un nombre entre 1 et 65535.');
-      return;
-    }
-
     setIsLoading(true);
     try {
-      await onAddDevice(ip.trim(), portNumber, name.trim() || undefined);
+      // Always use port 80
+      await onAddDevice(ip.trim(), 80, name.trim() || undefined);
       handleClose();
     } catch (error) {
       console.log('AddDeviceModal: Error adding device:', error);
@@ -48,21 +42,15 @@ const AddDeviceModal: React.FC<AddDeviceModalProps> = ({ visible, onClose, onAdd
       return;
     }
 
-    const portNumber = parseInt(port, 10);
-    if (isNaN(portNumber) || portNumber < 1 || portNumber > 65535) {
-      Alert.alert('Erreur', 'Le port doit être un nombre entre 1 et 65535.');
-      return;
-    }
-
     setIsTestingConnection(true);
     try {
-      console.log(`Testing connection to ${ip.trim()}:${portNumber}`);
+      console.log(`Testing connection to ${ip.trim()}:80`);
       
-      // Simple connectivity test
+      // Simple connectivity test using port 80
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 8000);
       
-      const response = await fetch(`http://${ip.trim()}:${portNumber}/`, {
+      const response = await fetch(`http://${ip.trim()}:80/`, {
         method: 'HEAD',
         signal: controller.signal,
       });
@@ -72,7 +60,7 @@ const AddDeviceModal: React.FC<AddDeviceModalProps> = ({ visible, onClose, onAdd
       if (response.ok || response.status < 500) {
         Alert.alert(
           'Test de connexion',
-          `✅ L'appareil à l'adresse ${ip.trim()}:${portNumber} répond.\n\nStatus: ${response.status} ${response.statusText}`,
+          `✅ L'appareil à l'adresse ${ip.trim()}:80 répond.\n\nStatus: ${response.status} ${response.statusText}`,
           [{ text: 'OK' }]
         );
       } else {
@@ -86,7 +74,7 @@ const AddDeviceModal: React.FC<AddDeviceModalProps> = ({ visible, onClose, onAdd
       console.log('Connection test failed:', error);
       Alert.alert(
         'Test de connexion',
-        `❌ Impossible de se connecter à ${ip.trim()}:${portNumber}.\n\nErreur: ${error.message}`,
+        `❌ Impossible de se connecter à ${ip.trim()}:80.\n\nErreur: ${error.message}`,
         [{ text: 'OK' }]
       );
     } finally {
@@ -96,33 +84,10 @@ const AddDeviceModal: React.FC<AddDeviceModalProps> = ({ visible, onClose, onAdd
 
   const handleClose = () => {
     setIp('');
-    setPort('80');
     setName('');
     setIsLoading(false);
     setIsTestingConnection(false);
     onClose();
-  };
-
-  const getCommonIPs = () => {
-    return [
-      '192.168.1.100',
-      '192.168.1.10',
-      '192.168.0.100',
-      '192.168.0.10',
-      '192.168.2.100',
-      '10.0.0.100',
-    ];
-  };
-
-  const getCommonPorts = () => {
-    return [
-      { port: '80', label: '80 (HTTP standard)' },
-      { port: '8080', label: '8080 (HTTP alternatif)' },
-      { port: '8000', label: '8000 (Développement)' },
-      { port: '3000', label: '3000 (Node.js)' },
-      { port: '5000', label: '5000 (Flask/Python)' },
-      { port: '9000', label: '9000 (Divers)' },
-    ];
   };
 
   return (
@@ -154,52 +119,6 @@ const AddDeviceModal: React.FC<AddDeviceModalProps> = ({ visible, onClose, onAdd
               autoCapitalize="none"
               autoCorrect={false}
             />
-            
-            <Text style={styles.sectionTitle}>IPs communes :</Text>
-            <View style={styles.commonOptions}>
-              {getCommonIPs().map((commonIP) => (
-                <TouchableOpacity
-                  key={commonIP}
-                  style={styles.commonOption}
-                  onPress={() => setIp(commonIP)}
-                >
-                  <Text style={styles.commonOptionText}>{commonIP}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
-
-          <View style={styles.section}>
-            <Text style={styles.label}>Port</Text>
-            <TextInput
-              style={styles.input}
-              value={port}
-              onChangeText={setPort}
-              placeholder="80"
-              placeholderTextColor={colors.grey}
-              keyboardType="numeric"
-            />
-            
-            <Text style={styles.sectionTitle}>Ports communes :</Text>
-            <View style={styles.portOptions}>
-              {getCommonPorts().map((portOption) => (
-                <TouchableOpacity
-                  key={portOption.port}
-                  style={[
-                    styles.portOption,
-                    port === portOption.port && styles.portOptionSelected
-                  ]}
-                  onPress={() => setPort(portOption.port)}
-                >
-                  <Text style={[
-                    styles.portOptionText,
-                    port === portOption.port && styles.portOptionTextSelected
-                  ]}>
-                    {portOption.label}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
           </View>
 
           <View style={styles.section}>
@@ -212,6 +131,14 @@ const AddDeviceModal: React.FC<AddDeviceModalProps> = ({ visible, onClose, onAdd
               placeholderTextColor={colors.grey}
               autoCapitalize="words"
             />
+          </View>
+
+          <View style={styles.portInfoSection}>
+            <Icon name="information-circle" size={20} color={colors.primary} />
+            <View style={styles.portInfoContent}>
+              <Text style={styles.portInfoTitle}>Port utilisé :</Text>
+              <Text style={styles.portInfoText}>Port 80 (HTTP standard) - utilisé automatiquement</Text>
+            </View>
           </View>
 
           <View style={styles.testSection}>
@@ -231,7 +158,7 @@ const AddDeviceModal: React.FC<AddDeviceModalProps> = ({ visible, onClose, onAdd
               <Text style={styles.infoTitle}>Conseils :</Text>
               <Text style={styles.infoText}>• Assurez-vous que l'appareil est allumé et connecté au Wi-Fi</Text>
               <Text style={styles.infoText}>• Vérifiez que vous êtes sur le même réseau</Text>
-              <Text style={styles.infoText}>• Testez différents ports si le port 80 ne fonctionne pas</Text>
+              <Text style={styles.infoText}>• L'appareil utilise automatiquement le port 80 (HTTP standard)</Text>
               <Text style={styles.infoText}>• Consultez la documentation de votre appareil R_VOLUTION</Text>
             </View>
           </View>
@@ -306,52 +233,27 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: colors.text,
   },
-  sectionTitle: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: colors.grey,
-    marginTop: 16,
-    marginBottom: 8,
-  },
-  commonOptions: {
+  portInfoSection: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  commonOption: {
-    backgroundColor: colors.backgroundAlt,
-    borderWidth: 1,
-    borderColor: colors.grey + '30',
-    borderRadius: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-  },
-  commonOptionText: {
-    fontSize: 14,
-    color: colors.text,
-  },
-  portOptions: {
-    gap: 8,
-  },
-  portOption: {
-    backgroundColor: colors.backgroundAlt,
-    borderWidth: 1,
-    borderColor: colors.grey + '30',
+    backgroundColor: colors.primary + '10',
     borderRadius: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    padding: 16,
+    marginTop: 24,
+    gap: 12,
   },
-  portOptionSelected: {
-    backgroundColor: colors.primary + '20',
-    borderColor: colors.primary,
+  portInfoContent: {
+    flex: 1,
   },
-  portOptionText: {
+  portInfoTitle: {
     fontSize: 14,
+    fontWeight: '600',
     color: colors.text,
+    marginBottom: 4,
   },
-  portOptionTextSelected: {
-    color: colors.primary,
-    fontWeight: '500',
+  portInfoText: {
+    fontSize: 13,
+    color: colors.grey,
+    lineHeight: 18,
   },
   testSection: {
     marginTop: 24,
@@ -412,6 +314,7 @@ const styles = StyleSheet.create({
   },
   addButton: {
     flex: 1,
+    backgroundColor: colors.primary,
   },
   addLoader: {
     position: 'absolute',
