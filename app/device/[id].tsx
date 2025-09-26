@@ -14,11 +14,22 @@ export default function DeviceControlScreen() {
   const router = useRouter();
   const { devices, updateDeviceStatus } = useDeviceDiscovery();
   const [device, setDevice] = useState<RVolutionDevice | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [hasCheckedForDevice, setHasCheckedForDevice] = useState(false);
 
   // Find and set the device whenever devices array changes
   useEffect(() => {
     console.log(`🔍 Looking for device with ID: ${id}`);
     console.log(`📱 Available devices: ${devices.length}`);
+    
+    // Only proceed if we have devices loaded or if we've already checked
+    if (devices.length === 0 && !hasCheckedForDevice) {
+      console.log('⏳ Waiting for devices to load...');
+      return;
+    }
+
+    setHasCheckedForDevice(true);
+    
     devices.forEach((d, index) => {
       console.log(`   ${index + 1}. ${d.name} (${d.id}) - ${d.isOnline ? 'Online' : 'Offline'}`);
     });
@@ -27,8 +38,10 @@ export default function DeviceControlScreen() {
     if (foundDevice) {
       console.log(`✅ Device found: ${foundDevice.name} (${foundDevice.ip}:${foundDevice.port})`);
       setDevice(foundDevice);
-    } else {
+      setIsLoading(false);
+    } else if (hasCheckedForDevice) {
       console.log(`❌ Device with ID ${id} not found in devices list`);
+      setIsLoading(false);
       
       // Show alert after a short delay to ensure the component is mounted
       setTimeout(() => {
@@ -41,7 +54,19 @@ export default function DeviceControlScreen() {
         );
       }, 100);
     }
-  }, [id, devices, router]);
+  }, [id, devices, router, hasCheckedForDevice]);
+
+  // Set a timeout to stop loading if no devices are found after reasonable time
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      if (!hasCheckedForDevice && devices.length === 0) {
+        console.log('⏰ Timeout reached, checking for device anyway');
+        setHasCheckedForDevice(true);
+      }
+    }, 2000); // Wait 2 seconds max for devices to load
+
+    return () => clearTimeout(timeout);
+  }, [hasCheckedForDevice, devices.length]);
 
   // Periodic status updates
   useEffect(() => {
@@ -62,7 +87,7 @@ export default function DeviceControlScreen() {
   }, [device, updateDeviceStatus]);
 
   // Show loading state while checking for device
-  if (!device) {
+  if (isLoading) {
     return (
       <SafeAreaView style={commonStyles.container}>
         <View style={styles.header}>
@@ -76,6 +101,35 @@ export default function DeviceControlScreen() {
         <View style={styles.loadingContainer}>
           <Icon name="refresh" size={32} color={colors.primary} />
           <Text style={styles.loadingText}>Chargement de l'appareil...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // Show error state if device not found
+  if (!device) {
+    return (
+      <SafeAreaView style={commonStyles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+            <Icon name="arrow-back" size={24} color={colors.text} />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Erreur</Text>
+          <View style={styles.placeholder} />
+        </View>
+        
+        <View style={styles.errorContainer}>
+          <Icon name="alert-circle" size={48} color={colors.accent} />
+          <Text style={styles.errorTitle}>Appareil non trouvé</Text>
+          <Text style={styles.errorText}>
+            L'appareil sélectionné n'a pas été trouvé dans la liste.
+          </Text>
+          <TouchableOpacity 
+            style={styles.retryButton} 
+            onPress={() => router.back()}
+          >
+            <Text style={styles.retryButtonText}>Retour à la liste</Text>
+          </TouchableOpacity>
         </View>
       </SafeAreaView>
     );
@@ -133,5 +187,36 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: colors.grey,
     marginTop: 12,
+  },
+  errorContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    flex: 1,
+    paddingHorizontal: 32,
+  },
+  errorTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: colors.text,
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  errorText: {
+    fontSize: 16,
+    color: colors.grey,
+    textAlign: 'center',
+    lineHeight: 24,
+    marginBottom: 32,
+  },
+  retryButton: {
+    backgroundColor: colors.primary,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  retryButtonText: {
+    color: colors.text,
+    fontSize: 16,
+    fontWeight: '600',
   },
 });

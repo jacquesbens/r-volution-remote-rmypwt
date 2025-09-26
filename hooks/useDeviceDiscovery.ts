@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { RVolutionDevice, NetworkScanResult } from '../types/Device';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
@@ -17,6 +17,10 @@ export const useDeviceDiscovery = () => {
     localIP?: string;
     networkRange?: string;
   }>({});
+  
+  // Use ref to track if devices have been loaded to prevent multiple initializations
+  const devicesLoadedRef = useRef(false);
+  const initializingRef = useRef(false);
 
   // Get device's local IP to determine network range
   const getLocalNetworkInfo = useCallback(async () => {
@@ -56,6 +60,13 @@ export const useDeviceDiscovery = () => {
 
   // Load saved devices from storage
   const loadSavedDevices = useCallback(async () => {
+    if (devicesLoadedRef.current || initializingRef.current) {
+      console.log('📱 Devices already loaded or loading, skipping...');
+      return devices;
+    }
+
+    initializingRef.current = true;
+    
     try {
       console.log('📱 Loading saved devices from storage...');
       const savedDevices = await AsyncStorage.getItem(STORAGE_KEY);
@@ -69,6 +80,7 @@ export const useDeviceDiscovery = () => {
         }));
         
         setDevices(devicesWithDates);
+        devicesLoadedRef.current = true;
         console.log('📱 Loaded saved devices:', devicesWithDates.length);
         devicesWithDates.forEach((device: RVolutionDevice, index: number) => {
           console.log(`   ${index + 1}. ${device.name} (${device.ip}:${device.port}) - ${device.isOnline ? 'Online' : 'Offline'}`);
@@ -77,13 +89,17 @@ export const useDeviceDiscovery = () => {
         return devicesWithDates;
       } else {
         console.log('📱 No saved devices found');
+        devicesLoadedRef.current = true;
         return [];
       }
     } catch (error) {
       console.log('❌ Error loading saved devices:', error);
+      devicesLoadedRef.current = true;
       return [];
+    } finally {
+      initializingRef.current = false;
     }
-  }, []);
+  }, [devices]);
 
   // Save devices to storage
   const saveDevices = useCallback(async (devicesToSave: RVolutionDevice[]) => {
@@ -867,10 +883,12 @@ export const useDeviceDiscovery = () => {
     }
   }, [checkDeviceReachability]);
 
-  // Initialize by loading saved devices
+  // Initialize by loading saved devices - IMPROVED VERSION
   useEffect(() => {
-    console.log('🚀 Initializing device discovery hook...');
-    loadSavedDevices();
+    if (!devicesLoadedRef.current && !initializingRef.current) {
+      console.log('🚀 Initializing device discovery hook...');
+      loadSavedDevices();
+    }
   }, [loadSavedDevices]);
 
   return {

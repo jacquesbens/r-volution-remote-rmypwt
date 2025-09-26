@@ -18,40 +18,50 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
 
   const handlePlay = async () => {
     try {
+      console.log(`🎵 Play command for ${device.name} (${device.ip}:${device.port})`);
       await play(device);
     } catch (err) {
+      console.log('❌ Play command failed:', err);
       Alert.alert('Erreur', 'Impossible de lancer la lecture');
     }
   };
 
   const handlePause = async () => {
     try {
+      console.log(`⏸️ Pause command for ${device.name} (${device.ip}:${device.port})`);
       await pause(device);
     } catch (err) {
+      console.log('❌ Pause command failed:', err);
       Alert.alert('Erreur', 'Impossible de mettre en pause');
     }
   };
 
   const handleStop = async () => {
     try {
+      console.log(`⏹️ Stop command for ${device.name} (${device.ip}:${device.port})`);
       await stop(device);
     } catch (err) {
+      console.log('❌ Stop command failed:', err);
       Alert.alert('Erreur', 'Impossible d\'arrêter la lecture');
     }
   };
 
   const handleNext = async () => {
     try {
+      console.log(`⏭️ Next command for ${device.name} (${device.ip}:${device.port})`);
       await next(device);
     } catch (err) {
+      console.log('❌ Next command failed:', err);
       Alert.alert('Erreur', 'Impossible de passer au suivant');
     }
   };
 
   const handlePrevious = async () => {
     try {
+      console.log(`⏮️ Previous command for ${device.name} (${device.ip}:${device.port})`);
       await previous(device);
     } catch (err) {
+      console.log('❌ Previous command failed:', err);
       Alert.alert('Erreur', 'Impossible de revenir au précédent');
     }
   };
@@ -60,8 +70,10 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
     const newVolume = Math.min(100, volume + 10);
     setVolumeState(newVolume);
     try {
+      console.log(`🔊 Volume up to ${newVolume}% for ${device.name}`);
       await setVolume(device, newVolume);
     } catch (err) {
+      console.log('❌ Volume up command failed:', err);
       Alert.alert('Erreur', 'Impossible de modifier le volume');
     }
   };
@@ -70,28 +82,27 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
     const newVolume = Math.max(0, volume - 10);
     setVolumeState(newVolume);
     try {
+      console.log(`🔉 Volume down to ${newVolume}% for ${device.name}`);
       await setVolume(device, newVolume);
     } catch (err) {
+      console.log('❌ Volume down command failed:', err);
       Alert.alert('Erreur', 'Impossible de modifier le volume');
     }
   };
 
   const handleMute = async () => {
     try {
+      console.log(`🔇 Mute toggle for ${device.name}`);
       await mute(device);
       setIsMuted(!isMuted);
     } catch (err) {
+      console.log('❌ Mute command failed:', err);
       Alert.alert('Erreur', 'Impossible de couper le son');
     }
   };
 
   return (
     <View style={styles.container}>
-      <View style={styles.deviceHeader}>
-        <View style={[styles.statusDot, { backgroundColor: device.isOnline ? '#4CAF50' : '#F44336' }]} />
-        <Text style={styles.deviceName}>{device.name}</Text>
-      </View>
-      
       {error && (
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>{error}</Text>
@@ -183,23 +194,7 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
     backgroundColor: colors.background,
-  },
-  deviceHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 30,
     justifyContent: 'center',
-  },
-  statusDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    marginRight: 10,
-  },
-  deviceName: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: colors.text,
   },
   errorContainer: {
     backgroundColor: '#F44336',
