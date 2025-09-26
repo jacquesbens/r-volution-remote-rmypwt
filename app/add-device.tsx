@@ -140,7 +140,7 @@ const AddDeviceScreen: React.FC = () => {
     setDeviceToEdit(null);
   };
 
-  // New: Handle adding a discovered device to saved devices
+  // Modified: Handle adding a discovered device to saved devices and remove from discovered list
   const handleAddDiscoveredDevice = async (discoveredDevice: RVolutionDevice) => {
     try {
       console.log('➕ Adding discovered device to saved devices:', discoveredDevice.name);

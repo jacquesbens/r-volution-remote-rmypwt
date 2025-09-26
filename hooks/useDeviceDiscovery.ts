@@ -343,10 +343,14 @@ export const useDeviceDiscovery = () => {
   }, [verifyRVolutionDevice]);
 
   // Ultra-fast network scanning using the CGI endpoint - improved to find ALL devices
+  // MODIFIED: Clear discovered devices at the start of scan
   const scanNetwork = useCallback(async () => {
     setIsScanning(true);
     setScanProgress(0);
-    setDiscoveredDevices([]); // Clear previous discovered devices
+    
+    // CHANGE 1: Clear discovered devices when starting a new scan
+    console.log('🧹 Clearing previously discovered devices before starting new scan');
+    setDiscoveredDevices([]);
     
     try {
       console.log('🚀 Starting COMPREHENSIVE R_VOLUTION device discovery...');
@@ -467,6 +471,7 @@ export const useDeviceDiscovery = () => {
   }, [getLocalNetworkInfo, scanIPBatch]);
 
   // Add discovered device to saved devices
+  // MODIFIED: Remove device from discovered list after adding to saved devices
   const addDiscoveredDevice = useCallback(async (discoveredDevice: RVolutionDevice) => {
     try {
       console.log('➕ Adding discovered device to saved devices:', discoveredDevice.name);
@@ -492,7 +497,11 @@ export const useDeviceDiscovery = () => {
       // Save to storage
       await saveDevices(updatedDevices);
       
-      console.log('✅ Discovered device added to saved devices successfully!');
+      // CHANGE 2: Remove the device from discovered devices list after adding it
+      console.log('🧹 Removing device from discovered list after adding to saved devices');
+      setDiscoveredDevices(prev => prev.filter(device => device.ip !== discoveredDevice.ip));
+      
+      console.log('✅ Discovered device added to saved devices successfully and removed from discovered list!');
       return newDevice;
       
     } catch (error) {
