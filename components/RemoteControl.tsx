@@ -275,7 +275,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   
-  // Volume controls
+  // Volume controls - moved above special buttons
   volumeSection: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -327,7 +327,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    marginTop: 20,
+    marginBottom: 20,
   },
   
   specialButton: {
@@ -360,7 +360,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    marginTop: 15,
     marginBottom: 20,
   },
   
@@ -750,8 +749,34 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
           </ModernButton>
         </View>
 
-        {/* R_Video and Explorer Buttons */}
-        <Text style={styles.sectionHeader}>Fonctions Spéciales</Text>
+        {/* Volume Controls - Now positioned above R_Video and Explorer */}
+        <Text style={styles.sectionHeader}>Volume</Text>
+        <View style={styles.volumeSection}>
+          <ModernButton
+            onPress={() => handleCommand('Volume Down', irCodes.VolumeDown)}
+            style={styles.volumeButton}
+          >
+            <Icon name="volume-low" size={18} color={colors.text} />
+            <Text style={styles.volumeText}>Vol -</Text>
+          </ModernButton>
+          
+          <ModernButton
+            onPress={() => handleCommand('Mute', irCodes.Mute)}
+            style={styles.muteButton}
+          >
+            <Icon name="volume-mute" size={20} color="#fff" />
+          </ModernButton>
+          
+          <ModernButton
+            onPress={() => handleCommand('Volume Up', irCodes.VolumeUp)}
+            style={styles.volumeButton}
+          >
+            <Icon name="volume-high" size={18} color={colors.text} />
+            <Text style={styles.volumeText}>Vol +</Text>
+          </ModernButton>
+        </View>
+
+        {/* R_Video and Explorer Buttons - Now positioned below Volume */}
         <View style={styles.specialButtonsSection}>
           <ModernButton
             onPress={() => handleCommand('R_Video', irCodes.RVideo)}
@@ -770,7 +795,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
           </ModernButton>
         </View>
 
-        {/* Color Function Buttons - Now positioned below R_Video and Explorer */}
+        {/* Color Function Buttons - Positioned below R_Video and Explorer */}
         <View style={styles.colorButtonsSection}>
           <ModernButton
             onPress={() => handleCommand('Function Red', irCodes.FunctionRed)}
@@ -798,33 +823,6 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
             style={[styles.colorButton, styles.blueButton]}
           >
             <Text style={styles.colorButtonText}>Bleu</Text>
-          </ModernButton>
-        </View>
-
-        {/* Volume Controls */}
-        <Text style={styles.sectionHeader}>Volume</Text>
-        <View style={styles.volumeSection}>
-          <ModernButton
-            onPress={() => handleCommand('Volume Down', irCodes.VolumeDown)}
-            style={styles.volumeButton}
-          >
-            <Icon name="volume-low" size={18} color={colors.text} />
-            <Text style={styles.volumeText}>Vol -</Text>
-          </ModernButton>
-          
-          <ModernButton
-            onPress={() => handleCommand('Mute', irCodes.Mute)}
-            style={styles.muteButton}
-          >
-            <Icon name="volume-mute" size={20} color="#fff" />
-          </ModernButton>
-          
-          <ModernButton
-            onPress={() => handleCommand('Volume Up', irCodes.VolumeUp)}
-            style={styles.volumeButton}
-          >
-            <Icon name="volume-high" size={18} color={colors.text} />
-            <Text style={styles.volumeText}>Vol +</Text>
           </ModernButton>
         </View>
 
