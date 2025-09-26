@@ -34,11 +34,11 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   
-  // Separator
+  // Separator - reduced by half
   separator: {
     height: 1,
     backgroundColor: colors.border,
-    marginVertical: 20,
+    marginVertical: 10, // Reduced from 20 to 10 (half)
     marginHorizontal: 20,
   },
   
@@ -756,7 +756,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
           </ModernButton>
         </View>
 
-        {/* Separator between power section and next section */}
+        {/* Separator between power section and next section - REDUCED BY HALF */}
         <View style={styles.separator} />
 
         {/* Media Controls - NEW LAYOUT: CH- | Play | CH+ */}
@@ -874,6 +874,9 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
           </ModernButton>
         </View>
 
+        {/* Separator after repeat, subtitle and audio buttons - IDENTICAL TO REDUCED SEPARATOR */}
+        <View style={styles.separator} />
+
         {/* Navigation */}
         <View style={styles.navigationSection}>
           <View style={styles.navigationContainer}>
@@ -941,6 +944,9 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
           </ModernButton>
         </View>
 
+        {/* Separator before numeric keypad - IDENTICAL TO REDUCED SEPARATOR */}
+        <View style={styles.separator} />
+
         {/* Number Pad - NOW POSITIONED BELOW HOME, MENU, BACK BUTTONS */}
         <View style={styles.numberPad}>
           <View style={styles.numberRow}>
@@ -997,6 +1003,9 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
             </ModernButton>
           </View>
         </View>
+
+        {/* Separator after numeric keypad - IDENTICAL TO REDUCED SEPARATOR */}
+        <View style={styles.separator} />
 
         {/* Function Buttons - Updated to remove Audio and Subtitle buttons */}
         <View style={styles.functionGrid}>
