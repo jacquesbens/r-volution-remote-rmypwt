@@ -27,40 +27,74 @@ export default function MainScreen() {
 
   const handleScanNetwork = async () => {
     try {
+      console.log('Starting network scan from UI...');
       await scanNetwork();
+      console.log('Network scan completed from UI');
     } catch (error) {
+      console.log('Network scan error from UI:', error);
       Alert.alert('Erreur', 'Erreur lors de la recherche d\'appareils R_VOLUTION');
     }
   };
 
   const handleAddDevice = async (ip: string, port: number, name?: string) => {
+    console.log('=== HANDLE ADD DEVICE CALLED ===');
+    console.log('Parameters:', { ip, port, name });
+    
     try {
-      await addDeviceManually(ip, port, name);
+      console.log('Calling addDeviceManually...');
+      const result = await addDeviceManually(ip, port, name);
+      console.log('addDeviceManually result:', result);
+      
       setIsAddModalVisible(false);
+      console.log('Modal closed, showing success alert...');
+      
+      Alert.alert(
+        'Succès', 
+        `Appareil R_VOLUTION "${result.name}" ajouté avec succès à l'adresse ${ip}:${port}`,
+        [{ text: 'OK', onPress: () => console.log('Success alert dismissed') }]
+      );
     } catch (error) {
-      Alert.alert('Erreur', 'Impossible d\'ajouter l\'appareil. Vérifiez l\'adresse IP et que l\'appareil R_VOLUTION est accessible.');
+      console.log('=== HANDLE ADD DEVICE ERROR ===');
+      console.log('Error type:', typeof error);
+      console.log('Error message:', error instanceof Error ? error.message : String(error));
+      console.log('Full error:', error);
+      
+      const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue lors de l\'ajout de l\'appareil R_VOLUTION';
+      
+      Alert.alert(
+        'Erreur d\'ajout', 
+        errorMessage,
+        [{ text: 'OK', onPress: () => console.log('Error alert dismissed') }]
+      );
     }
   };
 
   const handleRemoveDevice = (deviceId: string, deviceName: string) => {
+    console.log('Removing device:', { deviceId, deviceName });
     Alert.alert(
       'Supprimer l\'appareil',
       `Êtes-vous sûr de vouloir supprimer "${deviceName}" ?`,
       [
-        { text: 'Annuler', style: 'cancel' },
-        { text: 'Supprimer', style: 'destructive', onPress: () => removeDevice(deviceId) },
+        { text: 'Annuler', style: 'cancel', onPress: () => console.log('Remove cancelled') },
+        { text: 'Supprimer', style: 'destructive', onPress: () => {
+          console.log('Confirming device removal...');
+          removeDevice(deviceId);
+        }},
       ]
     );
   };
 
   const handleDevicePress = (deviceId: string) => {
+    console.log('Navigating to device:', deviceId);
     router.push(`/device/${deviceId}`);
   };
 
   const handleRefresh = async () => {
+    console.log('Refreshing device status...');
     setIsRefreshing(true);
     try {
       await updateDeviceStatus();
+      console.log('Device status refresh completed');
     } catch (error) {
       console.log('Error refreshing devices:', error);
     } finally {
@@ -69,6 +103,7 @@ export default function MainScreen() {
   };
 
   useEffect(() => {
+    console.log('MainScreen mounted, updating device status...');
     // Initial device status update
     updateDeviceStatus();
   }, []);
@@ -101,7 +136,10 @@ export default function MainScreen() {
           
           <Button
             text="Ajouter R_VOLUTION manuellement"
-            onPress={() => setIsAddModalVisible(true)}
+            onPress={() => {
+              console.log('Opening add device modal...');
+              setIsAddModalVisible(true);
+            }}
             style={styles.addButton}
           />
         </View>
@@ -152,7 +190,10 @@ export default function MainScreen() {
 
       <AddDeviceModal
         visible={isAddModalVisible}
-        onClose={() => setIsAddModalVisible(false)}
+        onClose={() => {
+          console.log('Closing add device modal...');
+          setIsAddModalVisible(false);
+        }}
         onAddDevice={handleAddDevice}
       />
     </SafeAreaView>

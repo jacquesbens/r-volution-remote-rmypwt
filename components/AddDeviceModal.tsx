@@ -18,7 +18,11 @@ const AddDeviceModal: React.FC<AddDeviceModalProps> = ({ visible, onClose, onAdd
   const [isLoading, setIsLoading] = useState(false);
 
   const handleAddDevice = async () => {
+    console.log('=== ADD DEVICE MODAL - HANDLE ADD DEVICE ===');
+    console.log('Form values:', { ip: ip.trim(), port, name: name.trim() });
+    
     if (!ip.trim()) {
+      console.log('Validation failed: No IP provided');
       Alert.alert('Erreur', 'Veuillez entrer une adresse IP');
       return;
     }
@@ -26,32 +30,45 @@ const AddDeviceModal: React.FC<AddDeviceModalProps> = ({ visible, onClose, onAdd
     // Basic IP validation
     const ipRegex = /^(\d{1,3}\.){3}\d{1,3}$/;
     if (!ipRegex.test(ip.trim())) {
+      console.log('Validation failed: Invalid IP format');
       Alert.alert('Erreur', 'Format d\'adresse IP invalide (ex: 192.168.1.100)');
       return;
     }
 
     const portNumber = parseInt(port, 10);
     if (isNaN(portNumber) || portNumber < 1 || portNumber > 65535) {
+      console.log('Validation failed: Invalid port');
       Alert.alert('Erreur', 'Port invalide (1-65535)');
       return;
     }
 
+    console.log('Validation passed, starting device addition...');
     setIsLoading(true);
+    
     try {
+      console.log('Calling onAddDevice prop...');
       await onAddDevice(ip.trim(), portNumber, name.trim() || undefined);
+      
+      console.log('Device addition successful, clearing form...');
       setIp('');
       setPort('80');
       setName('');
+      
+      console.log('Form cleared, closing modal...');
       onClose();
-      Alert.alert('Succès', 'Appareil R_VOLUTION ajouté avec succès');
+      
     } catch (error) {
-      Alert.alert('Erreur', error instanceof Error ? error.message : 'Impossible d\'ajouter l\'appareil R_VOLUTION');
+      console.log('=== ADD DEVICE MODAL - ERROR ===');
+      console.log('Error in modal:', error);
+      // Error is handled by the parent component
     } finally {
+      console.log('Setting loading to false...');
       setIsLoading(false);
     }
   };
 
   const handleClose = () => {
+    console.log('Modal close requested, clearing form...');
     setIp('');
     setPort('80');
     setName('');
@@ -84,7 +101,10 @@ const AddDeviceModal: React.FC<AddDeviceModalProps> = ({ visible, onClose, onAdd
               <TextInput
                 style={styles.input}
                 value={ip}
-                onChangeText={setIp}
+                onChangeText={(text) => {
+                  console.log('IP input changed:', text);
+                  setIp(text);
+                }}
                 placeholder="192.168.1.100"
                 placeholderTextColor={colors.grey}
                 keyboardType="numeric"
@@ -98,7 +118,10 @@ const AddDeviceModal: React.FC<AddDeviceModalProps> = ({ visible, onClose, onAdd
               <TextInput
                 style={styles.input}
                 value={port}
-                onChangeText={setPort}
+                onChangeText={(text) => {
+                  console.log('Port input changed:', text);
+                  setPort(text);
+                }}
                 placeholder="80"
                 placeholderTextColor={colors.grey}
                 keyboardType="numeric"
@@ -110,7 +133,10 @@ const AddDeviceModal: React.FC<AddDeviceModalProps> = ({ visible, onClose, onAdd
               <TextInput
                 style={styles.input}
                 value={name}
-                onChangeText={setName}
+                onChangeText={(text) => {
+                  console.log('Name input changed:', text);
+                  setName(text);
+                }}
                 placeholder="Mon lecteur R_VOLUTION"
                 placeholderTextColor={colors.grey}
                 autoCapitalize="words"
@@ -134,7 +160,12 @@ const AddDeviceModal: React.FC<AddDeviceModalProps> = ({ visible, onClose, onAdd
             />
             <Button
               text={isLoading ? "Connexion..." : "Ajouter"}
-              onPress={handleAddDevice}
+              onPress={() => {
+                console.log('Add button pressed, isLoading:', isLoading);
+                if (!isLoading) {
+                  handleAddDevice();
+                }
+              }}
               style={[styles.button, styles.addButton, { opacity: isLoading ? 0.5 : 1 }]}
             />
           </View>
