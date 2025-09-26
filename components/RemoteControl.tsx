@@ -107,20 +107,22 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
   },
   
+  // Updated media button to use Explorer button design
   mediaButton: {
-    backgroundColor: colors.surface,
-    borderRadius: 20,
-    width: 56,
-    height: 56,
+    backgroundColor: colors.primary,
+    borderRadius: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
-    elevation: 3,
+    elevation: 2,
     borderWidth: 1,
     borderColor: colors.border,
+    minWidth: 80,
   },
   
   playButton: {
@@ -604,13 +606,14 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
           </ModernButton>
         </View>
 
-        {/* Media Controls */}
+        {/* Media Controls - Updated buttons to use Explorer design */}
         <View style={styles.mediaControls}>
           <ModernButton
             onPress={() => handleCommand('Return', irCodes.Return)}
             style={styles.mediaButton}
           >
-            <Icon name="play-skip-back" size={20} color={colors.text} />
+            <Icon name="play-skip-back" size={16} color="#fff" />
+            <Text style={[styles.volumeText, { fontSize: 10 }]}>Return</Text>
           </ModernButton>
           
           <ModernButton
@@ -624,7 +627,8 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
             onPress={() => handleCommand('Repeat', irCodes.Repeat)}
             style={styles.mediaButton}
           >
-            <Icon name="play-skip-forward" size={20} color={colors.text} />
+            <Icon name="play-skip-forward" size={16} color="#fff" />
+            <Text style={[styles.volumeText, { fontSize: 10 }]}>Repeat</Text>
           </ModernButton>
         </View>
 
