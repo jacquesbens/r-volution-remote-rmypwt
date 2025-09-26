@@ -24,7 +24,6 @@ export const useDeviceDiscovery = () => {
   // Use ref to track if devices have been loaded to prevent multiple initializations
   const devicesLoadedRef = useRef(false);
   const initializingRef = useRef(false);
-  const scanAbortControllerRef = useRef<AbortController | null>(null);
 
   // Get device's local IP to determine network range - expanded coverage
   const getLocalNetworkInfo = useCallback(async () => {
@@ -125,7 +124,7 @@ export const useDeviceDiscovery = () => {
   }, []);
 
   // Enhanced device verification using the CGI endpoint - improved detection
-  const verifyRVolutionDevice = useCallback(async (ip: string, abortSignal?: AbortSignal): Promise<{
+  const verifyRVolutionDevice = useCallback(async (ip: string): Promise<{
     isRVolution: boolean;
     deviceName?: string;
     responseData?: any;
@@ -135,13 +134,10 @@ export const useDeviceDiscovery = () => {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), FAST_SCAN_TIMEOUT);
       
-      // Combine timeout and external abort signals
-      const combinedSignal = abortSignal || controller.signal;
-      
       // Use the fast CGI endpoint you mentioned
       const response = await fetch(`http://${ip}:${HTTP_PORT}${CGI_ENDPOINT}`, {
         method: 'GET',
-        signal: combinedSignal,
+        signal: controller.signal,
         headers: {
           'Accept': '*/*',
           'User-Agent': 'R_VOLUTION-Remote/1.0',
@@ -245,29 +241,23 @@ export const useDeviceDiscovery = () => {
       return { isRVolution: false };
       
     } catch (error) {
-      // Check if scan was aborted
-      if (error.name === 'AbortError') {
-        console.log(`🛑 Scan aborted for ${ip}`);
-        throw error;
-      }
       // Silently fail for faster scanning, but log for debugging
-      console.log(`🔍 Scan ${ip}: ${error.message}`);
+      if (error.name !== 'AbortError') {
+        console.log(`🔍 Scan ${ip}: ${error.message}`);
+      }
       return { isRVolution: false };
     }
   }, []);
 
   // Fast connectivity check using the CGI endpoint
-  const checkDeviceReachability = useCallback(async (ip: string, abortSignal?: AbortSignal): Promise<boolean> => {
+  const checkDeviceReachability = useCallback(async (ip: string): Promise<boolean> => {
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), FAST_SCAN_TIMEOUT);
       
-      // Combine timeout and external abort signals
-      const combinedSignal = abortSignal || controller.signal;
-      
       const response = await fetch(`http://${ip}:${HTTP_PORT}${CGI_ENDPOINT}`, {
         method: 'HEAD',
-        signal: combinedSignal,
+        signal: controller.signal,
       });
       
       clearTimeout(timeoutId);
@@ -275,9 +265,6 @@ export const useDeviceDiscovery = () => {
       return isReachable;
       
     } catch (error) {
-      if (error.name === 'AbortError') {
-        throw error;
-      }
       return false;
     }
   }, []);
@@ -309,13 +296,13 @@ export const useDeviceDiscovery = () => {
   }, [verifyRVolutionDevice, checkDeviceReachability]);
 
   // Ultra-fast IP batch scanning with improved device discovery
-  const scanIPBatch = useCallback(async (baseIP: string, startRange: number, endRange: number, abortSignal?: AbortSignal): Promise<RVolutionDevice[]> => {
+  const scanIPBatch = useCallback(async (baseIP: string, startRange: number, endRange: number): Promise<RVolutionDevice[]> => {
     const promises: Promise<RVolutionDevice | null>[] = [];
     
     for (let i = startRange; i <= endRange; i++) {
       const ip = `${baseIP}.${i}`;
       
-      const promise = verifyRVolutionDevice(ip, abortSignal).then(async (result) => {
+      const promise = verifyRVolutionDevice(ip).then(async (result) => {
         if (result.isRVolution) {
           console.log(`🎉 R_VOLUTION device discovered: ${result.deviceName} at ${ip}:${HTTP_PORT}`);
           
@@ -334,10 +321,6 @@ export const useDeviceDiscovery = () => {
         }
         return null;
       }).catch((error) => {
-        // Check if scan was aborted
-        if (error.name === 'AbortError') {
-          throw error;
-        }
         // Log errors for debugging but don't stop the scan
         console.log(`🔍 Scan error for ${ip}:`, error.message);
         return null;
@@ -346,57 +329,24 @@ export const useDeviceDiscovery = () => {
       promises.push(promise);
     }
     
-    try {
-      const results = await Promise.all(promises);
-      const foundDevices = results.filter((device): device is RVolutionDevice => device !== null);
-      
-      if (foundDevices.length > 0) {
-        console.log(`📡 Batch ${baseIP}.${startRange}-${endRange}: Found ${foundDevices.length} devices`);
-        foundDevices.forEach(device => {
-          console.log(`   🎵 ${device.name} at ${device.ip}:${device.port}`);
-        });
-      }
-      
-      return foundDevices;
-    } catch (error) {
-      if (error.name === 'AbortError') {
-        console.log(`🛑 Batch scan aborted for ${baseIP}.${startRange}-${endRange}`);
-        throw error;
-      }
-      console.log(`❌ Batch scan error for ${baseIP}.${startRange}-${endRange}:`, error);
-      return [];
+    const results = await Promise.all(promises);
+    const foundDevices = results.filter((device): device is RVolutionDevice => device !== null);
+    
+    if (foundDevices.length > 0) {
+      console.log(`📡 Batch ${baseIP}.${startRange}-${endRange}: Found ${foundDevices.length} devices`);
+      foundDevices.forEach(device => {
+        console.log(`   🎵 ${device.name} at ${device.ip}:${device.port}`);
+      });
     }
+    
+    return foundDevices;
   }, [verifyRVolutionDevice]);
-
-  // Stop scanning function
-  const stopScanning = useCallback(() => {
-    console.log('🛑 Stopping network scan...');
-    if (scanAbortControllerRef.current) {
-      scanAbortControllerRef.current.abort();
-      scanAbortControllerRef.current = null;
-    }
-    setIsScanning(false);
-    setScanProgress(0);
-    console.log('🛑 Network scan stopped');
-  }, []);
 
   // Ultra-fast network scanning using the CGI endpoint - improved to find ALL devices
   const scanNetwork = useCallback(async () => {
-    // If already scanning, stop the scan
-    if (isScanning) {
-      stopScanning();
-      return;
-    }
-
-    // Clear discovered devices list when starting a new scan
-    setDiscoveredDevices([]);
-    
     setIsScanning(true);
     setScanProgress(0);
-    
-    // Create abort controller for this scan
-    scanAbortControllerRef.current = new AbortController();
-    const abortSignal = scanAbortControllerRef.current.signal;
+    setDiscoveredDevices([]); // Clear previous discovered devices
     
     try {
       console.log('🚀 Starting COMPREHENSIVE R_VOLUTION device discovery...');
@@ -416,12 +366,6 @@ export const useDeviceDiscovery = () => {
       
       // Scan all network ranges, not just the first 2
       for (let networkIndex = 0; networkIndex < totalNetworks; networkIndex++) {
-        // Check if scan was aborted
-        if (abortSignal.aborted) {
-          console.log('🛑 Scan aborted during network iteration');
-          return;
-        }
-
         const baseIP = networkBases[networkIndex];
         console.log(`📡 Scanning network ${baseIP}.x (${networkIndex + 1}/${totalNetworks})`);
         
@@ -434,18 +378,12 @@ export const useDeviceDiscovery = () => {
         console.log(`🔍 Full range scan: ${baseIP}.${fullRange.start}-${fullRange.end}`);
         
         for (let start = fullRange.start; start <= fullRange.end; start += batchSize) {
-          // Check if scan was aborted
-          if (abortSignal.aborted) {
-            console.log('🛑 Scan aborted during batch iteration');
-            return;
-          }
-
           const end = Math.min(start + batchSize - 1, fullRange.end);
           
           console.log(`🔎 Scanning batch ${baseIP}.${start}-${end}`);
           
           try {
-            const batchDevices = await scanIPBatch(baseIP, start, end, abortSignal);
+            const batchDevices = await scanIPBatch(baseIP, start, end);
             
             if (batchDevices.length > 0) {
               console.log(`✅ Found ${batchDevices.length} R_VOLUTION devices in batch ${baseIP}.${start}-${end}`);
@@ -466,10 +404,6 @@ export const useDeviceDiscovery = () => {
               });
             }
           } catch (batchError) {
-            if (batchError.name === 'AbortError') {
-              console.log('🛑 Batch scan aborted');
-              return;
-            }
             console.log(`❌ Error scanning batch ${baseIP}.${start}-${end}:`, batchError);
           }
           
@@ -522,20 +456,15 @@ export const useDeviceDiscovery = () => {
       }
       
     } catch (error) {
-      if (error.name === 'AbortError') {
-        console.log('🛑 Network scan was aborted');
-      } else {
-        console.log('❌ Comprehensive network discovery failed:', error);
-      }
+      console.log('❌ Comprehensive network discovery failed:', error);
     } finally {
       setIsScanning(false);
       setScanProgress(100);
-      scanAbortControllerRef.current = null;
       
       // Reset progress after a short delay
       setTimeout(() => setScanProgress(0), 1000);
     }
-  }, [getLocalNetworkInfo, scanIPBatch, isScanning, stopScanning]);
+  }, [getLocalNetworkInfo, scanIPBatch]);
 
   // Add discovered device to saved devices
   const addDiscoveredDevice = useCallback(async (discoveredDevice: RVolutionDevice) => {
@@ -562,9 +491,6 @@ export const useDeviceDiscovery = () => {
       
       // Save to storage
       await saveDevices(updatedDevices);
-
-      // Remove the device from discovered devices list
-      setDiscoveredDevices(prev => prev.filter(d => d.id !== discoveredDevice.id));
       
       console.log('✅ Discovered device added to saved devices successfully!');
       return newDevice;
@@ -935,7 +861,6 @@ export const useDeviceDiscovery = () => {
     scanProgress,
     networkInfo,
     scanNetwork,
-    stopScanning, // New: expose stop scanning function
     addDeviceManually,
     addDiscoveredDevice, // New: function to add discovered device to saved devices
     removeDevice,
