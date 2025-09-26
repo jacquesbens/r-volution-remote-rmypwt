@@ -19,7 +19,7 @@ const styles = StyleSheet.create({
   },
   scrollContainer: {
     flexGrow: 1,
-    paddingBottom: 20,
+    paddingBottom: 10, // Reduced from 20 to 10 - reduces space between logo and end of page
   },
   
   // Section headers
@@ -574,13 +574,13 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    marginBottom: 20,
+    marginBottom: 10, // Reduced from 20 to 10 - reduces space between color buttons and logo
   },
 
   // Logo section - positioned below color buttons
   logoSection: {
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 10, // Reduced from 20 to 10 - reduces space between logo and end of page
     paddingHorizontal: 20,
   },
 
