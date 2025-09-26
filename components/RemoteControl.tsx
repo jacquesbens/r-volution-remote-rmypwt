@@ -99,16 +99,17 @@ const styles = StyleSheet.create({
     marginTop: 3,
   },
   
-  // Media controls
+  // Media controls - NEW LAYOUT: CH- | Play | CH+
   mediaControls: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 20,
     paddingHorizontal: 8,
   },
   
-  // Updated media button to use Explorer button design
-  mediaButton: {
+  // Channel buttons (CH- and CH+) - same design as Explorer button
+  channelButton: {
     backgroundColor: colors.primary,
     borderRadius: 10,
     paddingVertical: 10,
@@ -125,11 +126,57 @@ const styles = StyleSheet.create({
     minWidth: 80,
   },
   
+  channelButtonText: {
+    color: '#fff',
+    fontSize: 11,
+    fontWeight: '600',
+    marginTop: 3,
+  },
+  
   playButton: {
     backgroundColor: colors.primary,
     width: 64,
     height: 64,
     borderRadius: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+
+  // Stop button - positioned below play button
+  stopButtonContainer: {
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+
+  stopButton: {
+    backgroundColor: colors.primary,
+    borderRadius: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: colors.border,
+    minWidth: 80,
+  },
+
+  stopButtonText: {
+    color: '#fff',
+    fontSize: 11,
+    fontWeight: '600',
+    marginTop: 3,
   },
 
   // New media control buttons section
@@ -155,7 +202,7 @@ const styles = StyleSheet.create({
     elevation: 2,
     borderWidth: 1,
     borderColor: colors.border,
-    flex: 0.18,
+    flex: 0.24,
   },
 
   mediaControlButtonText: {
@@ -257,12 +304,12 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
 
-  // Home, Menu, Back buttons section - positioned below navigation with same design as special buttons
+  // Home, Menu buttons section - positioned below navigation with same design as special buttons
   navigationControlsSection: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: 40,
     marginBottom: 20,
   },
 
@@ -280,7 +327,7 @@ const styles = StyleSheet.create({
     elevation: 2,
     borderWidth: 1,
     borderColor: colors.border,
-    flex: 0.31,
+    flex: 0.45,
   },
 
   navigationControlButtonText: {
@@ -436,6 +483,40 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 20,
     marginBottom: 20,
+  },
+
+  // Bottom buttons section - NEW: Back and Repeat buttons at the bottom
+  bottomButtonsSection: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    marginBottom: 20,
+    marginTop: 10,
+  },
+
+  bottomButton: {
+    backgroundColor: colors.primary,
+    borderRadius: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: colors.border,
+    flex: 0.48,
+  },
+
+  bottomButtonText: {
+    color: '#fff',
+    fontSize: 11,
+    fontWeight: '600',
+    marginTop: 3,
   },
   
   // Loading overlay
@@ -606,42 +687,45 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
           </ModernButton>
         </View>
 
-        {/* Media Controls - Updated buttons to use Explorer design */}
+        {/* Media Controls - NEW LAYOUT: CH- | Play | CH+ */}
         <View style={styles.mediaControls}>
           <ModernButton
-            onPress={() => handleCommand('Return', irCodes.Return)}
-            style={styles.mediaButton}
+            onPress={() => handleCommand('Channel Down', irCodes.PageDown)}
+            style={styles.channelButton}
           >
-            <Icon name="play-skip-back" size={16} color="#fff" />
-            <Text style={[styles.volumeText, { fontSize: 10 }]}>Return</Text>
+            <Icon name="remove" size={16} color="#fff" />
+            <Text style={styles.channelButtonText}>CH -</Text>
           </ModernButton>
           
           <ModernButton
             onPress={handlePlayPause}
-            style={[styles.mediaButton, styles.playButton]}
+            style={styles.playButton}
           >
             <Icon name={isPlaying ? "pause" : "play"} size={24} color="#fff" />
           </ModernButton>
           
           <ModernButton
-            onPress={() => handleCommand('Repeat', irCodes.Repeat)}
-            style={styles.mediaButton}
+            onPress={() => handleCommand('Channel Up', irCodes.PageUp)}
+            style={styles.channelButton}
           >
-            <Icon name="play-skip-forward" size={16} color="#fff" />
-            <Text style={[styles.volumeText, { fontSize: 10 }]}>Repeat</Text>
+            <Icon name="add" size={16} color="#fff" />
+            <Text style={styles.channelButtonText}>CH +</Text>
           </ModernButton>
         </View>
 
-        {/* New Media Control Buttons - Stop, Skip Forward/Rewind */}
-        <View style={styles.mediaControlsExtended}>
+        {/* Stop Button - positioned below play button */}
+        <View style={styles.stopButtonContainer}>
           <ModernButton
             onPress={() => handleCommand('Stop', irCodes.Stop)}
-            style={styles.mediaControlButton}
+            style={styles.stopButton}
           >
-            <Icon name="stop" size={14} color="#fff" />
-            <Text style={styles.mediaControlButtonText}>Stop</Text>
+            <Icon name="stop" size={16} color="#fff" />
+            <Text style={styles.stopButtonText}>Stop</Text>
           </ModernButton>
-          
+        </View>
+
+        {/* New Media Control Buttons - Skip Forward/Rewind */}
+        <View style={styles.mediaControlsExtended}>
           <ModernButton
             onPress={() => handleCommand('10s Rewind', irCodes.Skip10Rewind)}
             style={styles.mediaControlButton}
@@ -772,7 +856,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
           </View>
         </View>
 
-        {/* Home, Menu, Back buttons - positioned below navigation with same design as special buttons */}
+        {/* Home, Menu buttons - positioned below navigation (removed Back from here) */}
         <View style={styles.navigationControlsSection}>
           <ModernButton
             onPress={() => handleCommand('Home', irCodes.Home)}
@@ -789,17 +873,9 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
             <Icon name="menu" size={16} color="#fff" />
             <Text style={styles.navigationControlButtonText}>Menu</Text>
           </ModernButton>
-          
-          <ModernButton
-            onPress={() => handleCommand('Return', irCodes.Return)}
-            style={styles.navigationControlButton}
-          >
-            <Icon name="arrow-back" size={16} color="#fff" />
-            <Text style={styles.navigationControlButtonText}>Back</Text>
-          </ModernButton>
         </View>
 
-        {/* Function Buttons - removed Home, Menu, and Back from here */}
+        {/* Function Buttons */}
         <View style={styles.functionGrid}>
           <ModernButton
             onPress={() => handleCommand('Info', irCodes.Info)}
@@ -900,27 +976,6 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
           </ModernButton>
         </View>
 
-        {/* Channel Controls - Using same design as Explorer button */}
-        <View style={styles.volumeSection}>
-          <ModernButton
-            onPress={() => handleCommand('Channel Down', irCodes.PageDown)}
-            style={styles.volumeButton}
-          >
-            <Icon name="remove" size={16} color="#fff" />
-            <Text style={styles.volumeText}>CH -</Text>
-          </ModernButton>
-          
-          <View style={{ flex: 0.2 }} />
-          
-          <ModernButton
-            onPress={() => handleCommand('Channel Up', irCodes.PageUp)}
-            style={styles.volumeButton}
-          >
-            <Icon name="add" size={16} color="#fff" />
-            <Text style={styles.volumeText}>CH +</Text>
-          </ModernButton>
-        </View>
-
         {/* R_Video and Explorer Buttons - Now positioned below Volume with REDUCED SIZE */}
         <View style={styles.specialButtonsSection}>
           <ModernButton
@@ -968,6 +1023,25 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
             style={[styles.colorButton, styles.blueButton]}
           >
             <Text style={styles.colorButtonText}>Bleu</Text>
+          </ModernButton>
+        </View>
+
+        {/* Bottom Buttons Section - NEW: Back and Repeat buttons at the bottom */}
+        <View style={styles.bottomButtonsSection}>
+          <ModernButton
+            onPress={() => handleCommand('Return', irCodes.Return)}
+            style={styles.bottomButton}
+          >
+            <Icon name="arrow-back" size={16} color="#fff" />
+            <Text style={styles.bottomButtonText}>Back</Text>
+          </ModernButton>
+          
+          <ModernButton
+            onPress={() => handleCommand('Repeat', irCodes.Repeat)}
+            style={styles.bottomButton}
+          >
+            <Icon name="repeat" size={16} color="#fff" />
+            <Text style={styles.bottomButtonText}>Repeat</Text>
           </ModernButton>
         </View>
 
