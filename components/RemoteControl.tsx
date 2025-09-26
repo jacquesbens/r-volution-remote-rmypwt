@@ -321,6 +321,39 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   
+  // R_Video and Explorer buttons section
+  specialButtonsSection: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    marginTop: 20,
+  },
+  
+  specialButton: {
+    backgroundColor: colors.primary,
+    borderRadius: 12,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: colors.border,
+    flex: 0.48,
+  },
+  
+  specialButtonText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '600',
+    marginTop: 4,
+  },
+  
   // Loading overlay
   loadingOverlay: {
     position: 'absolute',
@@ -643,14 +676,6 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
           </ModernButton>
           
           <ModernButton
-            onPress={() => handleCommand('Explorer', irCodes.Explorer)}
-            style={styles.functionButton}
-          >
-            <Icon name="folder" size={16} color={colors.text} />
-            <Text style={styles.functionButtonText}>Explorer</Text>
-          </ModernButton>
-          
-          <ModernButton
             onPress={() => handleCommand('3D', irCodes['3D'])}
             style={styles.functionButton}
           >
@@ -774,14 +799,23 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
           </ModernButton>
         </View>
 
-        {/* R_video Function */}
-        <View style={{ alignItems: 'center', marginTop: 20 }}>
+        {/* R_Video and Explorer Buttons */}
+        <Text style={styles.sectionHeader}>Fonctions Spéciales</Text>
+        <View style={styles.specialButtonsSection}>
           <ModernButton
-            onPress={() => handleCommand('R_video', irCodes.RVideo)}
-            style={[styles.functionButton, { width: '50%', backgroundColor: colors.primary }]}
+            onPress={() => handleCommand('R_Video', irCodes.RVideo)}
+            style={styles.specialButton}
           >
             <Icon name="videocam" size={18} color="#fff" />
-            <Text style={[styles.functionButtonText, { color: '#fff' }]}>R_video</Text>
+            <Text style={styles.specialButtonText}>R_Video</Text>
+          </ModernButton>
+          
+          <ModernButton
+            onPress={() => handleCommand('Explorer', irCodes.Explorer)}
+            style={styles.specialButton}
+          >
+            <Icon name="folder" size={18} color="#fff" />
+            <Text style={styles.specialButtonText}>Explorer</Text>
           </ModernButton>
         </View>
 
