@@ -292,27 +292,26 @@ const styles = StyleSheet.create({
   },
 
   infoButton: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.primary,
     borderRadius: 10,
     paddingVertical: 10,
-    paddingHorizontal: 12,
+    paddingHorizontal: 14,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 1,
+    shadowRadius: 4,
+    elevation: 2,
     borderWidth: 1,
     borderColor: colors.border,
-    flex: 0.31,
+    flex: 0.3,
   },
 
   infoButtonText: {
-    color: colors.text,
-    fontSize: 10,
+    color: '#fff',
+    fontSize: 11,
     fontWeight: '600',
-    textAlign: 'center',
     marginTop: 3,
   },
   
@@ -892,7 +891,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
             onPress={() => handleCommand('Info', irCodes.Info)}
             style={styles.infoButton}
           >
-            <Icon name="information-circle" size={16} color={colors.text} />
+            <Icon name="information-circle" size={16} color="#fff" />
             <Text style={styles.infoButtonText}>Info</Text>
           </ModernButton>
           
@@ -900,7 +899,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
             onPress={() => handleCommand('3D', irCodes['3D'])}
             style={styles.infoButton}
           >
-            <Icon name="cube" size={16} color={colors.text} />
+            <Icon name="cube" size={16} color="#fff" />
             <Text style={styles.infoButtonText}>3D</Text>
           </ModernButton>
           
@@ -908,7 +907,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
             onPress={() => handleCommand('Zoom', irCodes.Zoom)}
             style={styles.infoButton}
           >
-            <Icon name="search" size={16} color={colors.text} />
+            <Icon name="search" size={16} color="#fff" />
             <Text style={styles.infoButtonText}>Zoom</Text>
           </ModernButton>
         </View>
