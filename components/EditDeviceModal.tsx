@@ -170,34 +170,15 @@ const EditDeviceModal: React.FC<EditDeviceModalProps> = ({ visible, device, onCl
             />
           </View>
 
-          <View style={styles.protocolInfoSection}>
-            <Icon name="information-circle" size={20} color={colors.primary} />
-            <View style={styles.protocolInfoContent}>
-              <Text style={styles.protocolInfoTitle}>Protocole utilisé :</Text>
-              <Text style={styles.protocolInfoText}>HTTP sur port 80 (standard web) - utilisé automatiquement</Text>
-            </View>
-          </View>
-
           <View style={styles.testSection}>
             <Button
-              text={isTestingConnection ? "Test en cours..." : "Tester la connexion HTTP"}
+              text={isTestingConnection ? "Test en cours..." : "Tester la connexion"}
               onPress={handleTestConnection}
               style={[styles.testButton, { opacity: isTestingConnection ? 0.6 : 1 }]}
             />
             {isTestingConnection && (
               <ActivityIndicator size="small" color={colors.primary} style={styles.testLoader} />
             )}
-          </View>
-
-          <View style={styles.infoSection}>
-            <Icon name="information-circle" size={20} color={colors.primary} />
-            <View style={styles.infoContent}>
-              <Text style={styles.infoTitle}>Informations :</Text>
-              <Text style={styles.infoText}>• L'appareil doit être allumé et connecté au Wi-Fi</Text>
-              <Text style={styles.infoText}>• Vous devez être sur le même réseau</Text>
-              <Text style={styles.infoText}>• Le protocole HTTP sur port 80 est utilisé automatiquement</Text>
-              <Text style={styles.infoText}>• Vérifiez que l'appareil accepte les connexions HTTP</Text>
-            </View>
           </View>
         </ScrollView>
 
@@ -274,28 +255,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: colors.text,
   },
-  protocolInfoSection: {
-    flexDirection: 'row',
-    backgroundColor: colors.primary + '10',
-    borderRadius: 8,
-    padding: 16,
-    marginTop: 24,
-    gap: 12,
-  },
-  protocolInfoContent: {
-    flex: 1,
-  },
-  protocolInfoTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: colors.text,
-    marginBottom: 4,
-  },
-  protocolInfoText: {
-    fontSize: 13,
-    color: colors.grey,
-    lineHeight: 18,
-  },
   testSection: {
     marginTop: 24,
     position: 'relative',
@@ -309,30 +268,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: 16,
     top: 14,
-  },
-  infoSection: {
-    flexDirection: 'row',
-    backgroundColor: colors.primary + '10',
-    borderRadius: 8,
-    padding: 16,
-    marginTop: 24,
-    marginBottom: 24,
-    gap: 12,
-  },
-  infoContent: {
-    flex: 1,
-  },
-  infoTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: colors.text,
-    marginBottom: 8,
-  },
-  infoText: {
-    fontSize: 13,
-    color: colors.grey,
-    lineHeight: 18,
-    marginBottom: 4,
   },
   footer: {
     flexDirection: 'row',
