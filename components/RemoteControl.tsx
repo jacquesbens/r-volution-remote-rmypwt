@@ -353,6 +353,16 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginTop: 4,
   },
+
+  // Color buttons section - positioned below special buttons
+  colorButtonsSection: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    marginTop: 15,
+    marginBottom: 20,
+  },
   
   // Loading overlay
   loadingOverlay: {
@@ -740,9 +750,28 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
           </ModernButton>
         </View>
 
-        {/* Color Function Buttons */}
-        <Text style={styles.sectionHeader}>Fonctions Couleur</Text>
-        <View style={styles.functionGrid}>
+        {/* R_Video and Explorer Buttons */}
+        <Text style={styles.sectionHeader}>Fonctions Spéciales</Text>
+        <View style={styles.specialButtonsSection}>
+          <ModernButton
+            onPress={() => handleCommand('R_Video', irCodes.RVideo)}
+            style={styles.specialButton}
+          >
+            <Icon name="videocam" size={18} color="#fff" />
+            <Text style={styles.specialButtonText}>R_Video</Text>
+          </ModernButton>
+          
+          <ModernButton
+            onPress={() => handleCommand('Explorer', irCodes.Explorer)}
+            style={styles.specialButton}
+          >
+            <Icon name="folder" size={18} color="#fff" />
+            <Text style={styles.specialButtonText}>Explorer</Text>
+          </ModernButton>
+        </View>
+
+        {/* Color Function Buttons - Now positioned below R_Video and Explorer */}
+        <View style={styles.colorButtonsSection}>
           <ModernButton
             onPress={() => handleCommand('Function Red', irCodes.FunctionRed)}
             style={[styles.colorButton, styles.redButton]}
@@ -796,26 +825,6 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
           >
             <Icon name="volume-high" size={18} color={colors.text} />
             <Text style={styles.volumeText}>Vol +</Text>
-          </ModernButton>
-        </View>
-
-        {/* R_Video and Explorer Buttons */}
-        <Text style={styles.sectionHeader}>Fonctions Spéciales</Text>
-        <View style={styles.specialButtonsSection}>
-          <ModernButton
-            onPress={() => handleCommand('R_Video', irCodes.RVideo)}
-            style={styles.specialButton}
-          >
-            <Icon name="videocam" size={18} color="#fff" />
-            <Text style={styles.specialButtonText}>R_Video</Text>
-          </ModernButton>
-          
-          <ModernButton
-            onPress={() => handleCommand('Explorer', irCodes.Explorer)}
-            style={styles.specialButton}
-          >
-            <Icon name="folder" size={18} color="#fff" />
-            <Text style={styles.specialButtonText}>Explorer</Text>
           </ModernButton>
         </View>
 
