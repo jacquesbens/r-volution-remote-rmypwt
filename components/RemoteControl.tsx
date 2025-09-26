@@ -122,6 +122,13 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
   },
+
+  offButtonText: {
+    color: '#fff',
+    fontSize: 10,
+    fontWeight: '600',
+    marginTop: 2,
+  },
   
   // Media controls - NEW LAYOUT: CH- | Play | CH+
   mediaControls: {
@@ -767,7 +774,8 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
             onPress={() => handleCommand('Power Off', irCodes.PowerOff)}
             style={styles.offButton}
           >
-            <Icon name="power" size={20} color="#fff" />
+            <Icon name="power" size={16} color="#fff" />
+            <Text style={styles.offButtonText}>OFF</Text>
           </ModernButton>
 
           <ModernButton
