@@ -208,7 +208,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   manualBadge: {
-    backgroundColor: '#4CAF50' + '20',
+    backgroundColor: colors.primary + '20',
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 4,
@@ -216,7 +216,7 @@ const styles = StyleSheet.create({
   },
   manualBadgeText: {
     fontSize: 10,
-    color: '#4CAF50',
+    color: colors.primary,
     fontWeight: '500',
   },
   deviceAddress: {

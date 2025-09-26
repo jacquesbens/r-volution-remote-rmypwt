@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, Alert, Modal, TouchableOpacity, ActivityIndicator, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, TextInput, StyleSheet, Alert, Modal, TouchableOpacity, ActivityIndicator, ScrollView } from 'react-native';
 import Button from './Button';
 import { colors } from '../styles/commonStyles';
 import Icon from './Icon';
@@ -25,7 +25,7 @@ const AddDeviceModal: React.FC<AddDeviceModalProps> = ({ visible, onClose, onAdd
 
     setIsLoading(true);
     try {
-      // Always use HTTP port 80
+      // Always use port 80
       await onAddDevice(ip.trim(), 80, name.trim() || undefined);
       handleClose();
     } catch (error) {
@@ -97,11 +97,7 @@ const AddDeviceModal: React.FC<AddDeviceModalProps> = ({ visible, onClose, onAdd
       presentationStyle="pageSheet"
       onRequestClose={handleClose}
     >
-      <KeyboardAvoidingView 
-        style={styles.container}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
-      >
+      <View style={styles.container}>
         <View style={styles.header}>
           <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
             <Icon name="close" size={24} color={colors.text} />
@@ -110,12 +106,7 @@ const AddDeviceModal: React.FC<AddDeviceModalProps> = ({ visible, onClose, onAdd
           <View style={styles.placeholder} />
         </View>
 
-        <ScrollView 
-          style={styles.content} 
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.scrollContent}
-          keyboardShouldPersistTaps="handled"
-        >
+        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
           <View style={styles.section}>
             <Text style={styles.label}>Adresse IP *</Text>
             <TextInput
@@ -142,7 +133,13 @@ const AddDeviceModal: React.FC<AddDeviceModalProps> = ({ visible, onClose, onAdd
             />
           </View>
 
-
+          <View style={styles.portInfoSection}>
+            <Icon name="information-circle" size={20} color={colors.primary} />
+            <View style={styles.portInfoContent}>
+              <Text style={styles.portInfoTitle}>Port utilisé :</Text>
+              <Text style={styles.portInfoText}>Port 80 (HTTP standard) - utilisé automatiquement</Text>
+            </View>
+          </View>
 
           <View style={styles.testSection}>
             <Button
@@ -161,8 +158,7 @@ const AddDeviceModal: React.FC<AddDeviceModalProps> = ({ visible, onClose, onAdd
               <Text style={styles.infoTitle}>Conseils :</Text>
               <Text style={styles.infoText}>• Assurez-vous que l'appareil est allumé et connecté au Wi-Fi</Text>
               <Text style={styles.infoText}>• Vérifiez que vous êtes sur le même réseau</Text>
-              <Text style={styles.infoText}>• L'appareil utilise automatiquement le port 80</Text>
-              <Text style={styles.infoText}>• Vérifiez que l'appareil accepte les connexions</Text>
+              <Text style={styles.infoText}>• L'appareil utilise automatiquement le port 80 (HTTP standard)</Text>
               <Text style={styles.infoText}>• Consultez la documentation de votre appareil R_VOLUTION</Text>
             </View>
           </View>
@@ -184,7 +180,7 @@ const AddDeviceModal: React.FC<AddDeviceModalProps> = ({ visible, onClose, onAdd
             <ActivityIndicator size="small" color={colors.background} style={styles.addLoader} />
           )}
         </View>
-      </KeyboardAvoidingView>
+      </View>
     </Modal>
   );
 };
@@ -218,10 +214,6 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 20,
   },
-  scrollContent: {
-    flexGrow: 1,
-    paddingBottom: 20,
-  },
   section: {
     marginTop: 24,
   },
@@ -241,7 +233,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: colors.text,
   },
-  protocolInfoSection: {
+  portInfoSection: {
     flexDirection: 'row',
     backgroundColor: colors.primary + '10',
     borderRadius: 8,
@@ -249,26 +241,19 @@ const styles = StyleSheet.create({
     marginTop: 24,
     gap: 12,
   },
-  protocolInfoContent: {
+  portInfoContent: {
     flex: 1,
   },
-  protocolInfoTitle: {
+  portInfoTitle: {
     fontSize: 14,
     fontWeight: '600',
     color: colors.text,
     marginBottom: 4,
   },
-  protocolInfoText: {
+  portInfoText: {
     fontSize: 13,
     color: colors.grey,
     lineHeight: 18,
-    marginBottom: 4,
-  },
-  protocolInfoSubtext: {
-    fontSize: 12,
-    color: colors.grey + '80',
-    lineHeight: 16,
-    fontStyle: 'italic',
   },
   testSection: {
     marginTop: 24,

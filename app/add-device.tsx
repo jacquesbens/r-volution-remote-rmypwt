@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, ActivityIndicator, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, ActivityIndicator, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { colors } from '../styles/commonStyles';
@@ -15,11 +15,8 @@ const AddDeviceScreen: React.FC = () => {
   const router = useRouter();
   const { 
     devices, 
-    discoveredDevices, // New: get discovered devices
     scanNetwork, 
-    stopScanning, // FIXED: Import stopScanning function
     addDeviceManually, 
-    addDiscoveredDevice, // New: function to add discovered device
     removeDevice, 
     updateDevice,
     isScanning, 
@@ -33,38 +30,21 @@ const AddDeviceScreen: React.FC = () => {
   const [deviceToEdit, setDeviceToEdit] = useState<RVolutionDevice | null>(null);
 
   const handleScanNetwork = async () => {
-    console.log('🔍 Scanner button pressed');
-    
-    if (isScanning) {
-      // If currently scanning, stop the scan using the dedicated function
-      console.log('🛑 Stopping current scan...');
-      stopScanning();
+    console.log('🔍 Starting automatic network scan');
+    try {
+      await scanNetwork();
       Alert.alert(
-        'Scan arrêté',
-        'Le scan du réseau a été arrêté.',
+        'Scan terminé',
+        'Le scan du réseau est terminé. Vérifiez la liste des appareils découverts.',
         [{ text: 'OK' }]
       );
-    } else {
-      // If not scanning, start a new scan
-      console.log('🔍 Starting automatic network scan');
-      try {
-        await scanNetwork();
-        const foundCount = discoveredDevices.length;
-        Alert.alert(
-          'Scan terminé',
-          foundCount > 0 
-            ? `${foundCount} appareil${foundCount > 1 ? 's' : ''} R_VOLUTION trouvé${foundCount > 1 ? 's' : ''} ! Vous pouvez maintenant les ajouter à votre liste.`
-            : 'Aucun appareil R_VOLUTION trouvé sur le réseau. Vérifiez que vos appareils sont allumés et connectés au Wi-Fi.',
-          [{ text: 'OK' }]
-        );
-      } catch (error) {
-        console.log('❌ Network scan failed:', error);
-        Alert.alert(
-          'Erreur de scan',
-          'Impossible de scanner le réseau. Vérifiez votre connexion Wi-Fi.',
-          [{ text: 'OK' }]
-        );
-      }
+    } catch (error) {
+      console.log('❌ Network scan failed:', error);
+      Alert.alert(
+        'Erreur de scan',
+        'Impossible de scanner le réseau. Vérifiez votre connexion Wi-Fi.',
+        [{ text: 'OK' }]
+      );
     }
   };
 
@@ -155,207 +135,111 @@ const AddDeviceScreen: React.FC = () => {
     setDeviceToEdit(null);
   };
 
-  // New: Handle adding a discovered device to saved devices
-  const handleAddDiscoveredDevice = async (discoveredDevice: RVolutionDevice) => {
-    try {
-      console.log('➕ Adding discovered device to saved devices:', discoveredDevice.name);
-      await addDiscoveredDevice(discoveredDevice);
-      Alert.alert(
-        'Appareil ajouté',
-        `${discoveredDevice.name} a été ajouté à votre liste d'appareils.`,
-        [{ text: 'OK' }]
-      );
-    } catch (error) {
-      console.log('❌ Failed to add discovered device:', error);
-      Alert.alert(
-        'Erreur d\'ajout',
-        error.message || 'Impossible d\'ajouter l\'appareil découvert.',
-        [{ text: 'OK' }]
-      );
-    }
-  };
-
-  // Check if a discovered device is already in saved devices
-  const isDeviceAlreadyAdded = (discoveredDevice: RVolutionDevice): boolean => {
-    return devices.some(d => d.ip === discoveredDevice.ip && d.port === discoveredDevice.port);
-  };
-
   return (
     <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView 
-        style={styles.keyboardAvoidingView}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
-      >
-        <ScrollView 
-          style={styles.scrollView} 
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.scrollViewContent}
-          keyboardShouldPersistTaps="handled"
-        >
-          {/* Title */}
-          <View style={styles.titleContainer}>
-            <Text style={styles.title}>R_volution Remote</Text>
-            <Text style={styles.subtitle}>ajouter un appareil</Text>
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        {/* Title */}
+        <View style={styles.titleContainer}>
+          <Text style={styles.title}>Ajouter un appareil</Text>
+        </View>
+
+        {/* Automatic Addition Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Ajout automatique</Text>
+          <Text style={styles.sectionDescription}>
+            Scannez votre réseau pour trouver des appareils
+          </Text>
+          
+          <Button
+            text={isScanning ? `Scanner... ${scanProgress}%` : "Scanner"}
+            onPress={handleScanNetwork}
+            style={[styles.scanButton, { opacity: isScanning ? 0.7 : 1 }]}
+          />
+          
+          {isScanning && (
+            <View style={styles.scanningIndicator}>
+              <ActivityIndicator size="small" color={colors.primary} />
+              <Text style={styles.scanningText}>Recherche en cours...</Text>
+            </View>
+          )}
+        </View>
+
+        {/* Manual Addition Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Ajout manuel</Text>
+          
+          <View style={styles.inputContainer}>
+            <Text style={styles.inputLabel}>Nom</Text>
+            <TextInput
+              style={styles.input}
+              value={deviceName}
+              onChangeText={setDeviceName}
+              placeholder="Mon lecteur"
+              placeholderTextColor={colors.grey + '80'}
+            />
           </View>
 
-          {/* Automatic Addition Section */}
+          <View style={styles.inputContainer}>
+            <Text style={styles.inputLabel}>IP / Hôte</Text>
+            <TextInput
+              style={styles.input}
+              value={ipAddress}
+              onChangeText={setIpAddress}
+              placeholder="192.168.1.20"
+              placeholderTextColor={colors.grey + '80'}
+              keyboardType="numbers-and-punctuation"
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+          </View>
+
+          <Button
+            text={isAdding ? "Ajout en cours..." : "Ajouter"}
+            onPress={handleAddDevice}
+            style={[styles.addButton, { opacity: isAdding ? 0.7 : 1 }]}
+          />
+          
+          {isAdding && (
+            <View style={styles.addingIndicator}>
+              <ActivityIndicator size="small" color={colors.primary} />
+              <Text style={styles.addingText}>Ajout en cours...</Text>
+            </View>
+          )}
+        </View>
+
+        {/* Devices List Section */}
+        {devices.length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Ajout automatique</Text>
+            <Text style={styles.sectionTitle}>Appareils ajoutés ({devices.length})</Text>
             <Text style={styles.sectionDescription}>
-              Scannez votre réseau pour trouver des appareils R_VOLUTION
+              Appuyez sur un appareil pour le contrôler
             </Text>
             
-            <Button
-              text={isScanning ? `Arrêter le scan ${scanProgress}%` : "Scanner le réseau"}
-              onPress={handleScanNetwork}
-              style={[
-                styles.scanButton, 
-                { 
-                  opacity: 1,
-                  backgroundColor: isScanning ? colors.error : colors.primary
-                }
-              ]}
-            />
-            
-            {isScanning && (
-              <View style={styles.scanningIndicator}>
-                <ActivityIndicator size="small" color={colors.primary} />
-                <Text style={styles.scanningText}>Recherche en cours...</Text>
-              </View>
-            )}
+            <View style={styles.devicesList}>
+              {devices.map((device) => (
+                <DeviceCard
+                  key={device.id}
+                  device={device}
+                  onPress={() => handleDevicePress(device)}
+                  onRemove={() => handleRemoveDevice(device.id)}
+                  onEdit={() => handleEditDevice(device)}
+                />
+              ))}
+            </View>
           </View>
+        )}
 
-          {/* Discovered Devices Section - NEW */}
-          {discoveredDevices.length > 0 && (
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Appareils découverts ({discoveredDevices.length})</Text>
-              <Text style={styles.sectionDescription}>
-                Appareils R_VOLUTION trouvés sur le réseau. Appuyez sur "Ajouter" pour les sauvegarder.
-              </Text>
-              
-              <View style={styles.devicesList}>
-                {discoveredDevices.map((device) => {
-                  const alreadyAdded = isDeviceAlreadyAdded(device);
-                  return (
-                    <View key={device.id} style={styles.discoveredDeviceCard}>
-                      <View style={styles.discoveredDeviceInfo}>
-                        <View style={styles.discoveredDeviceHeader}>
-                          <Icon name="wifi" size={20} color={colors.success} />
-                          <Text style={styles.discoveredDeviceName}>{device.name}</Text>
-                        </View>
-                        <Text style={styles.discoveredDeviceDetails}>
-                          {device.ip}:{device.port}
-                        </Text>
-                        <View style={styles.discoveredDeviceStatus}>
-                          <View style={styles.onlineIndicator} />
-                          <Text style={styles.onlineText}>En ligne</Text>
-                        </View>
-                      </View>
-                      <TouchableOpacity
-                        style={[
-                          styles.addDiscoveredButton,
-                          alreadyAdded && styles.addDiscoveredButtonDisabled
-                        ]}
-                        onPress={() => handleAddDiscoveredDevice(device)}
-                        disabled={alreadyAdded}
-                      >
-                        <Icon 
-                          name={alreadyAdded ? "checkmark" : "add"} 
-                          size={20} 
-                          color={alreadyAdded ? colors.grey : colors.background} 
-                        />
-                        <Text style={[
-                          styles.addDiscoveredButtonText,
-                          alreadyAdded && styles.addDiscoveredButtonTextDisabled
-                        ]}>
-                          {alreadyAdded ? "Ajouté" : "Ajouter"}
-                        </Text>
-                      </TouchableOpacity>
-                    </View>
-                  );
-                })}
-              </View>
-            </View>
-          )}
-
-          {/* Manual Addition Section */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Ajout manuel</Text>
-            
-            <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Nom</Text>
-              <TextInput
-                style={styles.input}
-                value={deviceName}
-                onChangeText={setDeviceName}
-                placeholder="Mon lecteur"
-                placeholderTextColor={colors.grey + '80'}
-              />
-            </View>
-
-            <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>IP / Hôte</Text>
-              <TextInput
-                style={styles.input}
-                value={ipAddress}
-                onChangeText={setIpAddress}
-                placeholder="192.168.1.20"
-                placeholderTextColor={colors.grey + '80'}
-                keyboardType="numbers-and-punctuation"
-                autoCapitalize="none"
-                autoCorrect={false}
-              />
-            </View>
-
-            <Button
-              text={isAdding ? "Ajout..." : "Ajouter"}
-              onPress={handleAddDevice}
-              style={[styles.addButton, { opacity: isAdding ? 0.7 : 1 }]}
-            />
-            
-            {isAdding && (
-              <View style={styles.addingIndicator}>
-                <ActivityIndicator size="small" color={colors.primary} />
-                <Text style={styles.addingText}>Ajout en cours...</Text>
-              </View>
-            )}
+        {/* Empty state */}
+        {devices.length === 0 && (
+          <View style={styles.emptyState}>
+            <Icon name="wifi-outline" size={64} color={colors.grey} />
+            <Text style={styles.emptyStateTitle}>Aucun appareil trouvé</Text>
+            <Text style={styles.emptyStateDescription}>
+              Utilisez le scan automatique ou ajoutez un appareil manuellement
+            </Text>
           </View>
-
-          {/* Saved Devices List Section */}
-          {devices.length > 0 && (
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Mes appareils ({devices.length})</Text>
-              <Text style={styles.sectionDescription}>
-                Appuyez sur un appareil pour le contrôler
-              </Text>
-              
-              <View style={styles.devicesList}>
-                {devices.map((device) => (
-                  <DeviceCard
-                    key={device.id}
-                    device={device}
-                    onPress={() => handleDevicePress(device)}
-                    onRemove={() => handleRemoveDevice(device.id)}
-                    onEdit={() => handleEditDevice(device)}
-                  />
-                ))}
-              </View>
-            </View>
-          )}
-
-          {/* Empty state */}
-          {devices.length === 0 && discoveredDevices.length === 0 && !isScanning && (
-            <View style={styles.emptyState}>
-              <Icon name="wifi-outline" size={64} color={colors.grey} />
-              <Text style={styles.emptyStateTitle}>Aucun appareil trouvé</Text>
-              <Text style={styles.emptyStateDescription}>
-                Utilisez le scan automatique ou ajoutez un appareil manuellement
-              </Text>
-            </View>
-          )}
-        </ScrollView>
-      </KeyboardAvoidingView>
+        )}
+      </ScrollView>
 
       {/* Edit Device Modal */}
       <EditDeviceModal
@@ -373,15 +257,8 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
-  keyboardAvoidingView: {
-    flex: 1,
-  },
   scrollView: {
     flex: 1,
-  },
-  scrollViewContent: {
-    flexGrow: 1,
-    paddingBottom: 20,
   },
   titleContainer: {
     paddingHorizontal: 20,
@@ -391,12 +268,6 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: '700',
     color: colors.text,
-  },
-  subtitle: {
-    fontSize: 16,
-    fontWeight: '400',
-    color: colors.grey,
-    marginTop: 4,
   },
   section: {
     backgroundColor: colors.backgroundAlt,
@@ -414,24 +285,8 @@ const styles = StyleSheet.create({
   sectionDescription: {
     fontSize: 16,
     color: colors.grey,
-    marginBottom: 16,
+    marginBottom: 20,
     lineHeight: 22,
-  },
-  protocolBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.primary + '15',
-    borderRadius: 20,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    alignSelf: 'flex-start',
-    marginBottom: 16,
-    gap: 6,
-  },
-  protocolText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: colors.primary,
   },
   scanButton: {
     backgroundColor: colors.primary,
@@ -449,72 +304,6 @@ const styles = StyleSheet.create({
   },
   scanningText: {
     fontSize: 14,
-    color: colors.grey,
-  },
-  // New styles for discovered devices
-  discoveredDeviceCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.background,
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: colors.success + '30',
-  },
-  discoveredDeviceInfo: {
-    flex: 1,
-  },
-  discoveredDeviceHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 4,
-    gap: 8,
-  },
-  discoveredDeviceName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.text,
-  },
-  discoveredDeviceDetails: {
-    fontSize: 14,
-    color: colors.grey,
-    marginBottom: 6,
-  },
-  discoveredDeviceStatus: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  onlineIndicator: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: colors.success,
-  },
-  onlineText: {
-    fontSize: 12,
-    color: colors.success,
-    fontWeight: '500',
-  },
-  addDiscoveredButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.primary,
-    borderRadius: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    gap: 4,
-  },
-  addDiscoveredButtonDisabled: {
-    backgroundColor: colors.grey + '30',
-  },
-  addDiscoveredButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: colors.background,
-  },
-  addDiscoveredButtonTextDisabled: {
     color: colors.grey,
   },
   inputContainer: {
