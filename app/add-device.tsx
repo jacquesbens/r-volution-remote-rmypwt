@@ -17,6 +17,7 @@ const AddDeviceScreen: React.FC = () => {
     devices, 
     discoveredDevices, // New: get discovered devices
     scanNetwork, 
+    stopScanning, // FIXED: Import stopScanning function
     addDeviceManually, 
     addDiscoveredDevice, // New: function to add discovered device
     removeDevice, 
