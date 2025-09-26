@@ -5,9 +5,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
 
 const STORAGE_KEY = 'rvolution_devices';
-const SCAN_TIMEOUT = 8000; // Increased timeout for better reliability
+const SCAN_TIMEOUT = 5000; // Reduced timeout for faster scanning
 const TARGET_DEVICE_NAME = 'R_VOLUTION';
-const CONCURRENT_REQUESTS = 10; // Reduced for better stability
+const CONCURRENT_REQUESTS = 15; // Increased for faster scanning
+const HTTP_PORT = 80; // Fixed port for HTTP protocol
 
 export const useDeviceDiscovery = () => {
   const [devices, setDevices] = useState<RVolutionDevice[]>([]);
@@ -113,91 +114,16 @@ export const useDeviceDiscovery = () => {
     }
   }, []);
 
-  // Test multiple ports for R_VOLUTION devices
-  const testMultiplePorts = useCallback(async (ip: string): Promise<{port: number, response: any} | null> => {
-    const commonPorts = [80, 8080, 8000, 3000, 5000, 9000];
-    
-    for (const port of commonPorts) {
-      try {
-        console.log(`   Testing port ${port} on ${ip}`);
-        
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 5000);
-        
-        const response = await fetch(`http://${ip}:${port}/`, {
-          method: 'GET',
-          signal: controller.signal,
-          headers: {
-            'Accept': 'application/json, text/plain, text/html, */*',
-            'User-Agent': 'R_VOLUTION-Remote/1.0',
-            'Cache-Control': 'no-cache',
-          },
-        });
-        
-        clearTimeout(timeoutId);
-        
-        if (response.ok) {
-          console.log(`   ✅ Port ${port} responded with status ${response.status}`);
-          return { port, response };
-        }
-        
-      } catch (error) {
-        // Continue to next port
-        console.log(`   ❌ Port ${port} failed: ${error.message}`);
-      }
-    }
-    
-    return null;
-  }, []);
-
-  // Enhanced device verification with multiple strategies
-  const verifyRVolutionDevice = useCallback(async (ip: string, port: number = 80): Promise<{
+  // Enhanced device verification using only HTTP port 80
+  const verifyRVolutionDevice = useCallback(async (ip: string): Promise<{
     isRVolution: boolean;
     deviceName?: string;
     responseData?: any;
     endpoint?: string;
-    actualPort?: number;
   }> => {
-    console.log(`🔍 Verifying R_VOLUTION device at ${ip}:${port}`);
+    console.log(`🔍 Verifying R_VOLUTION device at ${ip}:${HTTP_PORT} (HTTP only)`);
     
     try {
-      // First, try the specified port
-      let testPort = port;
-      let workingResponse = null;
-      
-      // If port 80 fails, try other common ports
-      if (port === 80) {
-        const portTest = await testMultiplePorts(ip);
-        if (portTest) {
-          testPort = portTest.port;
-          workingResponse = portTest.response;
-          console.log(`   Found working port: ${testPort}`);
-        }
-      }
-
-      if (!workingResponse) {
-        // Try the original port with longer timeout
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), SCAN_TIMEOUT);
-
-        try {
-          workingResponse = await fetch(`http://${ip}:${testPort}/`, {
-            method: 'GET',
-            signal: controller.signal,
-            headers: {
-              'Accept': 'application/json, text/plain, text/html, */*',
-              'User-Agent': 'R_VOLUTION-Remote/1.0',
-              'Cache-Control': 'no-cache',
-            },
-          });
-          clearTimeout(timeoutId);
-        } catch (fetchError) {
-          clearTimeout(timeoutId);
-          console.log(`❌ No response from ${ip}:${testPort}`);
-          return { isRVolution: false };
-        }
-      }
-
       // Try multiple endpoints that R_VOLUTION devices might use
       const endpoints = [
         '/',
@@ -213,12 +139,12 @@ export const useDeviceDiscovery = () => {
       
       for (const endpoint of endpoints) {
         try {
-          console.log(`   Testing ${ip}:${testPort}${endpoint}`);
+          console.log(`   Testing HTTP ${ip}:${HTTP_PORT}${endpoint}`);
           
           const controller = new AbortController();
           const timeoutId = setTimeout(() => controller.abort(), SCAN_TIMEOUT);
           
-          const response = await fetch(`http://${ip}:${testPort}${endpoint}`, {
+          const response = await fetch(`http://${ip}:${HTTP_PORT}${endpoint}`, {
             method: 'GET',
             signal: controller.signal,
             headers: {
@@ -280,15 +206,14 @@ export const useDeviceDiscovery = () => {
                                responseData?.model ||
                                `${TARGET_DEVICE_NAME} (${ip})`;
               
-              console.log(`✅ R_VOLUTION device confirmed at ${ip}:${testPort}${endpoint}`);
+              console.log(`✅ R_VOLUTION device confirmed at ${ip}:${HTTP_PORT}${endpoint}`);
               console.log(`   Device name: ${deviceName}`);
               
               return { 
                 isRVolution: true, 
                 deviceName,
                 responseData,
-                endpoint,
-                actualPort: testPort
+                endpoint
               };
             } else {
               console.log(`   No R_VOLUTION patterns found in response`);
@@ -301,56 +226,56 @@ export const useDeviceDiscovery = () => {
         }
       }
 
-      console.log(`❌ No R_VOLUTION device found at ${ip}:${testPort}`);
-      return { isRVolution: false, actualPort: testPort };
+      console.log(`❌ No R_VOLUTION device found at ${ip}:${HTTP_PORT}`);
+      return { isRVolution: false };
       
     } catch (error) {
-      console.log(`❌ Verification failed for ${ip}:${port}:`, error.message);
+      console.log(`❌ Verification failed for ${ip}:${HTTP_PORT}:`, error.message);
       return { isRVolution: false };
     }
-  }, [testMultiplePorts]);
+  }, []);
 
-  // Check basic connectivity to an IP/port with retry logic
-  const checkDeviceReachability = useCallback(async (ip: string, port: number = 80, retries: number = 2): Promise<boolean> => {
+  // Check basic HTTP connectivity to an IP on port 80
+  const checkDeviceReachability = useCallback(async (ip: string, retries: number = 2): Promise<boolean> => {
     for (let attempt = 0; attempt <= retries; attempt++) {
       try {
-        console.log(`🔗 Testing connectivity to ${ip}:${port} (attempt ${attempt + 1}/${retries + 1})`);
+        console.log(`🔗 Testing HTTP connectivity to ${ip}:${HTTP_PORT} (attempt ${attempt + 1}/${retries + 1})`);
         
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 6000);
+        const timeoutId = setTimeout(() => controller.abort(), 4000);
         
-        const response = await fetch(`http://${ip}:${port}/`, {
+        const response = await fetch(`http://${ip}:${HTTP_PORT}/`, {
           method: 'HEAD', // Use HEAD for faster response
           signal: controller.signal,
         });
         
         clearTimeout(timeoutId);
         const isReachable = response.status < 500; // Accept any response that's not a server error
-        console.log(`${isReachable ? '✅' : '❌'} ${ip}:${port} is ${isReachable ? 'reachable' : 'unreachable'} (status: ${response.status})`);
+        console.log(`${isReachable ? '✅' : '❌'} ${ip}:${HTTP_PORT} is ${isReachable ? 'reachable' : 'unreachable'} (status: ${response.status})`);
         return isReachable;
         
       } catch (error) {
-        console.log(`❌ ${ip}:${port} attempt ${attempt + 1} failed:`, error.message);
+        console.log(`❌ ${ip}:${HTTP_PORT} attempt ${attempt + 1} failed:`, error.message);
         if (attempt < retries) {
           // Wait before retry
-          await new Promise(resolve => setTimeout(resolve, 1000));
+          await new Promise(resolve => setTimeout(resolve, 500));
         }
       }
     }
     
-    console.log(`❌ ${ip}:${port} is unreachable after ${retries + 1} attempts`);
+    console.log(`❌ ${ip}:${HTTP_PORT} is unreachable after ${retries + 1} attempts`);
     return false;
   }, []);
 
   // Get device info (for diagnostics)
-  const getDeviceInfo = useCallback(async (ip: string, port: number = 80): Promise<any> => {
+  const getDeviceInfo = useCallback(async (ip: string): Promise<any> => {
     try {
-      const result = await verifyRVolutionDevice(ip, port);
-      const reachable = await checkDeviceReachability(ip, result.actualPort || port);
+      const result = await verifyRVolutionDevice(ip);
+      const reachable = await checkDeviceReachability(ip);
       
       return {
         ip,
-        port: result.actualPort || port,
+        port: HTTP_PORT,
         isRVolution: result.isRVolution,
         deviceName: result.deviceName,
         responseData: result.responseData,
@@ -360,7 +285,7 @@ export const useDeviceDiscovery = () => {
     } catch (error) {
       return {
         ip,
-        port,
+        port: HTTP_PORT,
         isRVolution: false,
         reachable: false,
         error: error.message,
@@ -375,17 +300,17 @@ export const useDeviceDiscovery = () => {
     for (let i = startRange; i <= endRange; i++) {
       const ip = `${baseIP}.${i}`;
       
-      const promise = verifyRVolutionDevice(ip, 80).then(async (result) => {
+      const promise = verifyRVolutionDevice(ip).then(async (result) => {
         if (result.isRVolution) {
           // Check if device already exists
           const existingDevice = devices.find(d => d.ip === ip);
           if (!existingDevice) {
-            console.log(`🎉 New R_VOLUTION device discovered: ${result.deviceName} at ${ip}:${result.actualPort || 80}`);
+            console.log(`🎉 New R_VOLUTION device discovered: ${result.deviceName} at ${ip}:${HTTP_PORT}`);
             return {
               id: `auto_${ip}_${Date.now()}`,
               name: result.deviceName || `${TARGET_DEVICE_NAME} (${ip})`,
               ip: ip,
-              port: result.actualPort || 80,
+              port: HTTP_PORT,
               isOnline: true,
               lastSeen: new Date(),
               isManuallyAdded: false,
@@ -407,7 +332,7 @@ export const useDeviceDiscovery = () => {
     return results.filter((device): device is RVolutionDevice => device !== null);
   }, [devices, verifyRVolutionDevice]);
 
-  // Enhanced network scanning with better progress tracking
+  // Enhanced network scanning with HTTP port 80 only
   const scanNetwork = useCallback(async () => {
     setIsScanning(true);
     setScanProgress(0);
@@ -415,28 +340,29 @@ export const useDeviceDiscovery = () => {
     try {
       console.log('🚀 Starting enhanced R_VOLUTION device discovery...');
       console.log(`🎯 Target device name: ${TARGET_DEVICE_NAME}`);
-      console.log(`🔌 Target ports: 80, 8080, 8000, 3000, 5000, 9000`);
+      console.log(`🔌 Protocol: HTTP only on port ${HTTP_PORT}`);
       console.log(`⏱️  Timeout: ${SCAN_TIMEOUT}ms per request`);
+      console.log(`🔄 Concurrent requests: ${CONCURRENT_REQUESTS}`);
       
       const networkBases = await getLocalNetworkInfo();
       const foundDevices: RVolutionDevice[] = [];
       let totalProgress = 0;
       const totalNetworks = networkBases.length;
       
-      console.log(`🌐 Scanning ${totalNetworks} network ranges...`);
+      console.log(`🌐 Scanning ${totalNetworks} network ranges using HTTP protocol...`);
       
       // Scan each network base
       for (let networkIndex = 0; networkIndex < networkBases.length; networkIndex++) {
         const baseIP = networkBases[networkIndex];
-        console.log(`📡 Scanning network ${baseIP}.x (${networkIndex + 1}/${totalNetworks})`);
+        console.log(`📡 Scanning network ${baseIP}.x (${networkIndex + 1}/${totalNetworks}) on HTTP port ${HTTP_PORT}`);
         
-        const batchSize = CONCURRENT_REQUESTS; // Use configured batch size
+        const batchSize = CONCURRENT_REQUESTS;
         const networkDevices: RVolutionDevice[] = [];
         
         for (let start = 1; start <= 254; start += batchSize) {
           const end = Math.min(start + batchSize - 1, 254);
           
-          console.log(`🔎 Scanning ${baseIP}.${start}-${end}`);
+          console.log(`🔎 Scanning ${baseIP}.${start}-${end} on HTTP port ${HTTP_PORT}`);
           
           try {
             const batchDevices = await scanIPBatch(baseIP, start, end);
@@ -445,7 +371,7 @@ export const useDeviceDiscovery = () => {
             if (batchDevices.length > 0) {
               console.log(`✅ Found ${batchDevices.length} R_VOLUTION devices in batch ${baseIP}.${start}-${end}`);
               batchDevices.forEach(device => {
-                console.log(`   🎵 ${device.name} at ${device.ip}:${device.port}`);
+                console.log(`   🎵 ${device.name} at ${device.ip}:${device.port} (HTTP)`);
               });
             }
           } catch (batchError) {
@@ -470,7 +396,7 @@ export const useDeviceDiscovery = () => {
         await saveDevices(updatedDevices);
         console.log(`🎉 Discovery completed! Found ${foundDevices.length} new R_VOLUTION devices:`);
         foundDevices.forEach((device, index) => {
-          console.log(`   ${index + 1}. ${device.name} at ${device.ip}:${device.port}`);
+          console.log(`   ${index + 1}. ${device.name} at ${device.ip}:${device.port} (HTTP)`);
         });
       } else {
         console.log(`🔍 Discovery completed. No new R_VOLUTION devices found.`);
@@ -478,11 +404,11 @@ export const useDeviceDiscovery = () => {
         console.log(`   1. Verify R_VOLUTION devices are powered on`);
         console.log(`   2. Ensure devices are connected to Wi-Fi`);
         console.log(`   3. Check that devices are on the same network`);
-        console.log(`   4. Try different ports (8080, 8000, 3000, etc.)`);
+        console.log(`   4. Verify devices use HTTP protocol on port 80`);
         console.log(`   5. Try manual addition with known IP address`);
-        console.log(`   6. Check device documentation for network settings`);
-        console.log(`   7. Verify firewall settings on the device`);
-        console.log(`   8. Check if the device uses HTTPS instead of HTTP`);
+        console.log(`   6. Check device documentation for HTTP settings`);
+        console.log(`   7. Verify firewall settings allow HTTP traffic`);
+        console.log(`   8. Ensure devices respond to HTTP requests on port 80`);
       }
       
     } catch (error) {
@@ -493,11 +419,11 @@ export const useDeviceDiscovery = () => {
     }
   }, [devices, saveDevices, getLocalNetworkInfo, scanIPBatch]);
 
-  // Enhanced manual device addition
-  const addDeviceManually = useCallback(async (ip: string, port: number = 80, customName?: string): Promise<RVolutionDevice> => {
+  // Enhanced manual device addition (HTTP port 80 only)
+  const addDeviceManually = useCallback(async (ip: string, port: number = HTTP_PORT, customName?: string): Promise<RVolutionDevice> => {
     console.log('📱 === MANUAL DEVICE ADDITION STARTED ===');
     console.log(`   IP: ${ip}`);
-    console.log(`   Port: ${port}`);
+    console.log(`   Port: ${HTTP_PORT} (HTTP protocol enforced)`);
     console.log(`   Custom Name: ${customName || 'None'}`);
     
     try {
@@ -518,30 +444,29 @@ export const useDeviceDiscovery = () => {
         throw new Error('Adresse IP invalide. Chaque partie doit être entre 0 et 255');
       }
 
-      // Check if device already exists
-      const existingDevice = devices.find(d => d.ip === ip && d.port === port);
+      // Check if device already exists (always use HTTP port 80)
+      const existingDevice = devices.find(d => d.ip === ip && d.port === HTTP_PORT);
       if (existingDevice) {
         console.log('❌ Device already exists:', existingDevice);
         throw new Error('Cet appareil est déjà dans la liste');
       }
 
-      console.log('🔍 Testing device connectivity...');
+      console.log('🔍 Testing device connectivity on HTTP port 80...');
       
-      // Test basic connectivity first with retry
-      const isReachable = await checkDeviceReachability(ip, port, 3);
+      // Test basic HTTP connectivity
+      const isReachable = await checkDeviceReachability(ip, 3);
       console.log(`🔗 Device reachability: ${isReachable ? 'YES' : 'NO'}`);
       
       // Try to verify as R_VOLUTION device
       console.log('🎵 Verifying as R_VOLUTION device...');
-      const verificationResult = await verifyRVolutionDevice(ip, port);
+      const verificationResult = await verifyRVolutionDevice(ip);
       
       let deviceName = customName || `${TARGET_DEVICE_NAME} (${ip})`;
       let isVerified = verificationResult.isRVolution;
-      let actualPort = verificationResult.actualPort || port;
       
       if (isVerified) {
         deviceName = verificationResult.deviceName || deviceName;
-        console.log(`✅ Device verified as R_VOLUTION: ${deviceName} on port ${actualPort}`);
+        console.log(`✅ Device verified as R_VOLUTION: ${deviceName} on HTTP port ${HTTP_PORT}`);
       } else if (isReachable) {
         console.log(`⚠️  Device is reachable but not verified as R_VOLUTION`);
         console.log(`   Adding anyway as manual device`);
@@ -551,10 +476,10 @@ export const useDeviceDiscovery = () => {
       }
       
       const newDevice: RVolutionDevice = {
-        id: `manual_${ip}_${actualPort}_${Date.now()}`,
+        id: `manual_${ip}_${HTTP_PORT}_${Date.now()}`,
         name: deviceName,
         ip: ip,
-        port: actualPort,
+        port: HTTP_PORT, // Always use HTTP port 80
         isOnline: isReachable,
         lastSeen: isReachable ? new Date() : new Date(0),
         isManuallyAdded: true,
@@ -565,6 +490,7 @@ export const useDeviceDiscovery = () => {
         name: newDevice.name,
         ip: newDevice.ip,
         port: newDevice.port,
+        protocol: 'HTTP',
         verified: isVerified,
         reachable: isReachable,
       });
@@ -612,7 +538,7 @@ export const useDeviceDiscovery = () => {
     console.log('✅ Device renamed successfully');
   }, [devices, saveDevices]);
 
-  // Update device (name and/or IP)
+  // Update device (name and/or IP) - always use HTTP port 80
   const updateDevice = useCallback(async (deviceId: string, updates: { name?: string; ip?: string; port?: number }) => {
     console.log('✏️ Updating device:', deviceId, 'with updates:', updates);
     
@@ -642,19 +568,19 @@ export const useDeviceDiscovery = () => {
           throw new Error('Adresse IP invalide. Chaque partie doit être entre 0 et 255');
         }
 
-        // Check if another device already uses this IP
-        const existingDevice = devices.find(d => d.id !== deviceId && d.ip === updates.ip && d.port === (updates.port || deviceToUpdate.port));
+        // Check if another device already uses this IP (always check HTTP port 80)
+        const existingDevice = devices.find(d => d.id !== deviceId && d.ip === updates.ip && d.port === HTTP_PORT);
         if (existingDevice) {
           throw new Error('Un autre appareil utilise déjà cette adresse IP');
         }
       }
 
-      // Create updated device
+      // Create updated device (always use HTTP port 80)
       const updatedDevice = {
         ...deviceToUpdate,
         ...(updates.name && { name: updates.name.trim() }),
         ...(updates.ip && { ip: updates.ip.trim() }),
-        ...(updates.port && { port: updates.port }),
+        port: HTTP_PORT, // Always enforce HTTP port 80
         // Reset online status if IP changed, will be updated on next status check
         ...(updates.ip && updates.ip !== deviceToUpdate.ip && { isOnline: false, lastSeen: new Date(0) }),
       };
@@ -666,7 +592,7 @@ export const useDeviceDiscovery = () => {
 
       setDevices(updatedDevices);
       await saveDevices(updatedDevices);
-      console.log('✅ Device updated successfully');
+      console.log('✅ Device updated successfully (HTTP port 80 enforced)');
       
       return updatedDevice;
     } catch (error) {
@@ -675,44 +601,42 @@ export const useDeviceDiscovery = () => {
     }
   }, [devices, saveDevices]);
 
-  // Update device status with enhanced checking - IMPROVED VERSION
+  // Update device status with enhanced checking - HTTP port 80 only
   const updateDeviceStatus = useCallback(async () => {
     if (devices.length === 0) {
       console.log('📊 No devices to update status for');
       return;
     }
     
-    console.log(`📊 === DEVICE STATUS UPDATE STARTED ===`);
+    console.log(`📊 === DEVICE STATUS UPDATE STARTED (HTTP PORT ${HTTP_PORT}) ===`);
     console.log(`📊 Updating status for ${devices.length} devices...`);
     
     const updatedDevices = await Promise.all(
       devices.map(async (device) => {
         try {
-          console.log(`🔄 Checking ${device.name} (${device.ip}:${device.port}) - Manual: ${device.isManuallyAdded}`);
+          console.log(`🔄 Checking ${device.name} (${device.ip}:${HTTP_PORT}) - Manual: ${device.isManuallyAdded}`);
           
           let isOnline = false;
           let deviceName = device.name;
-          let actualPort = device.port;
           
           if (device.isManuallyAdded) {
-            // For manually added devices, use basic connectivity check
-            console.log(`   📱 Manual device - using basic connectivity check`);
-            isOnline = await checkDeviceReachability(device.ip, device.port, 1);
-            console.log(`   ${isOnline ? '✅' : '❌'} Manual device ${device.name} is ${isOnline ? 'reachable' : 'offline'}`);
+            // For manually added devices, use basic HTTP connectivity check
+            console.log(`   📱 Manual device - using basic HTTP connectivity check`);
+            isOnline = await checkDeviceReachability(device.ip, 1);
+            console.log(`   ${isOnline ? '✅' : '❌'} Manual device ${device.name} is ${isOnline ? 'reachable' : 'offline'} on HTTP port ${HTTP_PORT}`);
           } else {
             // For auto-discovered devices, use full R_VOLUTION verification
-            console.log(`   🤖 Auto-discovered device - using R_VOLUTION verification`);
-            const result = await verifyRVolutionDevice(device.ip, device.port);
+            console.log(`   🤖 Auto-discovered device - using R_VOLUTION verification on HTTP`);
+            const result = await verifyRVolutionDevice(device.ip);
             isOnline = result.isRVolution;
             
             if (isOnline) {
               deviceName = result.deviceName || device.name;
-              actualPort = result.actualPort || device.port;
-              console.log(`   ✅ Auto device ${device.name} is online and verified`);
+              console.log(`   ✅ Auto device ${device.name} is online and verified on HTTP port ${HTTP_PORT}`);
             } else {
               // If not verified as R_VOLUTION, check basic connectivity as fallback
-              const isReachable = await checkDeviceReachability(device.ip, device.port);
-              console.log(`   ${isReachable ? '🔗' : '❌'} Auto device ${device.name} is ${isReachable ? 'reachable but not verified' : 'offline'}`);
+              const isReachable = await checkDeviceReachability(device.ip);
+              console.log(`   ${isReachable ? '🔗' : '❌'} Auto device ${device.name} is ${isReachable ? 'reachable but not verified' : 'offline'} on HTTP port ${HTTP_PORT}`);
               // For auto-discovered devices, we still require R_VOLUTION verification
               isOnline = false;
             }
@@ -723,16 +647,17 @@ export const useDeviceDiscovery = () => {
             isOnline,
             lastSeen: isOnline ? new Date() : device.lastSeen,
             name: deviceName,
-            port: actualPort,
+            port: HTTP_PORT, // Always enforce HTTP port 80
           };
           
-          console.log(`   📊 ${device.name} status: ${isOnline ? 'ONLINE' : 'OFFLINE'}`);
+          console.log(`   📊 ${device.name} status: ${isOnline ? 'ONLINE' : 'OFFLINE'} (HTTP port ${HTTP_PORT})`);
           return updatedDevice;
         } catch (error) {
           console.log(`❌ ${device.name} status check failed:`, error.message);
           return {
             ...device,
             isOnline: false,
+            port: HTTP_PORT, // Always enforce HTTP port 80
           };
         }
       })
@@ -743,40 +668,26 @@ export const useDeviceDiscovery = () => {
     await saveDevices(updatedDevices);
     
     const onlineCount = updatedDevices.filter(d => d.isOnline).length;
-    console.log(`📊 Status update completed: ${onlineCount}/${updatedDevices.length} devices online`);
+    console.log(`📊 Status update completed: ${onlineCount}/${updatedDevices.length} devices online on HTTP port ${HTTP_PORT}`);
     console.log(`📊 === DEVICE STATUS UPDATE COMPLETED ===`);
     
     return updatedDevices;
   }, [devices, saveDevices, verifyRVolutionDevice, checkDeviceReachability]);
 
-  // Enhanced network diagnostic function
+  // Enhanced network diagnostic function - HTTP port 80 only
   const runNetworkDiagnostic = useCallback(async (targetIP?: string) => {
-    console.log('🔧 === ENHANCED NETWORK DIAGNOSTIC STARTED ===');
+    console.log('🔧 === ENHANCED NETWORK DIAGNOSTIC STARTED (HTTP PORT 80) ===');
     
     try {
       const networkBases = await getLocalNetworkInfo();
       console.log('🌐 Network ranges to test:', networkBases);
       
       if (targetIP) {
-        console.log(`🎯 Testing specific IP: ${targetIP}`);
+        console.log(`🎯 Testing specific IP: ${targetIP} on HTTP port ${HTTP_PORT}`);
         
-        // Test multiple ports on the target IP
-        console.log('🔌 Testing multiple ports...');
-        const portTest = await testMultiplePorts(targetIP);
-        
-        if (portTest) {
-          console.log(`✅ Found working port ${portTest.port} on ${targetIP}`);
-          const deviceInfo = await getDeviceInfo(targetIP, portTest.port);
-          console.log('📋 Device info:', deviceInfo);
-          return deviceInfo;
-        } else {
-          console.log(`❌ No working ports found on ${targetIP}`);
-          return {
-            ip: targetIP,
-            reachable: false,
-            error: 'No working ports found'
-          };
-        }
+        const deviceInfo = await getDeviceInfo(targetIP);
+        console.log('📋 Device info:', deviceInfo);
+        return deviceInfo;
       }
       
       // Test a few common IPs in each range
@@ -785,24 +696,14 @@ export const useDeviceDiscovery = () => {
         testIPs.push(`${base}.1`, `${base}.2`, `${base}.10`, `${base}.100`, `${base}.254`);
       }
       
-      console.log('🧪 Testing sample IPs:', testIPs);
+      console.log('🧪 Testing sample IPs on HTTP port 80:', testIPs);
       
       const results = await Promise.all(
         testIPs.map(async (ip) => {
-          console.log(`🔍 Testing ${ip}...`);
-          
-          // First try port discovery
-          const portTest = await testMultiplePorts(ip);
-          if (portTest) {
-            const info = await getDeviceInfo(ip, portTest.port);
-            console.log(`📋 ${ip}:${portTest.port}:`, info);
-            return info;
-          } else {
-            // Try default port 80
-            const info = await getDeviceInfo(ip, 80);
-            console.log(`📋 ${ip}:80:`, info);
-            return info;
-          }
+          console.log(`🔍 Testing ${ip} on HTTP port ${HTTP_PORT}...`);
+          const info = await getDeviceInfo(ip);
+          console.log(`📋 ${ip}:${HTTP_PORT}:`, info);
+          return info;
         })
       );
       
@@ -810,13 +711,13 @@ export const useDeviceDiscovery = () => {
       const rvolutionDevices = results.filter(r => r.isRVolution);
       
       console.log(`📊 Diagnostic complete:`);
-      console.log(`   ${reachableDevices.length}/${testIPs.length} test IPs reachable`);
+      console.log(`   ${reachableDevices.length}/${testIPs.length} test IPs reachable on HTTP port ${HTTP_PORT}`);
       console.log(`   ${rvolutionDevices.length} R_VOLUTION devices found`);
       
       if (rvolutionDevices.length > 0) {
         console.log('🎉 R_VOLUTION devices found:');
         rvolutionDevices.forEach(device => {
-          console.log(`   🎵 ${device.deviceName || 'Unknown'} at ${device.ip}:${device.port}`);
+          console.log(`   🎵 ${device.deviceName || 'Unknown'} at ${device.ip}:${HTTP_PORT} (HTTP)`);
         });
       }
       
@@ -828,38 +729,16 @@ export const useDeviceDiscovery = () => {
     } finally {
       console.log('🔧 === ENHANCED NETWORK DIAGNOSTIC FINISHED ===');
     }
-  }, [getLocalNetworkInfo, getDeviceInfo, testMultiplePorts]);
+  }, [getLocalNetworkInfo, getDeviceInfo]);
 
-  // Test a specific IP address (for manual testing)
-  const testSpecificIP = useCallback(async (ip: string, port?: number) => {
-    console.log(`🧪 === TESTING SPECIFIC IP: ${ip} ===`);
+  // Test a specific IP address (HTTP port 80 only)
+  const testSpecificIP = useCallback(async (ip: string) => {
+    console.log(`🧪 === TESTING SPECIFIC IP: ${ip} ON HTTP PORT ${HTTP_PORT} ===`);
     
     try {
-      // Test multiple ports if no specific port provided
-      if (!port) {
-        console.log('🔌 Testing multiple ports...');
-        const portTest = await testMultiplePorts(ip);
-        
-        if (portTest) {
-          console.log(`✅ Found working port ${portTest.port}`);
-          const deviceInfo = await getDeviceInfo(ip, portTest.port);
-          console.log('📋 Device info:', deviceInfo);
-          return deviceInfo;
-        } else {
-          console.log('❌ No working ports found');
-          return {
-            ip,
-            reachable: false,
-            error: 'No working ports found'
-          };
-        }
-      } else {
-        // Test specific port
-        console.log(`🔌 Testing port ${port}...`);
-        const deviceInfo = await getDeviceInfo(ip, port);
-        console.log('📋 Device info:', deviceInfo);
-        return deviceInfo;
-      }
+      const deviceInfo = await getDeviceInfo(ip);
+      console.log('📋 Device info:', deviceInfo);
+      return deviceInfo;
       
     } catch (error) {
       console.log('❌ IP test failed:', error);
@@ -867,26 +746,26 @@ export const useDeviceDiscovery = () => {
     } finally {
       console.log(`🧪 === IP TEST FINISHED ===`);
     }
-  }, [getDeviceInfo, testMultiplePorts]);
+  }, [getDeviceInfo]);
 
-  // Test device connectivity (for DeviceCard)
+  // Test device connectivity (HTTP port 80 only)
   const testDeviceConnectivity = useCallback(async (device: RVolutionDevice): Promise<boolean> => {
-    console.log(`🧪 Testing connectivity for ${device.name} (${device.ip}:${device.port})`);
+    console.log(`🧪 Testing HTTP connectivity for ${device.name} (${device.ip}:${HTTP_PORT})`);
     
     try {
-      const isReachable = await checkDeviceReachability(device.ip, device.port, 1);
-      console.log(`${isReachable ? '✅' : '❌'} ${device.name} connectivity test: ${isReachable ? 'PASS' : 'FAIL'}`);
+      const isReachable = await checkDeviceReachability(device.ip, 1);
+      console.log(`${isReachable ? '✅' : '❌'} ${device.name} HTTP connectivity test: ${isReachable ? 'PASS' : 'FAIL'}`);
       return isReachable;
     } catch (error) {
-      console.log(`❌ Connectivity test failed for ${device.name}:`, error);
+      console.log(`❌ HTTP connectivity test failed for ${device.name}:`, error);
       return false;
     }
   }, [checkDeviceReachability]);
 
-  // Initialize by loading saved devices - IMPROVED VERSION
+  // Initialize by loading saved devices
   useEffect(() => {
     if (!devicesLoadedRef.current && !initializingRef.current) {
-      console.log('🚀 Initializing device discovery hook...');
+      console.log('🚀 Initializing device discovery hook (HTTP port 80 protocol)...');
       loadSavedDevices();
     }
   }, [loadSavedDevices]);

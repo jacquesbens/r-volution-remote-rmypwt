@@ -30,19 +30,19 @@ const AddDeviceScreen: React.FC = () => {
   const [deviceToEdit, setDeviceToEdit] = useState<RVolutionDevice | null>(null);
 
   const handleScanNetwork = async () => {
-    console.log('🔍 Starting automatic network scan');
+    console.log('🔍 Starting automatic network scan with HTTP protocol');
     try {
       await scanNetwork();
       Alert.alert(
-        'Scan terminé',
-        'Le scan du réseau est terminé. Vérifiez la liste des appareils découverts.',
+        'Scan HTTP terminé',
+        'Le scan du réseau est terminé. Vérifiez la liste des appareils découverts via HTTP.',
         [{ text: 'OK' }]
       );
     } catch (error) {
       console.log('❌ Network scan failed:', error);
       Alert.alert(
-        'Erreur de scan',
-        'Impossible de scanner le réseau. Vérifiez votre connexion Wi-Fi.',
+        'Erreur de scan HTTP',
+        'Impossible de scanner le réseau via HTTP. Vérifiez votre connexion Wi-Fi.',
         [{ text: 'OK' }]
       );
     }
@@ -68,10 +68,10 @@ const AddDeviceScreen: React.FC = () => {
 
     setIsAdding(true);
     try {
-      console.log('➕ Adding device manually:', { name: deviceName, ip: ipAddress });
+      console.log('➕ Adding device manually via HTTP:', { name: deviceName, ip: ipAddress });
       const newDevice = await addDeviceManually(ipAddress.trim(), 80, deviceName.trim());
       
-      console.log('✅ Device added successfully:', newDevice);
+      console.log('✅ Device added successfully via HTTP:', newDevice);
       
       // Clear the form
       setDeviceName('');
@@ -79,7 +79,7 @@ const AddDeviceScreen: React.FC = () => {
       
       Alert.alert(
         'Appareil ajouté',
-        `${deviceName} a été ajouté avec succès.`,
+        `${deviceName} a été ajouté avec succès via HTTP.`,
         [{ text: 'OK' }]
       );
     } catch (error) {
@@ -158,11 +158,16 @@ const AddDeviceScreen: React.FC = () => {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Ajout automatique</Text>
             <Text style={styles.sectionDescription}>
-              Scannez votre réseau pour trouver des appareils
+              Scannez votre réseau pour trouver des appareils via HTTP
             </Text>
             
+            <View style={styles.protocolBadge}>
+              <Icon name="globe-outline" size={16} color={colors.primary} />
+              <Text style={styles.protocolText}>HTTP • Port 80</Text>
+            </View>
+            
             <Button
-              text={isScanning ? `Scanner... ${scanProgress}%` : "Scanner"}
+              text={isScanning ? `Scanner HTTP... ${scanProgress}%` : "Scanner le réseau"}
               onPress={handleScanNetwork}
               style={[styles.scanButton, { opacity: isScanning ? 0.7 : 1 }]}
             />
@@ -170,7 +175,7 @@ const AddDeviceScreen: React.FC = () => {
             {isScanning && (
               <View style={styles.scanningIndicator}>
                 <ActivityIndicator size="small" color={colors.primary} />
-                <Text style={styles.scanningText}>Recherche en cours...</Text>
+                <Text style={styles.scanningText}>Recherche HTTP en cours...</Text>
               </View>
             )}
           </View>
@@ -178,6 +183,11 @@ const AddDeviceScreen: React.FC = () => {
           {/* Manual Addition Section */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Ajout manuel</Text>
+            
+            <View style={styles.protocolBadge}>
+              <Icon name="globe-outline" size={16} color={colors.primary} />
+              <Text style={styles.protocolText}>HTTP • Port 80</Text>
+            </View>
             
             <View style={styles.inputContainer}>
               <Text style={styles.inputLabel}>Nom</Text>
@@ -205,7 +215,7 @@ const AddDeviceScreen: React.FC = () => {
             </View>
 
             <Button
-              text={isAdding ? "Ajout en cours..." : "Ajouter"}
+              text={isAdding ? "Ajout HTTP..." : "Ajouter"}
               onPress={handleAddDevice}
               style={[styles.addButton, { opacity: isAdding ? 0.7 : 1 }]}
             />
@@ -213,9 +223,21 @@ const AddDeviceScreen: React.FC = () => {
             {isAdding && (
               <View style={styles.addingIndicator}>
                 <ActivityIndicator size="small" color={colors.primary} />
-                <Text style={styles.addingText}>Ajout en cours...</Text>
+                <Text style={styles.addingText}>Ajout via HTTP en cours...</Text>
               </View>
             )}
+          </View>
+
+          {/* Protocol Information Section */}
+          <View style={styles.protocolInfoSection}>
+            <Icon name="information-circle" size={20} color={colors.primary} />
+            <View style={styles.protocolInfoContent}>
+              <Text style={styles.protocolInfoTitle}>Protocole HTTP optimisé</Text>
+              <Text style={styles.protocolInfoText}>• Utilise exclusivement le protocole HTTP sur port 80</Text>
+              <Text style={styles.protocolInfoText}>• Découverte automatique plus rapide et fiable</Text>
+              <Text style={styles.protocolInfoText}>• Compatible avec tous les appareils R_VOLUTION</Text>
+              <Text style={styles.protocolInfoText}>• Aucune configuration de port nécessaire</Text>
+            </View>
           </View>
 
           {/* Devices List Section */}
@@ -246,7 +268,7 @@ const AddDeviceScreen: React.FC = () => {
               <Icon name="wifi-outline" size={64} color={colors.grey} />
               <Text style={styles.emptyStateTitle}>Aucun appareil trouvé</Text>
               <Text style={styles.emptyStateDescription}>
-                Utilisez le scan automatique ou ajoutez un appareil manuellement
+                Utilisez le scan automatique HTTP ou ajoutez un appareil manuellement
               </Text>
             </View>
           )}
@@ -310,8 +332,24 @@ const styles = StyleSheet.create({
   sectionDescription: {
     fontSize: 16,
     color: colors.grey,
-    marginBottom: 20,
+    marginBottom: 16,
     lineHeight: 22,
+  },
+  protocolBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.primary + '15',
+    borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    alignSelf: 'flex-start',
+    marginBottom: 16,
+    gap: 6,
+  },
+  protocolText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: colors.primary,
   },
   scanButton: {
     backgroundColor: colors.primary,
@@ -368,6 +406,30 @@ const styles = StyleSheet.create({
   addingText: {
     fontSize: 14,
     color: colors.grey,
+  },
+  protocolInfoSection: {
+    flexDirection: 'row',
+    backgroundColor: colors.primary + '10',
+    marginHorizontal: 20,
+    marginVertical: 12,
+    borderRadius: 16,
+    padding: 20,
+    gap: 12,
+  },
+  protocolInfoContent: {
+    flex: 1,
+  },
+  protocolInfoTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: 8,
+  },
+  protocolInfoText: {
+    fontSize: 14,
+    color: colors.grey,
+    lineHeight: 20,
+    marginBottom: 4,
   },
   devicesList: {
     gap: 12,
