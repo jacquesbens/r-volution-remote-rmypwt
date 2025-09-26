@@ -34,6 +34,14 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   
+  // Separator
+  separator: {
+    height: 1,
+    backgroundColor: colors.border,
+    marginVertical: 20,
+    marginHorizontal: 20,
+  },
+  
   // Modern button styles
   modernButton: {
     backgroundColor: colors.surface,
@@ -241,11 +249,12 @@ const styles = StyleSheet.create({
   },
 
   // NEW: Subtitle and Audio buttons section - positioned below media controls extended
+  // Updated to include Repeat button on the left of Subtitle
   subtitleAudioSection: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: 10,
     marginBottom: 20,
   },
 
@@ -263,7 +272,7 @@ const styles = StyleSheet.create({
     elevation: 2,
     borderWidth: 1,
     borderColor: colors.border,
-    flex: 0.48,
+    flex: 0.32,
   },
 
   subtitleAudioButtonText: {
@@ -545,7 +554,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
 
-  // Bottom buttons section - NEW: Back and Repeat buttons at the bottom
+  // Bottom buttons section - Removed since Repeat is now with Subtitle/Audio
   bottomButtonsSection: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -747,6 +756,9 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
           </ModernButton>
         </View>
 
+        {/* Separator between power section and next section */}
+        <View style={styles.separator} />
+
         {/* Media Controls - NEW LAYOUT: CH- | Play | CH+ */}
         <View style={styles.mediaControls}>
           <ModernButton
@@ -835,8 +847,16 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
           </ModernButton>
         </View>
 
-        {/* NEW: Subtitle and Audio Buttons Section - positioned below media controls extended */}
+        {/* NEW: Repeat, Subtitle and Audio Buttons Section - Repeat moved to left of Subtitle */}
         <View style={styles.subtitleAudioSection}>
+          <ModernButton
+            onPress={() => handleCommand('Repeat', irCodes.Repeat)}
+            style={styles.subtitleAudioButton}
+          >
+            <Icon name="repeat" size={16} color="#fff" />
+            <Text style={styles.subtitleAudioButtonText}>Repeat</Text>
+          </ModernButton>
+          
           <ModernButton
             onPress={() => handleCommand('Subtitle', irCodes.Subtitle)}
             style={styles.subtitleAudioButton}
@@ -1086,17 +1106,6 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
             style={[styles.colorButton, styles.blueButton]}
           >
             <Text style={styles.colorButtonText}>Bleu</Text>
-          </ModernButton>
-        </View>
-
-        {/* Bottom Buttons Section - Only Repeat button now */}
-        <View style={styles.bottomButtonsSection}>
-          <ModernButton
-            onPress={() => handleCommand('Repeat', irCodes.Repeat)}
-            style={styles.bottomButton}
-          >
-            <Icon name="repeat" size={16} color="#fff" />
-            <Text style={styles.bottomButtonText}>Repeat</Text>
           </ModernButton>
         </View>
 
