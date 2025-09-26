@@ -66,33 +66,37 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   
-  // Power and main controls
+  // Power and main controls - updated to use same design as Explorer
   powerSection: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
     marginBottom: 20,
   },
   
   powerButton: {
-    backgroundColor: '#e53e3e',
-    borderRadius: 16,
-    paddingVertical: 16,
-    paddingHorizontal: 24,
+    backgroundColor: colors.primary,
+    borderRadius: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
-    elevation: 4,
-    minWidth: 80,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: colors.border,
+    flex: 0.48,
   },
   
   powerButtonText: {
     color: '#fff',
-    fontSize: 12,
-    fontWeight: '700',
-    marginTop: 4,
+    fontSize: 11,
+    fontWeight: '600',
+    marginTop: 3,
   },
   
   // Media controls
@@ -538,30 +542,22 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
   return (
     <View style={styles.container}>
       <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
-        {/* Power Controls */}
+        {/* Power Controls - Updated to remove toggle and use Explorer button design */}
         <Text style={styles.sectionHeader}>Alimentation</Text>
         <View style={styles.powerSection}>
           <ModernButton
             onPress={() => handleCommand('Power On', irCodes.PowerOn)}
-            style={[styles.powerButton, { backgroundColor: '#38a169' }]}
-          >
-            <Icon name="power" size={20} color="#fff" />
-            <Text style={styles.powerButtonText}>ON</Text>
-          </ModernButton>
-          
-          <ModernButton
-            onPress={() => handleCommand('Power Toggle', irCodes.PowerToggle)}
             style={styles.powerButton}
           >
-            <Icon name="power" size={20} color="#fff" />
-            <Text style={styles.powerButtonText}>TOGGLE</Text>
+            <Icon name="power" size={16} color="#fff" />
+            <Text style={styles.powerButtonText}>ON</Text>
           </ModernButton>
           
           <ModernButton
             onPress={() => handleCommand('Power Off', irCodes.PowerOff)}
             style={styles.powerButton}
           >
-            <Icon name="power" size={20} color="#fff" />
+            <Icon name="power" size={16} color="#fff" />
             <Text style={styles.powerButtonText}>OFF</Text>
           </ModernButton>
         </View>
