@@ -2,8 +2,8 @@
 import { useState, useCallback } from 'react';
 import { RVolutionDevice, DeviceCommand } from '../types/Device';
 
-const CGI_ENDPOINT = '/cgi-bin/do?'; // Fast CGI endpoint
-const COMMAND_TIMEOUT = 3000; // Fast timeout for commands
+const CGI_ENDPOINT = '/cgi-bin/do?';
+const COMMAND_TIMEOUT = 3000;
 
 export const useDeviceControl = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -91,7 +91,7 @@ export const useDeviceControl = () => {
       console.log(`🚀 Fast command URL: ${commandUrl}`);
       
       const response = await fetch(commandUrl, {
-        method: 'GET', // CGI typically uses GET
+        method: 'GET',
         signal: controller.signal,
         headers: {
           'Accept': '*/*',
@@ -132,7 +132,162 @@ export const useDeviceControl = () => {
     }
   }, []);
 
-  // IR Commands based on the document provided
+  // All IR Commands from the R_volution document
+  const send3D = useCallback((device: RVolutionDevice) => {
+    return sendIRCommand(device, 'ED124040');
+  }, [sendIRCommand]);
+
+  const sendAudio = useCallback((device: RVolutionDevice) => {
+    return sendIRCommand(device, 'E6194040');
+  }, [sendIRCommand]);
+
+  const sendCursorDown = useCallback((device: RVolutionDevice) => {
+    return sendIRCommand(device, 'F6094040');
+  }, [sendIRCommand]);
+
+  const sendCursorEnter = useCallback((device: RVolutionDevice) => {
+    return sendIRCommand(device, 'F2004040');
+  }, [sendIRCommand]);
+
+  const sendCursorLeft = useCallback((device: RVolutionDevice) => {
+    return sendIRCommand(device, 'F5084040');
+  }, [sendIRCommand]);
+
+  const sendCursorRight = useCallback((device: RVolutionDevice) => {
+    return sendIRCommand(device, 'F4084040');
+  }, [sendIRCommand]);
+
+  const sendCursorUp = useCallback((device: RVolutionDevice) => {
+    return sendIRCommand(device, 'F7084040');
+  }, [sendIRCommand]);
+
+  const sendDelete = useCallback((device: RVolutionDevice) => {
+    return sendIRCommand(device, 'F3064040');
+  }, [sendIRCommand]);
+
+  // Digit commands
+  const sendDigit = useCallback((device: RVolutionDevice, digit: number) => {
+    const digitCodes = {
+      0: 'FF004040',
+      1: 'FE014040',
+      2: 'FD024040',
+      3: 'FC034040',
+      4: 'FB044040',
+      5: 'FA054040',
+      6: 'F9064040',
+      7: 'F8074040',
+      8: 'F7084040',
+      9: 'F6094040',
+    };
+    const code = digitCodes[digit as keyof typeof digitCodes];
+    if (code) {
+      return sendIRCommand(device, code);
+    }
+    throw new Error(`Invalid digit: ${digit}`);
+  }, [sendIRCommand]);
+
+  const sendDimmer = useCallback((device: RVolutionDevice) => {
+    return sendIRCommand(device, 'AA554040');
+  }, [sendIRCommand]);
+
+  const sendExplorer = useCallback((device: RVolutionDevice) => {
+    return sendIRCommand(device, 'A1144040');
+  }, [sendIRCommand]);
+
+  const sendFormatScroll = useCallback((device: RVolutionDevice) => {
+    return sendIRCommand(device, 'A0154040');
+  }, [sendIRCommand]);
+
+  // Function color buttons
+  const sendFunctionGreen = useCallback((device: RVolutionDevice) => {
+    return sendIRCommand(device, 'F50A4040');
+  }, [sendIRCommand]);
+
+  const sendFunctionYellow = useCallback((device: RVolutionDevice) => {
+    return sendIRCommand(device, 'F41B4040');
+  }, [sendIRCommand]);
+
+  const sendFunctionRed = useCallback((device: RVolutionDevice) => {
+    return sendIRCommand(device, 'A68E4040');
+  }, [sendIRCommand]);
+
+  const sendFunctionBlue = useCallback((device: RVolutionDevice) => {
+    return sendIRCommand(device, 'A5544040');
+  }, [sendIRCommand]);
+
+  const sendHome = useCallback((device: RVolutionDevice) => {
+    return sendIRCommand(device, 'E5144040');
+  }, [sendIRCommand]);
+
+  const sendInfo = useCallback((device: RVolutionDevice) => {
+    return sendIRCommand(device, 'BA454040');
+  }, [sendIRCommand]);
+
+  const sendMenu = useCallback((device: RVolutionDevice) => {
+    return sendIRCommand(device, 'BA454040');
+  }, [sendIRCommand]);
+
+  const sendMouse = useCallback((device: RVolutionDevice) => {
+    return sendIRCommand(device, 'B8474040');
+  }, [sendIRCommand]);
+
+  const sendMute = useCallback((device: RVolutionDevice) => {
+    return sendIRCommand(device, 'BC434040');
+  }, [sendIRCommand]);
+
+  const sendPageDown = useCallback((device: RVolutionDevice) => {
+    return sendIRCommand(device, 'B9204040');
+  }, [sendIRCommand]);
+
+  const sendPageUp = useCallback((device: RVolutionDevice) => {
+    return sendIRCommand(device, 'BF404040');
+  }, [sendIRCommand]);
+
+  const sendPlayPause = useCallback((device: RVolutionDevice) => {
+    return sendIRCommand(device, 'A5554040');
+  }, [sendIRCommand]);
+
+  const sendPowerToggle = useCallback((device: RVolutionDevice) => {
+    return sendIRCommand(device, 'B2404040');
+  }, [sendIRCommand]);
+
+  const sendPowerOff = useCallback((device: RVolutionDevice) => {
+    return sendIRCommand(device, 'A4554040');
+  }, [sendIRCommand]);
+
+  const sendPowerOn = useCallback((device: RVolutionDevice) => {
+    return sendIRCommand(device, 'A5554040');
+  }, [sendIRCommand]);
+
+  const sendRepeat = useCallback((device: RVolutionDevice) => {
+    return sendIRCommand(device, 'B0424040');
+  }, [sendIRCommand]);
+
+  const sendReturn = useCallback((device: RVolutionDevice) => {
+    return sendIRCommand(device, 'B9464040');
+  }, [sendIRCommand]);
+
+  const sendRVideo = useCallback((device: RVolutionDevice) => {
+    return sendIRCommand(device, 'EC134040');
+  }, [sendIRCommand]);
+
+  const sendSubtitle = useCallback((device: RVolutionDevice) => {
+    return sendIRCommand(device, 'E41B4040');
+  }, [sendIRCommand]);
+
+  const sendVolumeDown = useCallback((device: RVolutionDevice) => {
+    return sendIRCommand(device, 'E8174040');
+  }, [sendIRCommand]);
+
+  const sendVolumeUp = useCallback((device: RVolutionDevice) => {
+    return sendIRCommand(device, 'E7184040');
+  }, [sendIRCommand]);
+
+  const sendZoom = useCallback((device: RVolutionDevice) => {
+    return sendIRCommand(device, 'E2104040');
+  }, [sendIRCommand]);
+
+  // Legacy compatibility functions
   const next = useCallback((device: RVolutionDevice) => {
     return sendIRCommand(device, 'E11E4040');
   }, [sendIRCommand]);
@@ -149,7 +304,6 @@ export const useDeviceControl = () => {
     return sendIRCommand(device, 'E31C8F00');
   }, [sendIRCommand]);
 
-  // Additional Skip & Toggle Commands
   const stop = useCallback((device: RVolutionDevice) => {
     return sendIRCommand(device, 'BD424040');
   }, [sendIRCommand]);
@@ -180,12 +334,12 @@ export const useDeviceControl = () => {
   }, [sendCommand]);
 
   const volumeUp = useCallback((device: RVolutionDevice) => {
-    return sendCommand(device, { action: 'vol_up' });
-  }, [sendCommand]);
+    return sendVolumeUp(device);
+  }, [sendVolumeUp]);
 
   const volumeDown = useCallback((device: RVolutionDevice) => {
-    return sendCommand(device, { action: 'vol_down' });
-  }, [sendCommand]);
+    return sendVolumeDown(device);
+  }, [sendVolumeDown]);
 
   const setVolume = useCallback((device: RVolutionDevice, volume: number) => {
     const clampedVolume = Math.max(0, Math.min(100, volume));
@@ -193,8 +347,8 @@ export const useDeviceControl = () => {
   }, [sendCommand]);
 
   const mute = useCallback((device: RVolutionDevice) => {
-    return sendCommand(device, { action: 'mute' });
-  }, [sendCommand]);
+    return sendMute(device);
+  }, [sendMute]);
 
   const seek = useCallback((device: RVolutionDevice, position: number) => {
     return sendCommand(device, { action: 'seek', value: position });
@@ -202,45 +356,45 @@ export const useDeviceControl = () => {
 
   // Additional R_volution specific commands
   const power = useCallback((device: RVolutionDevice) => {
-    return sendCommand(device, { action: 'power' });
-  }, [sendCommand]);
+    return sendPowerToggle(device);
+  }, [sendPowerToggle]);
 
   const home = useCallback((device: RVolutionDevice) => {
-    return sendCommand(device, { action: 'home' });
-  }, [sendCommand]);
+    return sendHome(device);
+  }, [sendHome]);
 
   const back = useCallback((device: RVolutionDevice) => {
-    return sendCommand(device, { action: 'back' });
-  }, [sendCommand]);
+    return sendReturn(device);
+  }, [sendReturn]);
 
   const menu = useCallback((device: RVolutionDevice) => {
-    return sendCommand(device, { action: 'menu' });
-  }, [sendCommand]);
+    return sendMenu(device);
+  }, [sendMenu]);
 
   const ok = useCallback((device: RVolutionDevice) => {
-    return sendCommand(device, { action: 'ok' });
-  }, [sendCommand]);
+    return sendCursorEnter(device);
+  }, [sendCursorEnter]);
 
   const up = useCallback((device: RVolutionDevice) => {
-    return sendCommand(device, { action: 'up' });
-  }, [sendCommand]);
+    return sendCursorUp(device);
+  }, [sendCursorUp]);
 
   const down = useCallback((device: RVolutionDevice) => {
-    return sendCommand(device, { action: 'down' });
-  }, [sendCommand]);
+    return sendCursorDown(device);
+  }, [sendCursorDown]);
 
   const left = useCallback((device: RVolutionDevice) => {
-    return sendCommand(device, { action: 'left' });
-  }, [sendCommand]);
+    return sendCursorLeft(device);
+  }, [sendCursorLeft]);
 
   const right = useCallback((device: RVolutionDevice) => {
-    return sendCommand(device, { action: 'right' });
-  }, [sendCommand]);
+    return sendCursorRight(device);
+  }, [sendCursorRight]);
 
   // Number pad commands
   const number = useCallback((device: RVolutionDevice, num: number) => {
-    return sendCommand(device, { action: 'number', value: num });
-  }, [sendCommand]);
+    return sendDigit(device, num);
+  }, [sendDigit]);
 
   // TV/VOD/Guide/Info commands
   const tv = useCallback((device: RVolutionDevice) => {
@@ -256,14 +410,52 @@ export const useDeviceControl = () => {
   }, [sendCommand]);
 
   const info = useCallback((device: RVolutionDevice) => {
-    return sendCommand(device, { action: 'info' });
-  }, [sendCommand]);
+    return sendInfo(device);
+  }, [sendInfo]);
 
   return {
     isLoading,
     error,
     sendCommand,
     sendIRCommand,
+    
+    // All new IR commands from the document
+    send3D,
+    sendAudio,
+    sendCursorDown,
+    sendCursorEnter,
+    sendCursorLeft,
+    sendCursorRight,
+    sendCursorUp,
+    sendDelete,
+    sendDigit,
+    sendDimmer,
+    sendExplorer,
+    sendFormatScroll,
+    sendFunctionGreen,
+    sendFunctionYellow,
+    sendFunctionRed,
+    sendFunctionBlue,
+    sendHome,
+    sendInfo,
+    sendMenu,
+    sendMouse,
+    sendMute,
+    sendPageDown,
+    sendPageUp,
+    sendPlayPause,
+    sendPowerToggle,
+    sendPowerOff,
+    sendPowerOn,
+    sendRepeat,
+    sendReturn,
+    sendRVideo,
+    sendSubtitle,
+    sendVolumeDown,
+    sendVolumeUp,
+    sendZoom,
+    
+    // Legacy compatibility
     play,
     pause,
     stop,

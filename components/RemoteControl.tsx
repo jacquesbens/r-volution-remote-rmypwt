@@ -1,9 +1,8 @@
 
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Alert, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, Alert, ScrollView, TouchableOpacity } from 'react-native';
 import { useDeviceControl } from '../hooks/useDeviceControl';
 import { RVolutionDevice } from '../types/Device';
-import Button from './Button';
 import Icon from './Icon';
 import { colors } from '../styles/commonStyles';
 
@@ -14,8 +13,8 @@ interface RemoteControlProps {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1a1a2e',
-    paddingHorizontal: 20,
+    backgroundColor: colors.background,
+    paddingHorizontal: 16,
     paddingTop: 10,
   },
   scrollContainer: {
@@ -28,7 +27,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 15,
     borderBottomWidth: 1,
-    borderBottomColor: '#333',
+    borderBottomColor: colors.border,
     marginBottom: 20,
   },
   headerLeft: {
@@ -36,7 +35,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   headerTitle: {
-    color: '#fff',
+    color: colors.text,
     fontSize: 18,
     fontWeight: '600',
     marginLeft: 10,
@@ -46,17 +45,25 @@ const styles = StyleSheet.create({
   },
   deviceInfo: {
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 24,
+    backgroundColor: colors.surface,
+    padding: 16,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   deviceName: {
-    color: '#fff',
+    color: colors.text,
     fontSize: 16,
-    fontWeight: '500',
+    fontWeight: '600',
   },
   deviceIP: {
-    color: '#888',
+    color: colors.textSecondary,
     fontSize: 14,
-    marginTop: 2,
+    marginTop: 4,
   },
   statusIndicator: {
     flexDirection: 'row',
@@ -74,176 +81,307 @@ const styles = StyleSheet.create({
   offlineText: {
     color: '#f44336',
   },
-  // Top control row (rewind, play/pause, forward, stop, record)
-  topControlRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 20,
-    paddingHorizontal: 10,
+  
+  // Section headers
+  sectionHeader: {
+    color: colors.textSecondary,
+    fontSize: 12,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    marginBottom: 12,
+    marginTop: 20,
+    textAlign: 'center',
   },
-  topControlButton: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: '#2a2a3e',
-    borderWidth: 2,
-    borderColor: '#444',
+  
+  // Modern button styles
+  modernButton: {
+    backgroundColor: colors.surface,
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
     alignItems: 'center',
     justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
-  // Second row (TV, VOD, Guide, Info)
-  secondRow: {
+  
+  modernButtonPressed: {
+    backgroundColor: colors.primary,
+    transform: [{ scale: 0.95 }],
+  },
+  
+  modernButtonText: {
+    color: colors.text,
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  
+  modernButtonTextPressed: {
+    color: '#fff',
+  },
+  
+  // Power and main controls
+  powerSection: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: 20,
+  },
+  
+  powerButton: {
+    backgroundColor: '#e53e3e',
+    borderRadius: 16,
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 4,
+    minWidth: 80,
+  },
+  
+  powerButtonText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '700',
+    marginTop: 4,
+  },
+  
+  // Media controls
+  mediaControls: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: 20,
-    paddingHorizontal: 20,
+    paddingHorizontal: 8,
   },
-  secondRowButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    backgroundColor: '#2a2a3e',
-    borderWidth: 1,
-    borderColor: '#555',
-    borderRadius: 6,
-    minWidth: 60,
+  
+  mediaButton: {
+    backgroundColor: colors.surface,
+    borderRadius: 20,
+    width: 56,
+    height: 56,
     alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
-  secondRowText: {
-    color: '#fff',
-    fontSize: 12,
-    fontWeight: '500',
+  
+  playButton: {
+    backgroundColor: colors.primary,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
   },
+  
   // Number pad
   numberPad: {
     marginBottom: 20,
   },
+  
   numberRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: 12,
-    paddingHorizontal: 30,
+    paddingHorizontal: 20,
   },
+  
   numberButton: {
-    width: 60,
-    height: 50,
-    backgroundColor: '#2a2a3e',
-    borderWidth: 2,
-    borderColor: '#444',
-    borderRadius: 8,
+    backgroundColor: colors.surface,
+    borderRadius: 12,
+    width: 64,
+    height: 56,
     alignItems: 'center',
     justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
+  
   numberText: {
-    color: '#fff',
+    color: colors.text,
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: '700',
   },
-  specialButton: {
-    backgroundColor: '#d32f2f',
-  },
-  // Navigation section
+  
+  // Navigation
   navigationSection: {
     alignItems: 'center',
     marginBottom: 20,
   },
-  navigationCircle: {
-    width: 160,
-    height: 160,
-    borderRadius: 80,
-    borderWidth: 2,
-    borderColor: '#555',
-    backgroundColor: '#2a2a3e',
+  
+  navigationContainer: {
+    width: 180,
+    height: 180,
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
   },
+  
   navButton: {
     position: 'absolute',
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#444',
+    backgroundColor: colors.surface,
+    borderRadius: 16,
+    width: 48,
+    height: 48,
     alignItems: 'center',
     justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
-  navButtonUp: {
-    top: 10,
-  },
-  navButtonDown: {
-    bottom: 10,
-  },
-  navButtonLeft: {
-    left: 10,
-  },
-  navButtonRight: {
-    right: 10,
-  },
+  
+  navButtonUp: { top: 0 },
+  navButtonDown: { bottom: 0 },
+  navButtonLeft: { left: 0 },
+  navButtonRight: { right: 0 },
+  
   okButton: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: '#555',
+    backgroundColor: colors.primary,
+    borderRadius: 20,
+    width: 72,
+    height: 72,
     alignItems: 'center',
     justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 4,
   },
+  
   okText: {
     color: '#fff',
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: 16,
+    fontWeight: '700',
   },
-  // Bottom controls
-  bottomControls: {
+  
+  // Function buttons grid
+  functionGrid: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     justifyContent: 'space-between',
     marginBottom: 20,
-    paddingHorizontal: 20,
   },
-  bottomButton: {
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    backgroundColor: '#2a2a3e',
-    borderWidth: 1,
-    borderColor: '#555',
-    borderRadius: 8,
+  
+  functionButton: {
+    backgroundColor: colors.surface,
+    borderRadius: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
     alignItems: 'center',
-    minWidth: 80,
+    justifyContent: 'center',
+    width: '23%',
+    marginBottom: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 1,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
-  bottomButtonText: {
+  
+  functionButtonText: {
+    color: colors.text,
+    fontSize: 10,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  
+  // Color function buttons
+  colorButton: {
+    borderRadius: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minWidth: 60,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  
+  redButton: { backgroundColor: '#e53e3e' },
+  greenButton: { backgroundColor: '#38a169' },
+  yellowButton: { backgroundColor: '#d69e2e' },
+  blueButton: { backgroundColor: '#3182ce' },
+  
+  colorButtonText: {
     color: '#fff',
-    fontSize: 12,
-    fontWeight: '500',
+    fontSize: 10,
+    fontWeight: '700',
   },
+  
   // Volume controls
-  volumeControls: {
+  volumeSection: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
+    marginBottom: 20,
   },
+  
   volumeButton: {
-    paddingHorizontal: 16,
+    backgroundColor: colors.surface,
+    borderRadius: 12,
     paddingVertical: 12,
-    backgroundColor: '#2a2a3e',
-    borderWidth: 1,
-    borderColor: '#555',
-    borderRadius: 8,
-    alignItems: 'center',
-    minWidth: 70,
-  },
-  volumeText: {
-    color: '#fff',
-    fontSize: 12,
-    fontWeight: '500',
-  },
-  muteButton: {
     paddingHorizontal: 20,
-    paddingVertical: 12,
-    backgroundColor: '#2a2a3e',
-    borderWidth: 1,
-    borderColor: '#555',
-    borderRadius: 8,
     alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: colors.border,
+    minWidth: 80,
   },
+  
+  muteButton: {
+    backgroundColor: '#f56565',
+    borderRadius: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  
+  volumeText: {
+    color: colors.text,
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  
+  // Loading overlay
   loadingOverlay: {
     position: 'absolute',
     top: 0,
@@ -255,55 +393,77 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderRadius: 12,
   },
+  
   loadingText: {
     color: '#fff',
     marginTop: 10,
     fontSize: 14,
+    fontWeight: '500',
   },
 });
 
 const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
-  const {
-    isLoading,
-    error,
-    play,
-    pause,
-    stop,
-    next,
-    previous,
-    fastForward,
-    fastReverse,
-    skip60Forward,
-    skip60Rewind,
-    skip10Forward,
-    skip10Rewind,
-    volumeUp,
-    volumeDown,
-    mute,
-    power,
-    home,
-    back,
-    menu,
-    ok,
-    up,
-    down,
-    left,
-    right,
-    number,
-    tv,
-    vod,
-    guide,
-    info,
-  } = useDeviceControl();
-
+  const { isLoading, sendIRCommand } = useDeviceControl();
   const [lastCommand, setLastCommand] = useState<string>('');
   const [isPlaying, setIsPlaying] = useState(false);
 
-  const handleCommand = async (commandName: string, commandFunction: () => Promise<any>) => {
+  // All IR codes from the document
+  const irCodes = {
+    // Basic functions
+    '3D': 'ED124040',
+    'Audio': 'E6194040',
+    'CursorDown': 'F6094040',
+    'CursorEnter': 'F2004040',
+    'CursorLeft': 'F5084040',
+    'CursorRight': 'F4084040',
+    'CursorUp': 'F7084040',
+    'Delete': 'F3064040',
+    
+    // Digits
+    'Digit0': 'FF004040',
+    'Digit1': 'FE014040',
+    'Digit2': 'FD024040',
+    'Digit3': 'FC034040',
+    'Digit4': 'FB044040',
+    'Digit5': 'FA054040',
+    'Digit6': 'F9064040',
+    'Digit7': 'F8074040',
+    'Digit8': 'F7084040',
+    'Digit9': 'F6094040',
+    
+    // Functions
+    'Dimmer': 'AA554040',
+    'Explorer': 'A1144040',
+    'FormatScroll': 'A0154040',
+    'FunctionGreen': 'F50A4040',
+    'FunctionYellow': 'F41B4040',
+    'FunctionRed': 'A68E4040',
+    'FunctionBlue': 'A5544040',
+    'Home': 'E5144040',
+    'Info': 'BA454040',
+    'Menu': 'BA454040',
+    'Mouse': 'B8474040',
+    'Mute': 'BC434040',
+    'PageDown': 'B9204040',
+    'PageUp': 'BF404040',
+    'PlayPause': 'A5554040',
+    'PowerToggle': 'B2404040',
+    'PowerOff': 'A4554040',
+    'PowerOn': 'A5554040',
+    'Repeat': 'B0424040',
+    'Return': 'B9464040',
+    'RVideo': 'EC134040',
+    'Subtitle': 'E41B4040',
+    'VolumeDown': 'E8174040',
+    'VolumeUp': 'E7184040',
+    'Zoom': 'E2104040',
+  };
+
+  const handleCommand = async (commandName: string, irCode: string) => {
     try {
       setLastCommand(commandName);
       console.log(`🎮 Executing ${commandName} command on ${device.name}`);
-      await commandFunction();
+      await sendIRCommand(device, irCode);
       console.log(`✅ ${commandName} command executed successfully`);
     } catch (error) {
       console.log(`❌ ${commandName} command failed:`, error);
@@ -316,17 +476,48 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
   };
 
   const handlePlayPause = () => {
-    if (isPlaying) {
-      handleCommand('Pause', () => pause(device));
-      setIsPlaying(false);
-    } else {
-      handleCommand('Play', () => play(device));
-      setIsPlaying(true);
-    }
+    handleCommand('Play/Pause', irCodes.PlayPause);
+    setIsPlaying(!isPlaying);
   };
 
   const handleNumber = (num: number) => {
-    handleCommand(`Number ${num}`, () => number(device, num));
+    const digitKey = `Digit${num}` as keyof typeof irCodes;
+    handleCommand(`Chiffre ${num}`, irCodes[digitKey]);
+  };
+
+  const ModernButton: React.FC<{
+    onPress: () => void;
+    children: React.ReactNode;
+    style?: any;
+    textStyle?: any;
+  }> = ({ onPress, children, style, textStyle }) => {
+    const [pressed, setPressed] = useState(false);
+    
+    return (
+      <TouchableOpacity
+        onPress={onPress}
+        onPressIn={() => setPressed(true)}
+        onPressOut={() => setPressed(false)}
+        style={[
+          styles.modernButton,
+          pressed && styles.modernButtonPressed,
+          style,
+        ]}
+        activeOpacity={0.8}
+      >
+        {typeof children === 'string' ? (
+          <Text style={[
+            styles.modernButtonText,
+            pressed && styles.modernButtonTextPressed,
+            textStyle,
+          ]}>
+            {children}
+          </Text>
+        ) : (
+          children
+        )}
+      </TouchableOpacity>
+    );
   };
 
   return (
@@ -335,12 +526,9 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.headerLeft}>
-            <Icon name="power" size={20} color="#fff" />
-            <Text style={styles.headerTitle}>Télécommande</Text>
+            <Icon name="tv" size={20} color={colors.primary} />
+            <Text style={styles.headerTitle}>Télécommande R_volution</Text>
           </View>
-          <Button text="" onPress={() => {}} style={styles.closeButton}>
-            <Icon name="close" size={24} color="#fff" />
-          </Button>
         </View>
 
         {/* Device Info */}
@@ -359,287 +547,326 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
           </View>
         </View>
 
-        {/* Top Control Row */}
-        <View style={styles.topControlRow}>
-          <Button 
-            text="" 
-            onPress={() => handleCommand('Fast Reverse', () => fastReverse(device))}
-            style={styles.topControlButton}
+        {/* Power Controls */}
+        <Text style={styles.sectionHeader}>Alimentation</Text>
+        <View style={styles.powerSection}>
+          <ModernButton
+            onPress={() => handleCommand('Power On', irCodes.PowerOn)}
+            style={[styles.powerButton, { backgroundColor: '#38a169' }]}
           >
-            <Icon name="play-skip-back" size={20} color="#fff" />
-          </Button>
-          <Button 
-            text="" 
-            onPress={handlePlayPause}
-            style={styles.topControlButton}
+            <Icon name="power" size={20} color="#fff" />
+            <Text style={styles.powerButtonText}>ON</Text>
+          </ModernButton>
+          
+          <ModernButton
+            onPress={() => handleCommand('Power Toggle', irCodes.PowerToggle)}
+            style={styles.powerButton}
           >
-            <Icon name={isPlaying ? "pause" : "play"} size={20} color="#fff" />
-          </Button>
-          <Button 
-            text="" 
-            onPress={() => handleCommand('Fast Forward', () => fastForward(device))}
-            style={styles.topControlButton}
+            <Icon name="power" size={20} color="#fff" />
+            <Text style={styles.powerButtonText}>TOGGLE</Text>
+          </ModernButton>
+          
+          <ModernButton
+            onPress={() => handleCommand('Power Off', irCodes.PowerOff)}
+            style={styles.powerButton}
           >
-            <Icon name="play-skip-forward" size={20} color="#fff" />
-          </Button>
-          <Button 
-            text="" 
-            onPress={() => handleCommand('Stop', () => stop(device))}
-            style={styles.topControlButton}
-          >
-            <Icon name="stop" size={20} color="#fff" />
-          </Button>
-          <Button 
-            text="" 
-            onPress={() => handleCommand('Record', () => {})}
-            style={[styles.topControlButton, { backgroundColor: '#d32f2f' }]}
-          >
-            <Icon name="radio-button-on" size={20} color="#fff" />
-          </Button>
+            <Icon name="power" size={20} color="#fff" />
+            <Text style={styles.powerButtonText}>OFF</Text>
+          </ModernButton>
         </View>
 
-        {/* Second Row - TV/VOD/Guide/Info */}
-        <View style={styles.secondRow}>
-          <Button 
-            text="" 
-            onPress={() => handleCommand('TV', () => tv(device))}
-            style={styles.secondRowButton}
+        {/* Media Controls */}
+        <Text style={styles.sectionHeader}>Contrôles Média</Text>
+        <View style={styles.mediaControls}>
+          <ModernButton
+            onPress={() => handleCommand('Return', irCodes.Return)}
+            style={styles.mediaButton}
           >
-            <Text style={styles.secondRowText}>TV</Text>
-          </Button>
-          <Button 
-            text="" 
-            onPress={() => handleCommand('VOD', () => vod(device))}
-            style={styles.secondRowButton}
+            <Icon name="play-skip-back" size={20} color={colors.text} />
+          </ModernButton>
+          
+          <ModernButton
+            onPress={handlePlayPause}
+            style={[styles.mediaButton, styles.playButton]}
           >
-            <Text style={styles.secondRowText}>VOD</Text>
-          </Button>
-          <Button 
-            text="" 
-            onPress={() => handleCommand('Guide', () => guide(device))}
-            style={styles.secondRowButton}
+            <Icon name={isPlaying ? "pause" : "play"} size={24} color="#fff" />
+          </ModernButton>
+          
+          <ModernButton
+            onPress={() => handleCommand('Repeat', irCodes.Repeat)}
+            style={styles.mediaButton}
           >
-            <Text style={styles.secondRowText}>Guide</Text>
-          </Button>
-          <Button 
-            text="" 
-            onPress={() => handleCommand('Info', () => info(device))}
-            style={styles.secondRowButton}
-          >
-            <Text style={styles.secondRowText}>Info</Text>
-          </Button>
+            <Icon name="play-skip-forward" size={20} color={colors.text} />
+          </ModernButton>
         </View>
 
         {/* Number Pad */}
+        <Text style={styles.sectionHeader}>Pavé Numérique</Text>
         <View style={styles.numberPad}>
           <View style={styles.numberRow}>
-            <Button 
-              text="" 
-              onPress={() => handleNumber(1)}
-              style={styles.numberButton}
-            >
-              <Text style={styles.numberText}>1</Text>
-            </Button>
-            <Button 
-              text="" 
-              onPress={() => handleNumber(2)}
-              style={styles.numberButton}
-            >
-              <Text style={styles.numberText}>2</Text>
-            </Button>
-            <Button 
-              text="" 
-              onPress={() => handleNumber(3)}
-              style={styles.numberButton}
-            >
-              <Text style={styles.numberText}>3</Text>
-            </Button>
+            {[1, 2, 3].map(num => (
+              <ModernButton
+                key={num}
+                onPress={() => handleNumber(num)}
+                style={styles.numberButton}
+              >
+                <Text style={styles.numberText}>{num}</Text>
+              </ModernButton>
+            ))}
           </View>
           <View style={styles.numberRow}>
-            <Button 
-              text="" 
-              onPress={() => handleNumber(4)}
-              style={styles.numberButton}
-            >
-              <Text style={styles.numberText}>4</Text>
-            </Button>
-            <Button 
-              text="" 
-              onPress={() => handleNumber(5)}
-              style={styles.numberButton}
-            >
-              <Text style={styles.numberText}>5</Text>
-            </Button>
-            <Button 
-              text="" 
-              onPress={() => handleNumber(6)}
-              style={styles.numberButton}
-            >
-              <Text style={styles.numberText}>6</Text>
-            </Button>
+            {[4, 5, 6].map(num => (
+              <ModernButton
+                key={num}
+                onPress={() => handleNumber(num)}
+                style={styles.numberButton}
+              >
+                <Text style={styles.numberText}>{num}</Text>
+              </ModernButton>
+            ))}
           </View>
           <View style={styles.numberRow}>
-            <Button 
-              text="" 
-              onPress={() => handleNumber(7)}
-              style={styles.numberButton}
-            >
-              <Text style={styles.numberText}>7</Text>
-            </Button>
-            <Button 
-              text="" 
-              onPress={() => handleNumber(8)}
-              style={styles.numberButton}
-            >
-              <Text style={styles.numberText}>8</Text>
-            </Button>
-            <Button 
-              text="" 
-              onPress={() => handleNumber(9)}
-              style={styles.numberButton}
-            >
-              <Text style={styles.numberText}>9</Text>
-            </Button>
+            {[7, 8, 9].map(num => (
+              <ModernButton
+                key={num}
+                onPress={() => handleNumber(num)}
+                style={styles.numberButton}
+              >
+                <Text style={styles.numberText}>{num}</Text>
+              </ModernButton>
+            ))}
           </View>
           <View style={styles.numberRow}>
-            <Button 
-              text="" 
-              onPress={() => handleCommand('Previous', () => previous(device))}
-              style={[styles.numberButton, styles.specialButton]}
+            <ModernButton
+              onPress={() => handleCommand('Delete', irCodes.Delete)}
+              style={styles.numberButton}
             >
-              <Icon name="chevron-back" size={20} color="#fff" />
-            </Button>
-            <Button 
-              text="" 
+              <Icon name="backspace" size={18} color={colors.text} />
+            </ModernButton>
+            <ModernButton
               onPress={() => handleNumber(0)}
               style={styles.numberButton}
             >
               <Text style={styles.numberText}>0</Text>
-            </Button>
-            <Button 
-              text="" 
-              onPress={() => handleCommand('Next', () => next(device))}
+            </ModernButton>
+            <ModernButton
+              onPress={() => handleCommand('Format Scroll', irCodes.FormatScroll)}
               style={styles.numberButton}
             >
-              <Text style={[styles.numberText, { fontSize: 10 }]}>be tv</Text>
-            </Button>
+              <Icon name="refresh" size={18} color={colors.text} />
+            </ModernButton>
           </View>
         </View>
 
-        {/* Navigation Circle */}
+        {/* Navigation */}
+        <Text style={styles.sectionHeader}>Navigation</Text>
         <View style={styles.navigationSection}>
-          <View style={styles.navigationCircle}>
-            <Button 
-              text="" 
-              onPress={() => handleCommand('Up', () => up(device))}
+          <View style={styles.navigationContainer}>
+            <ModernButton
+              onPress={() => handleCommand('Cursor Up', irCodes.CursorUp)}
               style={[styles.navButton, styles.navButtonUp]}
             >
-              <Icon name="chevron-up" size={20} color="#fff" />
-            </Button>
-            <Button 
-              text="" 
-              onPress={() => handleCommand('Left', () => left(device))}
+              <Icon name="chevron-up" size={20} color={colors.text} />
+            </ModernButton>
+            
+            <ModernButton
+              onPress={() => handleCommand('Cursor Left', irCodes.CursorLeft)}
               style={[styles.navButton, styles.navButtonLeft]}
             >
-              <Icon name="chevron-back" size={20} color="#fff" />
-            </Button>
-            <Button 
-              text="" 
-              onPress={() => handleCommand('OK', () => ok(device))}
+              <Icon name="chevron-back" size={20} color={colors.text} />
+            </ModernButton>
+            
+            <ModernButton
+              onPress={() => handleCommand('Cursor Enter', irCodes.CursorEnter)}
               style={styles.okButton}
             >
               <Text style={styles.okText}>OK</Text>
-            </Button>
-            <Button 
-              text="" 
-              onPress={() => handleCommand('Right', () => right(device))}
+            </ModernButton>
+            
+            <ModernButton
+              onPress={() => handleCommand('Cursor Right', irCodes.CursorRight)}
               style={[styles.navButton, styles.navButtonRight]}
             >
-              <Icon name="chevron-forward" size={20} color="#fff" />
-            </Button>
-            <Button 
-              text="" 
-              onPress={() => handleCommand('Down', () => down(device))}
+              <Icon name="chevron-forward" size={20} color={colors.text} />
+            </ModernButton>
+            
+            <ModernButton
+              onPress={() => handleCommand('Cursor Down', irCodes.CursorDown)}
               style={[styles.navButton, styles.navButtonDown]}
             >
-              <Icon name="chevron-down" size={20} color="#fff" />
-            </Button>
+              <Icon name="chevron-down" size={20} color={colors.text} />
+            </ModernButton>
           </View>
         </View>
 
-        {/* Bottom Controls */}
-        <View style={styles.bottomControls}>
-          <Button 
-            text="" 
-            onPress={() => handleCommand('Back', () => back(device))}
-            style={styles.bottomButton}
+        {/* Function Buttons */}
+        <Text style={styles.sectionHeader}>Fonctions</Text>
+        <View style={styles.functionGrid}>
+          <ModernButton
+            onPress={() => handleCommand('Home', irCodes.Home)}
+            style={styles.functionButton}
           >
-            <Text style={styles.bottomButtonText}>Back</Text>
-          </Button>
-          <Button 
-            text="" 
-            onPress={() => handleCommand('Home', () => home(device))}
-            style={styles.bottomButton}
+            <Icon name="home" size={16} color={colors.text} />
+            <Text style={styles.functionButtonText}>Home</Text>
+          </ModernButton>
+          
+          <ModernButton
+            onPress={() => handleCommand('Menu', irCodes.Menu)}
+            style={styles.functionButton}
           >
-            <Text style={styles.bottomButtonText}>Home</Text>
-          </Button>
+            <Icon name="menu" size={16} color={colors.text} />
+            <Text style={styles.functionButtonText}>Menu</Text>
+          </ModernButton>
+          
+          <ModernButton
+            onPress={() => handleCommand('Info', irCodes.Info)}
+            style={styles.functionButton}
+          >
+            <Icon name="information-circle" size={16} color={colors.text} />
+            <Text style={styles.functionButtonText}>Info</Text>
+          </ModernButton>
+          
+          <ModernButton
+            onPress={() => handleCommand('Explorer', irCodes.Explorer)}
+            style={styles.functionButton}
+          >
+            <Icon name="folder" size={16} color={colors.text} />
+            <Text style={styles.functionButtonText}>Explorer</Text>
+          </ModernButton>
+          
+          <ModernButton
+            onPress={() => handleCommand('3D', irCodes['3D'])}
+            style={styles.functionButton}
+          >
+            <Icon name="cube" size={16} color={colors.text} />
+            <Text style={styles.functionButtonText}>3D</Text>
+          </ModernButton>
+          
+          <ModernButton
+            onPress={() => handleCommand('Audio', irCodes.Audio)}
+            style={styles.functionButton}
+          >
+            <Icon name="musical-notes" size={16} color={colors.text} />
+            <Text style={styles.functionButtonText}>Audio</Text>
+          </ModernButton>
+          
+          <ModernButton
+            onPress={() => handleCommand('Subtitle', irCodes.Subtitle)}
+            style={styles.functionButton}
+          >
+            <Icon name="text" size={16} color={colors.text} />
+            <Text style={styles.functionButtonText}>Subtitle</Text>
+          </ModernButton>
+          
+          <ModernButton
+            onPress={() => handleCommand('Zoom', irCodes.Zoom)}
+            style={styles.functionButton}
+          >
+            <Icon name="search" size={16} color={colors.text} />
+            <Text style={styles.functionButtonText}>Zoom</Text>
+          </ModernButton>
+          
+          <ModernButton
+            onPress={() => handleCommand('Mouse', irCodes.Mouse)}
+            style={styles.functionButton}
+          >
+            <Icon name="hand-left" size={16} color={colors.text} />
+            <Text style={styles.functionButtonText}>Mouse</Text>
+          </ModernButton>
+          
+          <ModernButton
+            onPress={() => handleCommand('Dimmer', irCodes.Dimmer)}
+            style={styles.functionButton}
+          >
+            <Icon name="sunny" size={16} color={colors.text} />
+            <Text style={styles.functionButtonText}>Dimmer</Text>
+          </ModernButton>
+          
+          <ModernButton
+            onPress={() => handleCommand('Page Up', irCodes.PageUp)}
+            style={styles.functionButton}
+          >
+            <Icon name="arrow-up" size={16} color={colors.text} />
+            <Text style={styles.functionButtonText}>Page ↑</Text>
+          </ModernButton>
+          
+          <ModernButton
+            onPress={() => handleCommand('Page Down', irCodes.PageDown)}
+            style={styles.functionButton}
+          >
+            <Icon name="arrow-down" size={16} color={colors.text} />
+            <Text style={styles.functionButtonText}>Page ↓</Text>
+          </ModernButton>
+        </View>
+
+        {/* Color Function Buttons */}
+        <Text style={styles.sectionHeader}>Fonctions Couleur</Text>
+        <View style={styles.functionGrid}>
+          <ModernButton
+            onPress={() => handleCommand('Function Red', irCodes.FunctionRed)}
+            style={[styles.colorButton, styles.redButton]}
+          >
+            <Text style={styles.colorButtonText}>Rouge</Text>
+          </ModernButton>
+          
+          <ModernButton
+            onPress={() => handleCommand('Function Green', irCodes.FunctionGreen)}
+            style={[styles.colorButton, styles.greenButton]}
+          >
+            <Text style={styles.colorButtonText}>Vert</Text>
+          </ModernButton>
+          
+          <ModernButton
+            onPress={() => handleCommand('Function Yellow', irCodes.FunctionYellow)}
+            style={[styles.colorButton, styles.yellowButton]}
+          >
+            <Text style={styles.colorButtonText}>Jaune</Text>
+          </ModernButton>
+          
+          <ModernButton
+            onPress={() => handleCommand('Function Blue', irCodes.FunctionBlue)}
+            style={[styles.colorButton, styles.blueButton]}
+          >
+            <Text style={styles.colorButtonText}>Bleu</Text>
+          </ModernButton>
         </View>
 
         {/* Volume Controls */}
-        <View style={styles.volumeControls}>
-          <Button 
-            text="" 
-            onPress={() => handleCommand('Volume Down', () => volumeDown(device))}
+        <Text style={styles.sectionHeader}>Volume</Text>
+        <View style={styles.volumeSection}>
+          <ModernButton
+            onPress={() => handleCommand('Volume Down', irCodes.VolumeDown)}
             style={styles.volumeButton}
           >
+            <Icon name="volume-low" size={18} color={colors.text} />
             <Text style={styles.volumeText}>Vol -</Text>
-          </Button>
-          <Button 
-            text="" 
-            onPress={() => handleCommand('Mute', () => mute(device))}
+          </ModernButton>
+          
+          <ModernButton
+            onPress={() => handleCommand('Mute', irCodes.Mute)}
             style={styles.muteButton}
           >
             <Icon name="volume-mute" size={20} color="#fff" />
-          </Button>
-          <Button 
-            text="" 
-            onPress={() => handleCommand('Volume Up', () => volumeUp(device))}
+          </ModernButton>
+          
+          <ModernButton
+            onPress={() => handleCommand('Volume Up', irCodes.VolumeUp)}
             style={styles.volumeButton}
           >
+            <Icon name="volume-high" size={18} color={colors.text} />
             <Text style={styles.volumeText}>Vol +</Text>
-          </Button>
+          </ModernButton>
         </View>
 
-        {/* Skip Controls - Additional buttons from the document */}
-        <View style={[styles.bottomControls, { marginTop: 20 }]}>
-          <Button 
-            text="" 
-            onPress={() => handleCommand('10s Rewind', () => skip10Rewind(device))}
-            style={[styles.bottomButton, { backgroundColor: '#444' }]}
+        {/* R_video Function */}
+        <View style={{ alignItems: 'center', marginTop: 20 }}>
+          <ModernButton
+            onPress={() => handleCommand('R_video', irCodes.RVideo)}
+            style={[styles.functionButton, { width: '50%', backgroundColor: colors.primary }]}
           >
-            <Text style={[styles.bottomButtonText, { fontSize: 10 }]}>-10s</Text>
-          </Button>
-          <Button 
-            text="" 
-            onPress={() => handleCommand('60s Rewind', () => skip60Rewind(device))}
-            style={[styles.bottomButton, { backgroundColor: '#444' }]}
-          >
-            <Text style={[styles.bottomButtonText, { fontSize: 10 }]}>-60s</Text>
-          </Button>
-          <Button 
-            text="" 
-            onPress={() => handleCommand('10s Forward', () => skip10Forward(device))}
-            style={[styles.bottomButton, { backgroundColor: '#444' }]}
-          >
-            <Text style={[styles.bottomButtonText, { fontSize: 10 }]}>+10s</Text>
-          </Button>
-          <Button 
-            text="" 
-            onPress={() => handleCommand('60s Forward', () => skip60Forward(device))}
-            style={[styles.bottomButton, { backgroundColor: '#444' }]}
-          >
-            <Text style={[styles.bottomButtonText, { fontSize: 10 }]}>+60s</Text>
-          </Button>
+            <Icon name="videocam" size={18} color="#fff" />
+            <Text style={[styles.functionButtonText, { color: '#fff' }]}>R_video</Text>
+          </ModernButton>
         </View>
 
         {/* Loading Overlay */}
