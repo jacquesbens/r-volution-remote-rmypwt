@@ -1,16 +1,25 @@
 
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, ActivityIndicator, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { colors } from '../styles/commonStyles';
 import Icon from '../components/Icon';
 import Button from '../components/Button';
+import DeviceCard from '../components/DeviceCard';
 import { useDeviceDiscovery } from '../hooks/useDeviceDiscovery';
 
 const AddDeviceScreen: React.FC = () => {
   const router = useRouter();
-  const { scanNetwork, addDeviceManually, isScanning, scanProgress } = useDeviceDiscovery();
+  const { 
+    devices, 
+    scanNetwork, 
+    addDeviceManually, 
+    removeDevice, 
+    renameDevice,
+    isScanning, 
+    scanProgress 
+  } = useDeviceDiscovery();
   
   const [deviceName, setDeviceName] = useState('');
   const [ipAddress, setIpAddress] = useState('');
@@ -23,9 +32,7 @@ const AddDeviceScreen: React.FC = () => {
       Alert.alert(
         'Scan terminé',
         'Le scan du réseau est terminé. Vérifiez la liste des appareils découverts.',
-        [
-          { text: 'OK', onPress: () => router.back() }
-        ]
+        [{ text: 'OK' }]
       );
     } catch (error) {
       console.log('❌ Network scan failed:', error);
@@ -58,14 +65,18 @@ const AddDeviceScreen: React.FC = () => {
     setIsAdding(true);
     try {
       console.log('➕ Adding device manually:', { name: deviceName, ip: ipAddress });
-      await addDeviceManually(ipAddress.trim(), 80, deviceName.trim());
+      const newDevice = await addDeviceManually(ipAddress.trim(), 80, deviceName.trim());
+      
+      console.log('✅ Device added successfully:', newDevice);
+      
+      // Clear the form
+      setDeviceName('');
+      setIpAddress('');
       
       Alert.alert(
         'Appareil ajouté',
         `${deviceName} a été ajouté avec succès.`,
-        [
-          { text: 'OK', onPress: () => router.back() }
-        ]
+        [{ text: 'OK' }]
       );
     } catch (error) {
       console.log('❌ Failed to add device:', error);
@@ -79,88 +90,174 @@ const AddDeviceScreen: React.FC = () => {
     }
   };
 
-  const handleBack = () => {
-    router.back();
+  const handleDevicePress = (device: any) => {
+    console.log('📱 Device pressed:', device.name);
+    router.push(`/device/${device.id}`);
+  };
+
+  const handleRemoveDevice = async (deviceId: string) => {
+    Alert.alert(
+      'Supprimer l\'appareil',
+      'Êtes-vous sûr de vouloir supprimer cet appareil ?',
+      [
+        { text: 'Annuler', style: 'cancel' },
+        { 
+          text: 'Supprimer', 
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await removeDevice(deviceId);
+              console.log('✅ Device removed successfully');
+            } catch (error) {
+              console.log('❌ Failed to remove device:', error);
+              Alert.alert('Erreur', 'Impossible de supprimer l\'appareil.');
+            }
+          }
+        }
+      ]
+    );
+  };
+
+  const handleRenameDevice = (device: any) => {
+    Alert.prompt(
+      'Renommer l\'appareil',
+      'Entrez le nouveau nom :',
+      [
+        { text: 'Annuler', style: 'cancel' },
+        {
+          text: 'Renommer',
+          onPress: async (newName) => {
+            if (newName && newName.trim()) {
+              try {
+                await renameDevice(device.id, newName.trim());
+                console.log('✅ Device renamed successfully');
+              } catch (error) {
+                console.log('❌ Failed to rename device:', error);
+                Alert.alert('Erreur', 'Impossible de renommer l\'appareil.');
+              }
+            }
+          }
+        }
+      ],
+      'plain-text',
+      device.name
+    );
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={handleBack} style={styles.backButton}>
-          <Icon name="arrow-back" size={24} color={colors.text} />
-          <Text style={styles.backText}>Retour</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Title */}
-      <View style={styles.titleContainer}>
-        <Text style={styles.title}>Ajouter un appareil</Text>
-      </View>
-
-      {/* Automatic Addition Section */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Ajout automatique</Text>
-        <Text style={styles.sectionDescription}>
-          Scannez votre réseau pour trouver des appareils
-        </Text>
-        
-        <Button
-          text={isScanning ? `Scanner... ${scanProgress}%` : "Scanner"}
-          onPress={handleScanNetwork}
-          style={[styles.scanButton, { opacity: isScanning ? 0.7 : 1 }]}
-        />
-        
-        {isScanning && (
-          <View style={styles.scanningIndicator}>
-            <ActivityIndicator size="small" color={colors.primary} />
-            <Text style={styles.scanningText}>Recherche en cours...</Text>
-          </View>
-        )}
-      </View>
-
-      {/* Manual Addition Section */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Ajout manuel</Text>
-        
-        <View style={styles.inputContainer}>
-          <Text style={styles.inputLabel}>Nom</Text>
-          <TextInput
-            style={styles.input}
-            value={deviceName}
-            onChangeText={setDeviceName}
-            placeholder="Mon lecteur"
-            placeholderTextColor={colors.grey + '80'}
-          />
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        {/* Title */}
+        <View style={styles.titleContainer}>
+          <Text style={styles.title}>Ajouter un appareil</Text>
         </View>
 
-        <View style={styles.inputContainer}>
-          <Text style={styles.inputLabel}>IP / Hôte</Text>
-          <TextInput
-            style={styles.input}
-            value={ipAddress}
-            onChangeText={setIpAddress}
-            placeholder="192.168.1.20"
-            placeholderTextColor={colors.grey + '80'}
-            keyboardType="numbers-and-punctuation"
-            autoCapitalize="none"
-            autoCorrect={false}
+        {/* Automatic Addition Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Ajout automatique</Text>
+          <Text style={styles.sectionDescription}>
+            Scannez votre réseau pour trouver des appareils
+          </Text>
+          
+          <Button
+            text={isScanning ? `Scanner... ${scanProgress}%` : "Scanner"}
+            onPress={handleScanNetwork}
+            style={[styles.scanButton, { opacity: isScanning ? 0.7 : 1 }]}
           />
+          
+          {isScanning && (
+            <View style={styles.scanningIndicator}>
+              <ActivityIndicator size="small" color={colors.primary} />
+              <Text style={styles.scanningText}>Recherche en cours...</Text>
+            </View>
+          )}
         </View>
 
-        <Button
-          text={isAdding ? "Ajout..." : "Ajouter"}
-          onPress={handleAddDevice}
-          style={[styles.addButton, { opacity: isAdding ? 0.7 : 1 }]}
-        />
-        
-        {isAdding && (
-          <View style={styles.addingIndicator}>
-            <ActivityIndicator size="small" color={colors.primary} />
-            <Text style={styles.addingText}>Ajout en cours...</Text>
+        {/* Manual Addition Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Ajout manuel</Text>
+          
+          <View style={styles.inputContainer}>
+            <Text style={styles.inputLabel}>Nom</Text>
+            <TextInput
+              style={styles.input}
+              value={deviceName}
+              onChangeText={setDeviceName}
+              placeholder="Mon lecteur"
+              placeholderTextColor={colors.grey + '80'}
+            />
+          </View>
+
+          <View style={styles.inputContainer}>
+            <Text style={styles.inputLabel}>IP / Hôte</Text>
+            <TextInput
+              style={styles.input}
+              value={ipAddress}
+              onChangeText={setIpAddress}
+              placeholder="192.168.1.20"
+              placeholderTextColor={colors.grey + '80'}
+              keyboardType="numbers-and-punctuation"
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+          </View>
+
+          <Button
+            text={isAdding ? "Ajout en cours..." : "Ajouter"}
+            onPress={handleAddDevice}
+            style={[styles.addButton, { opacity: isAdding ? 0.7 : 1 }]}
+          />
+          
+          {isAdding && (
+            <View style={styles.addingIndicator}>
+              <ActivityIndicator size="small" color={colors.primary} />
+              <Text style={styles.addingText}>Ajout en cours...</Text>
+            </View>
+          )}
+        </View>
+
+        {/* Devices List Section */}
+        {devices.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Appareils ajoutés ({devices.length})</Text>
+            <Text style={styles.sectionDescription}>
+              Appuyez sur un appareil pour le contrôler
+            </Text>
+            
+            <View style={styles.devicesList}>
+              {devices.map((device) => (
+                <View key={device.id} style={styles.deviceCardContainer}>
+                  <DeviceCard
+                    device={device}
+                    onPress={() => handleDevicePress(device)}
+                    onRemove={() => handleRemoveDevice(device.id)}
+                  />
+                  
+                  {/* Rename button */}
+                  <TouchableOpacity
+                    style={styles.renameButton}
+                    onPress={() => handleRenameDevice(device)}
+                  >
+                    <Icon name="create-outline" size={20} color={colors.primary} />
+                    <Text style={styles.renameButtonText}>Renommer</Text>
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </View>
           </View>
         )}
-      </View>
+
+        {/* Empty state */}
+        {devices.length === 0 && (
+          <View style={styles.emptyState}>
+            <Icon name="wifi-outline" size={64} color={colors.grey} />
+            <Text style={styles.emptyStateTitle}>Aucun appareil trouvé</Text>
+            <Text style={styles.emptyStateDescription}>
+              Utilisez le scan automatique ou ajoutez un appareil manuellement
+            </Text>
+          </View>
+        )}
+      </ScrollView>
     </SafeAreaView>
   );
 };
@@ -170,19 +267,8 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
-  header: {
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-  },
-  backButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  backText: {
-    fontSize: 16,
-    color: colors.text,
-    fontWeight: '500',
+  scrollView: {
+    flex: 1,
   },
   titleContainer: {
     paddingHorizontal: 20,
@@ -267,6 +353,48 @@ const styles = StyleSheet.create({
   addingText: {
     fontSize: 14,
     color: colors.grey,
+  },
+  devicesList: {
+    gap: 12,
+  },
+  deviceCardContainer: {
+    gap: 8,
+  },
+  renameButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.background,
+    borderRadius: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    gap: 6,
+    borderWidth: 1,
+    borderColor: colors.primary + '30',
+  },
+  renameButtonText: {
+    fontSize: 14,
+    color: colors.primary,
+    fontWeight: '500',
+  },
+  emptyState: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 60,
+    paddingHorizontal: 40,
+  },
+  emptyStateTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: colors.text,
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  emptyStateDescription: {
+    fontSize: 16,
+    color: colors.grey,
+    textAlign: 'center',
+    lineHeight: 22,
   },
 });
 

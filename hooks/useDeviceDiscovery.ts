@@ -57,6 +57,7 @@ export const useDeviceDiscovery = () => {
   // Load saved devices from storage
   const loadSavedDevices = useCallback(async () => {
     try {
+      console.log('📱 Loading saved devices from storage...');
       const savedDevices = await AsyncStorage.getItem(STORAGE_KEY);
       if (savedDevices) {
         const parsedDevices = JSON.parse(savedDevices);
@@ -69,6 +70,11 @@ export const useDeviceDiscovery = () => {
         
         setDevices(devicesWithDates);
         console.log('📱 Loaded saved devices:', devicesWithDates.length);
+        devicesWithDates.forEach((device: RVolutionDevice, index: number) => {
+          console.log(`   ${index + 1}. ${device.name} (${device.ip}:${device.port}) - ${device.isOnline ? 'Online' : 'Offline'}`);
+        });
+      } else {
+        console.log('📱 No saved devices found');
       }
     } catch (error) {
       console.log('❌ Error loading saved devices:', error);
@@ -78,10 +84,12 @@ export const useDeviceDiscovery = () => {
   // Save devices to storage
   const saveDevices = useCallback(async (devicesToSave: RVolutionDevice[]) => {
     try {
+      console.log('💾 Saving devices to storage:', devicesToSave.length);
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(devicesToSave));
-      console.log('💾 Devices saved to storage');
+      console.log('💾 Devices saved to storage successfully');
     } catch (error) {
       console.log('❌ Error saving devices:', error);
+      throw error;
     }
   }, []);
 
@@ -146,7 +154,7 @@ export const useDeviceDiscovery = () => {
           console.log(`   Found working port: ${testPort}`);
         }
       }
-      
+
       if (!workingResponse) {
         // Try the original port with longer timeout
         const controller = new AbortController();
@@ -466,7 +474,7 @@ export const useDeviceDiscovery = () => {
   }, [devices, saveDevices, getLocalNetworkInfo, scanIPBatch]);
 
   // Enhanced manual device addition
-  const addDeviceManually = useCallback(async (ip: string, port: number = 80, customName?: string) => {
+  const addDeviceManually = useCallback(async (ip: string, port: number = 80, customName?: string): Promise<RVolutionDevice> => {
     console.log('📱 === MANUAL DEVICE ADDITION STARTED ===');
     console.log(`   IP: ${ip}`);
     console.log(`   Port: ${port}`);
@@ -533,6 +541,7 @@ export const useDeviceDiscovery = () => {
       };
       
       console.log('📝 Creating device:', {
+        id: newDevice.id,
         name: newDevice.name,
         ip: newDevice.ip,
         port: newDevice.port,
@@ -540,8 +549,13 @@ export const useDeviceDiscovery = () => {
         reachable: isReachable,
       });
       
+      // Update devices state
       const updatedDevices = [...devices, newDevice];
+      console.log('📱 Updating devices state. Total devices:', updatedDevices.length);
       setDevices(updatedDevices);
+      
+      // Save to storage
+      console.log('💾 Saving devices to storage...');
       await saveDevices(updatedDevices);
       
       console.log('✅ Manual device addition completed successfully!');
@@ -747,6 +761,20 @@ export const useDeviceDiscovery = () => {
     }
   }, [getDeviceInfo, testMultiplePorts]);
 
+  // Test device connectivity (for DeviceCard)
+  const testDeviceConnectivity = useCallback(async (device: RVolutionDevice): Promise<boolean> => {
+    console.log(`🧪 Testing connectivity for ${device.name} (${device.ip}:${device.port})`);
+    
+    try {
+      const isReachable = await checkDeviceReachability(device.ip, device.port, 1);
+      console.log(`${isReachable ? '✅' : '❌'} ${device.name} connectivity test: ${isReachable ? 'PASS' : 'FAIL'}`);
+      return isReachable;
+    } catch (error) {
+      console.log(`❌ Connectivity test failed for ${device.name}:`, error);
+      return false;
+    }
+  }, [checkDeviceReachability]);
+
   useEffect(() => {
     loadSavedDevices();
   }, [loadSavedDevices]);
@@ -761,6 +789,7 @@ export const useDeviceDiscovery = () => {
     removeDevice,
     renameDevice,
     updateDeviceStatus,
+    testDeviceConnectivity,
     verifyRVolutionDevice,
     checkDeviceReachability,
     getDeviceInfo,
