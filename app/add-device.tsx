@@ -35,9 +35,9 @@ const AddDeviceScreen: React.FC = () => {
     console.log('🔍 Scanner button pressed');
     
     if (isScanning) {
-      // If currently scanning, stop the scan
+      // If currently scanning, stop the scan using the dedicated function
       console.log('🛑 Stopping current scan...');
-      await scanNetwork(); // This will stop the scan since isScanning is true
+      stopScanning();
       Alert.alert(
         'Scan arrêté',
         'Le scan du réseau a été arrêté.',
@@ -45,12 +45,12 @@ const AddDeviceScreen: React.FC = () => {
       );
     } else {
       // If not scanning, start a new scan
-      console.log('🔍 Starting automatic network scan with HTTP protocol');
+      console.log('🔍 Starting automatic network scan');
       try {
         await scanNetwork();
         const foundCount = discoveredDevices.length;
         Alert.alert(
-          'Scan HTTP terminé',
+          'Scan terminé',
           foundCount > 0 
             ? `${foundCount} appareil${foundCount > 1 ? 's' : ''} R_VOLUTION trouvé${foundCount > 1 ? 's' : ''} ! Vous pouvez maintenant les ajouter à votre liste.`
             : 'Aucun appareil R_VOLUTION trouvé sur le réseau. Vérifiez que vos appareils sont allumés et connectés au Wi-Fi.',
@@ -59,8 +59,8 @@ const AddDeviceScreen: React.FC = () => {
       } catch (error) {
         console.log('❌ Network scan failed:', error);
         Alert.alert(
-          'Erreur de scan HTTP',
-          'Impossible de scanner le réseau via HTTP. Vérifiez votre connexion Wi-Fi.',
+          'Erreur de scan',
+          'Impossible de scanner le réseau. Vérifiez votre connexion Wi-Fi.',
           [{ text: 'OK' }]
         );
       }
@@ -87,10 +87,10 @@ const AddDeviceScreen: React.FC = () => {
 
     setIsAdding(true);
     try {
-      console.log('➕ Adding device manually via HTTP:', { name: deviceName, ip: ipAddress });
+      console.log('➕ Adding device manually:', { name: deviceName, ip: ipAddress });
       const newDevice = await addDeviceManually(ipAddress.trim(), 80, deviceName.trim());
       
-      console.log('✅ Device added successfully via HTTP:', newDevice);
+      console.log('✅ Device added successfully:', newDevice);
       
       // Clear the form
       setDeviceName('');
@@ -98,7 +98,7 @@ const AddDeviceScreen: React.FC = () => {
       
       Alert.alert(
         'Appareil ajouté',
-        `${deviceName} a été ajouté avec succès via HTTP.`,
+        `${deviceName} a été ajouté avec succès.`,
         [{ text: 'OK' }]
       );
     } catch (error) {
@@ -202,13 +202,8 @@ const AddDeviceScreen: React.FC = () => {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Ajout automatique</Text>
             <Text style={styles.sectionDescription}>
-              Scannez votre réseau pour trouver des appareils via HTTP
+              Scannez votre réseau pour trouver des appareils R_VOLUTION
             </Text>
-            
-            <View style={styles.protocolBadge}>
-              <Icon name="globe-outline" size={16} color={colors.primary} />
-              <Text style={styles.protocolText}>HTTP • Port 80</Text>
-            </View>
             
             <Button
               text={isScanning ? `Arrêter le scan ${scanProgress}%` : "Scanner le réseau"}
@@ -225,7 +220,7 @@ const AddDeviceScreen: React.FC = () => {
             {isScanning && (
               <View style={styles.scanningIndicator}>
                 <ActivityIndicator size="small" color={colors.primary} />
-                <Text style={styles.scanningText}>Recherche HTTP en cours...</Text>
+                <Text style={styles.scanningText}>Recherche en cours...</Text>
               </View>
             )}
           </View>
@@ -249,7 +244,7 @@ const AddDeviceScreen: React.FC = () => {
                           <Text style={styles.discoveredDeviceName}>{device.name}</Text>
                         </View>
                         <Text style={styles.discoveredDeviceDetails}>
-                          {device.ip}:{device.port} • HTTP
+                          {device.ip}:{device.port}
                         </Text>
                         <View style={styles.discoveredDeviceStatus}>
                           <View style={styles.onlineIndicator} />
@@ -287,11 +282,6 @@ const AddDeviceScreen: React.FC = () => {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Ajout manuel</Text>
             
-            <View style={styles.protocolBadge}>
-              <Icon name="globe-outline" size={16} color={colors.primary} />
-              <Text style={styles.protocolText}>HTTP • Port 80</Text>
-            </View>
-            
             <View style={styles.inputContainer}>
               <Text style={styles.inputLabel}>Nom</Text>
               <TextInput
@@ -318,7 +308,7 @@ const AddDeviceScreen: React.FC = () => {
             </View>
 
             <Button
-              text={isAdding ? "Ajout HTTP..." : "Ajouter"}
+              text={isAdding ? "Ajout..." : "Ajouter"}
               onPress={handleAddDevice}
               style={[styles.addButton, { opacity: isAdding ? 0.7 : 1 }]}
             />
@@ -326,7 +316,7 @@ const AddDeviceScreen: React.FC = () => {
             {isAdding && (
               <View style={styles.addingIndicator}>
                 <ActivityIndicator size="small" color={colors.primary} />
-                <Text style={styles.addingText}>Ajout via HTTP en cours...</Text>
+                <Text style={styles.addingText}>Ajout en cours...</Text>
               </View>
             )}
           </View>
@@ -359,7 +349,7 @@ const AddDeviceScreen: React.FC = () => {
               <Icon name="wifi-outline" size={64} color={colors.grey} />
               <Text style={styles.emptyStateTitle}>Aucun appareil trouvé</Text>
               <Text style={styles.emptyStateDescription}>
-                Utilisez le scan automatique HTTP ou ajoutez un appareil manuellement
+                Utilisez le scan automatique ou ajoutez un appareil manuellement
               </Text>
             </View>
           )}
