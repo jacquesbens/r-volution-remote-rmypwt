@@ -13,6 +13,7 @@ const CGI_ENDPOINT = '/cgi-bin/do?'; // The fast endpoint you mentioned
 
 export const useDeviceDiscovery = () => {
   const [devices, setDevices] = useState<RVolutionDevice[]>([]);
+  const [discoveredDevices, setDiscoveredDevices] = useState<RVolutionDevice[]>([]); // New state for discovered devices
   const [isScanning, setIsScanning] = useState(false);
   const [scanProgress, setScanProgress] = useState(0);
   const [networkInfo, setNetworkInfo] = useState<{
@@ -266,20 +267,16 @@ export const useDeviceDiscovery = () => {
       
       const promise = verifyRVolutionDevice(ip).then(async (result) => {
         if (result.isRVolution) {
-          // Check if device already exists
-          const existingDevice = devices.find(d => d.ip === ip);
-          if (!existingDevice) {
-            console.log(`🎉 New R_VOLUTION device discovered: ${result.deviceName} at ${ip}:${HTTP_PORT}`);
-            return {
-              id: `auto_${ip}_${Date.now()}`,
-              name: result.deviceName || `${TARGET_DEVICE_NAME} (${ip})`,
-              ip: ip,
-              port: HTTP_PORT,
-              isOnline: true,
-              lastSeen: new Date(),
-              isManuallyAdded: false,
-            };
-          }
+          console.log(`🎉 R_VOLUTION device discovered: ${result.deviceName} at ${ip}:${HTTP_PORT}`);
+          return {
+            id: `discovered_${ip}_${Date.now()}`,
+            name: result.deviceName || `${TARGET_DEVICE_NAME} (${ip})`,
+            ip: ip,
+            port: HTTP_PORT,
+            isOnline: true,
+            lastSeen: new Date(),
+            isManuallyAdded: false,
+          };
         }
         return null;
       }).catch(() => null); // Silently handle failures for speed
@@ -289,12 +286,13 @@ export const useDeviceDiscovery = () => {
     
     const results = await Promise.all(promises);
     return results.filter((device): device is RVolutionDevice => device !== null);
-  }, [devices, verifyRVolutionDevice]);
+  }, [verifyRVolutionDevice]);
 
   // Ultra-fast network scanning using the CGI endpoint
   const scanNetwork = useCallback(async () => {
     setIsScanning(true);
     setScanProgress(0);
+    setDiscoveredDevices([]); // Clear previous discovered devices
     
     try {
       console.log('🚀 Starting ULTRA-FAST R_VOLUTION device discovery...');
@@ -341,6 +339,9 @@ export const useDeviceDiscovery = () => {
                 batchDevices.forEach(device => {
                   console.log(`   🎵 ${device.name} at ${device.ip}:${device.port}`);
                 });
+                
+                // Update discovered devices in real-time
+                setDiscoveredDevices(prev => [...prev, ...batchDevices]);
               }
             } catch (batchError) {
               console.log(`❌ Error scanning batch ${baseIP}.${start}-${end}:`, batchError);
@@ -359,17 +360,13 @@ export const useDeviceDiscovery = () => {
         console.log(`📊 Network ${baseIP}.x ultra-fast scan complete. Found ${networkDevices.length} devices.`);
       }
       
-      // Update device list if we found new devices
-      if (foundDevices.length > 0) {
-        const updatedDevices = [...devices, ...foundDevices];
-        setDevices(updatedDevices);
-        await saveDevices(updatedDevices);
-        console.log(`🎉 Ultra-fast discovery completed! Found ${foundDevices.length} new R_VOLUTION devices:`);
-        foundDevices.forEach((device, index) => {
-          console.log(`   ${index + 1}. ${device.name} at ${device.ip}:${device.port}`);
-        });
-      } else {
-        console.log(`🔍 Ultra-fast discovery completed. No new R_VOLUTION devices found.`);
+      console.log(`🎉 Ultra-fast discovery completed! Found ${foundDevices.length} R_VOLUTION devices total:`);
+      foundDevices.forEach((device, index) => {
+        console.log(`   ${index + 1}. ${device.name} at ${device.ip}:${device.port}`);
+      });
+      
+      if (foundDevices.length === 0) {
+        console.log(`🔍 Ultra-fast discovery completed. No R_VOLUTION devices found.`);
         console.log(`💡 Troubleshooting suggestions:`);
         console.log(`   1. Verify R_VOLUTION devices are powered on`);
         console.log(`   2. Ensure devices are connected to Wi-Fi`);
@@ -384,7 +381,42 @@ export const useDeviceDiscovery = () => {
       setIsScanning(false);
       setScanProgress(0);
     }
-  }, [devices, saveDevices, getLocalNetworkInfo, scanIPBatch]);
+  }, [getLocalNetworkInfo, scanIPBatch]);
+
+  // Add discovered device to saved devices
+  const addDiscoveredDevice = useCallback(async (discoveredDevice: RVolutionDevice) => {
+    try {
+      console.log('➕ Adding discovered device to saved devices:', discoveredDevice.name);
+      
+      // Check if device already exists in saved devices
+      const existingDevice = devices.find(d => d.ip === discoveredDevice.ip && d.port === discoveredDevice.port);
+      if (existingDevice) {
+        console.log('❌ Device already exists in saved devices:', existingDevice);
+        throw new Error('Cet appareil est déjà dans la liste');
+      }
+
+      // Create new device with manual flag set to false (since it was discovered)
+      const newDevice: RVolutionDevice = {
+        ...discoveredDevice,
+        id: `added_${discoveredDevice.ip}_${Date.now()}`,
+        isManuallyAdded: false,
+      };
+      
+      // Update devices state
+      const updatedDevices = [...devices, newDevice];
+      setDevices(updatedDevices);
+      
+      // Save to storage
+      await saveDevices(updatedDevices);
+      
+      console.log('✅ Discovered device added to saved devices successfully!');
+      return newDevice;
+      
+    } catch (error) {
+      console.log('❌ Failed to add discovered device:', error);
+      throw error;
+    }
+  }, [devices, saveDevices]);
 
   // Manual device addition using the fast CGI endpoint
   const addDeviceManually = useCallback(async (ip: string, port: number = HTTP_PORT, customName?: string): Promise<RVolutionDevice> => {
@@ -741,11 +773,13 @@ export const useDeviceDiscovery = () => {
 
   return {
     devices,
+    discoveredDevices, // New: expose discovered devices
     isScanning,
     scanProgress,
     networkInfo,
     scanNetwork,
     addDeviceManually,
+    addDiscoveredDevice, // New: function to add discovered device to saved devices
     removeDevice,
     renameDevice,
     updateDevice,

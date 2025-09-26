@@ -15,8 +15,10 @@ const AddDeviceScreen: React.FC = () => {
   const router = useRouter();
   const { 
     devices, 
+    discoveredDevices, // New: get discovered devices
     scanNetwork, 
     addDeviceManually, 
+    addDiscoveredDevice, // New: function to add discovered device
     removeDevice, 
     updateDevice,
     isScanning, 
@@ -33,9 +35,12 @@ const AddDeviceScreen: React.FC = () => {
     console.log('🔍 Starting automatic network scan with HTTP protocol');
     try {
       await scanNetwork();
+      const foundCount = discoveredDevices.length;
       Alert.alert(
         'Scan HTTP terminé',
-        'Le scan du réseau est terminé. Vérifiez la liste des appareils découverts via HTTP.',
+        foundCount > 0 
+          ? `${foundCount} appareil${foundCount > 1 ? 's' : ''} R_VOLUTION trouvé${foundCount > 1 ? 's' : ''} ! Vous pouvez maintenant les ajouter à votre liste.`
+          : 'Aucun appareil R_VOLUTION trouvé sur le réseau. Vérifiez que vos appareils sont allumés et connectés au Wi-Fi.',
         [{ text: 'OK' }]
       );
     } catch (error) {
@@ -135,6 +140,26 @@ const AddDeviceScreen: React.FC = () => {
     setDeviceToEdit(null);
   };
 
+  // New: Handle adding a discovered device to saved devices
+  const handleAddDiscoveredDevice = async (discoveredDevice: RVolutionDevice) => {
+    try {
+      console.log('➕ Adding discovered device to saved devices:', discoveredDevice.name);
+      await addDiscoveredDevice(discoveredDevice);
+      Alert.alert(
+        'Appareil ajouté',
+        `${discoveredDevice.name} a été ajouté à votre liste d'appareils.`,
+        [{ text: 'OK' }]
+      );
+    } catch (error) {
+      console.log('❌ Failed to add discovered device:', error);
+      Alert.alert(
+        'Erreur d\'ajout',
+        error.message || 'Impossible d\'ajouter l\'appareil découvert.',
+        [{ text: 'OK' }]
+      );
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView 
@@ -179,6 +204,43 @@ const AddDeviceScreen: React.FC = () => {
               </View>
             )}
           </View>
+
+          {/* Discovered Devices Section - NEW */}
+          {discoveredDevices.length > 0 && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Appareils découverts ({discoveredDevices.length})</Text>
+              <Text style={styles.sectionDescription}>
+                Appareils R_VOLUTION trouvés sur le réseau. Appuyez sur "Ajouter" pour les sauvegarder.
+              </Text>
+              
+              <View style={styles.devicesList}>
+                {discoveredDevices.map((device) => (
+                  <View key={device.id} style={styles.discoveredDeviceCard}>
+                    <View style={styles.discoveredDeviceInfo}>
+                      <View style={styles.discoveredDeviceHeader}>
+                        <Icon name="wifi" size={20} color={colors.success} />
+                        <Text style={styles.discoveredDeviceName}>{device.name}</Text>
+                      </View>
+                      <Text style={styles.discoveredDeviceDetails}>
+                        {device.ip}:{device.port} • HTTP
+                      </Text>
+                      <View style={styles.discoveredDeviceStatus}>
+                        <View style={styles.onlineIndicator} />
+                        <Text style={styles.onlineText}>En ligne</Text>
+                      </View>
+                    </View>
+                    <TouchableOpacity
+                      style={styles.addDiscoveredButton}
+                      onPress={() => handleAddDiscoveredDevice(device)}
+                    >
+                      <Icon name="add" size={20} color={colors.background} />
+                      <Text style={styles.addDiscoveredButtonText}>Ajouter</Text>
+                    </TouchableOpacity>
+                  </View>
+                ))}
+              </View>
+            </View>
+          )}
 
           {/* Manual Addition Section */}
           <View style={styles.section}>
@@ -240,10 +302,10 @@ const AddDeviceScreen: React.FC = () => {
             </View>
           </View>
 
-          {/* Devices List Section */}
+          {/* Saved Devices List Section */}
           {devices.length > 0 && (
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Appareils ajoutés ({devices.length})</Text>
+              <Text style={styles.sectionTitle}>Mes appareils ({devices.length})</Text>
               <Text style={styles.sectionDescription}>
                 Appuyez sur un appareil pour le contrôler
               </Text>
@@ -263,7 +325,7 @@ const AddDeviceScreen: React.FC = () => {
           )}
 
           {/* Empty state */}
-          {devices.length === 0 && (
+          {devices.length === 0 && discoveredDevices.length === 0 && !isScanning && (
             <View style={styles.emptyState}>
               <Icon name="wifi-outline" size={64} color={colors.grey} />
               <Text style={styles.emptyStateTitle}>Aucun appareil trouvé</Text>
@@ -368,6 +430,66 @@ const styles = StyleSheet.create({
   scanningText: {
     fontSize: 14,
     color: colors.grey,
+  },
+  // New styles for discovered devices
+  discoveredDeviceCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.background,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: colors.success + '30',
+  },
+  discoveredDeviceInfo: {
+    flex: 1,
+  },
+  discoveredDeviceHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+    gap: 8,
+  },
+  discoveredDeviceName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.text,
+  },
+  discoveredDeviceDetails: {
+    fontSize: 14,
+    color: colors.grey,
+    marginBottom: 6,
+  },
+  discoveredDeviceStatus: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  onlineIndicator: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: colors.success,
+  },
+  onlineText: {
+    fontSize: 12,
+    color: colors.success,
+    fontWeight: '500',
+  },
+  addDiscoveredButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.primary,
+    borderRadius: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    gap: 4,
+  },
+  addDiscoveredButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.background,
   },
   inputContainer: {
     marginBottom: 20,
