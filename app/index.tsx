@@ -3,375 +3,298 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, StyleSheet, Alert, RefreshControl, TouchableOpacity, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { commonStyles, colors } from '../styles/commonStyles';
 import { useDeviceDiscovery } from '../hooks/useDeviceDiscovery';
+import { RVolutionDevice } from '../types/Device';
 import DeviceCard from '../components/DeviceCard';
-import Button from '../components/Button';
 import AddDeviceModal from '../components/AddDeviceModal';
 import Icon from '../components/Icon';
+import Button from '../components/Button';
+import { commonStyles, colors } from '../styles/commonStyles';
 
-export default function MainScreen() {
+const MainScreen: React.FC = () => {
   const router = useRouter();
   const {
     devices,
     isScanning,
     scanProgress,
+    networkInfo,
     scanNetwork,
     addDeviceManually,
     removeDevice,
     updateDeviceStatus,
+    runNetworkDiagnostic,
   } = useDeviceDiscovery();
 
   const [isAddModalVisible, setIsAddModalVisible] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [showDiagnostics, setShowDiagnostics] = useState(false);
+
+  useEffect(() => {
+    console.log('🏠 MainScreen mounted, devices:', devices.length);
+  }, []);
+
+  useEffect(() => {
+    console.log('📱 Devices updated:', devices.length);
+    devices.forEach((device, index) => {
+      console.log(`   ${index + 1}. ${device.name} (${device.ip}:${device.port}) - ${device.isOnline ? 'Online' : 'Offline'}`);
+    });
+  }, [devices]);
 
   const handleScanNetwork = async () => {
+    console.log('🔍 Network scan requested from UI');
     try {
-      console.log('🚀 Starting network scan from UI...');
       await scanNetwork();
       console.log('✅ Network scan completed from UI');
-      
-      // Show result to user
-      const deviceCount = devices.length;
-      if (deviceCount > 0) {
-        Alert.alert(
-          'Recherche terminée', 
-          `${deviceCount} appareil(s) R_VOLUTION trouvé(s) sur le réseau.`,
-          [{ text: 'OK' }]
-        );
-      } else {
-        Alert.alert(
-          'Aucun appareil trouvé', 
-          'Aucun appareil R_VOLUTION n\'a été détecté sur le réseau.\n\n' +
-          'Vérifiez que :\n' +
-          '• Les appareils R_VOLUTION sont allumés\n' +
-          '• Ils sont connectés au même réseau Wi-Fi\n' +
-          '• Le port 80 est accessible\n\n' +
-          'Vous pouvez aussi essayer l\'ajout manuel.',
-          [{ text: 'OK' }]
-        );
-      }
     } catch (error) {
-      console.log('❌ Network scan error from UI:', error);
+      console.log('❌ Network scan failed from UI:', error);
       Alert.alert(
-        'Erreur de recherche', 
-        'Une erreur s\'est produite lors de la recherche d\'appareils R_VOLUTION.\n\n' +
-        'Vérifiez votre connexion réseau et réessayez.',
-        [{ text: 'Réessayer', onPress: handleScanNetwork }, { text: 'Annuler' }]
+        'Erreur de scan',
+        'Impossible de scanner le réseau. Vérifiez votre connexion Wi-Fi.',
+        [{ text: 'OK' }]
       );
     }
   };
 
   const handleAddDevice = async (ip: string, port: number, name?: string) => {
-    console.log('=== HANDLE ADD DEVICE CALLED ===');
-    console.log('Parameters:', { ip, port, name });
+    console.log('➕ Manual device addition requested from UI');
+    console.log(`   IP: ${ip}, Port: ${port}, Name: ${name}`);
     
     try {
-      console.log('Calling addDeviceManually...');
-      const result = await addDeviceManually(ip, port, name);
-      console.log('addDeviceManually result:', result);
+      const newDevice = await addDeviceManually(ip, port, name);
+      console.log('✅ Device added successfully from UI:', newDevice);
       
-      console.log('Device addition successful, closing modal...');
-      setIsAddModalVisible(false);
-      
-      console.log('Showing success alert...');
       Alert.alert(
-        'Appareil ajouté', 
-        `L'appareil "${result.name}" a été ajouté avec succès.\n\nAdresse: ${ip}:${port}\n\nVous pouvez maintenant le sélectionner dans la liste pour le contrôler.`,
-        [{ 
-          text: 'OK', 
-          onPress: () => {
-            console.log('Success alert dismissed');
-            // Force a refresh of the device list
-            updateDeviceStatus();
-          }
-        }]
+        'Appareil ajouté',
+        `${newDevice.name} a été ajouté à la liste.${newDevice.isOnline ? '' : '\n\nNote: L\'appareil semble hors ligne.'}`,
+        [{ text: 'OK' }]
       );
     } catch (error) {
-      console.log('=== HANDLE ADD DEVICE ERROR ===');
-      console.log('Error type:', typeof error);
-      console.log('Error message:', error instanceof Error ? error.message : String(error));
-      console.log('Full error:', error);
-      
-      const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue lors de l\'ajout de l\'appareil';
-      
+      console.log('❌ Device addition failed from UI:', error);
       Alert.alert(
-        'Erreur d\'ajout', 
-        errorMessage,
-        [{ 
-          text: 'Réessayer', 
-          onPress: () => console.log('Error alert dismissed - user can retry')
-        }]
+        'Erreur d\'ajout',
+        error.message || 'Impossible d\'ajouter l\'appareil.',
+        [{ text: 'OK' }]
       );
+      throw error; // Re-throw to prevent modal from closing
     }
   };
 
   const handleRemoveDevice = (deviceId: string, deviceName: string) => {
-    console.log('Removing device:', { deviceId, deviceName });
+    console.log('🗑️  Device removal requested from UI:', deviceId, deviceName);
+    
     Alert.alert(
       'Supprimer l\'appareil',
-      `Êtes-vous sûr de vouloir supprimer "${deviceName}" de la liste ?`,
+      `Êtes-vous sûr de vouloir supprimer "${deviceName}" ?`,
       [
-        { text: 'Annuler', style: 'cancel', onPress: () => console.log('Remove cancelled') },
-        { text: 'Supprimer', style: 'destructive', onPress: () => {
-          console.log('Confirming device removal...');
-          removeDevice(deviceId);
-        }},
+        { text: 'Annuler', style: 'cancel' },
+        {
+          text: 'Supprimer',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await removeDevice(deviceId);
+              console.log('✅ Device removed successfully from UI');
+            } catch (error) {
+              console.log('❌ Device removal failed from UI:', error);
+              Alert.alert('Erreur', 'Impossible de supprimer l\'appareil.');
+            }
+          },
+        },
       ]
     );
   };
 
   const handleDevicePress = (deviceId: string) => {
-    console.log('Navigating to device:', deviceId);
+    console.log('📱 Device selected from UI:', deviceId);
     router.push(`/device/${deviceId}`);
   };
 
   const handleRefresh = async () => {
-    console.log('Refreshing device status...');
+    console.log('🔄 Refresh requested from UI');
     setIsRefreshing(true);
     try {
       await updateDeviceStatus();
-      console.log('Device status refresh completed');
+      console.log('✅ Refresh completed from UI');
     } catch (error) {
-      console.log('Error refreshing devices:', error);
+      console.log('❌ Refresh failed from UI:', error);
     } finally {
       setIsRefreshing(false);
     }
   };
 
   const handleTestDevice = async (device: RVolutionDevice): Promise<boolean> => {
-    console.log(`🧪 Testing device: ${device.name} at ${device.ip}:${device.port}`);
+    console.log('🧪 Device test requested from UI:', device.name);
     
     try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 5000);
-
-      // Try multiple endpoints
-      const endpoints = ['/info', '/status', '/device', '/api/info', '/'];
+      // Import the verification function from the hook
+      const { verifyRVolutionDevice } = useDeviceDiscovery();
+      const result = await verifyRVolutionDevice(device.ip, device.port);
       
-      for (const endpoint of endpoints) {
-        try {
-          const response = await fetch(`http://${device.ip}:${device.port}${endpoint}`, {
-            method: 'GET',
-            signal: controller.signal,
-            headers: {
-              'Content-Type': 'application/json',
-              'Accept': 'application/json, text/plain, */*',
-            },
-          });
-
-          clearTimeout(timeoutId);
-          
-          if (response.ok) {
-            console.log(`✅ Device test successful via ${endpoint} (status: ${response.status})`);
-            return true;
-          }
-        } catch (endpointError) {
-          console.log(`❌ Endpoint ${endpoint} failed:`, endpointError);
-        }
-      }
-
-      clearTimeout(timeoutId);
-      console.log(`❌ Device test failed - no endpoints responded`);
-      return false;
+      const isWorking = result.isRVolution;
+      console.log(`${isWorking ? '✅' : '❌'} Device test result:`, isWorking);
+      
+      Alert.alert(
+        'Test de connexion',
+        isWorking 
+          ? `✅ ${device.name} répond correctement.`
+          : `❌ ${device.name} ne répond pas ou n'est pas un appareil R_VOLUTION.`,
+        [{ text: 'OK' }]
+      );
+      
+      return isWorking;
     } catch (error) {
-      console.log(`❌ Device test error:`, error);
+      console.log('❌ Device test failed from UI:', error);
+      Alert.alert(
+        'Test de connexion',
+        `❌ Impossible de tester ${device.name}.\n\nErreur: ${error.message}`,
+        [{ text: 'OK' }]
+      );
       return false;
     }
   };
 
   const handleRunDiagnostic = async () => {
-    console.log('🔧 Running network diagnostic...');
+    console.log('🔧 Network diagnostic requested from UI');
     
     Alert.alert(
       'Diagnostic réseau',
-      'Le diagnostic va tester la connectivité réseau et rechercher des problèmes courants.\n\nCela peut prendre quelques secondes.',
+      'Voulez-vous lancer un diagnostic du réseau pour identifier les problèmes de connexion ?',
       [
         { text: 'Annuler', style: 'cancel' },
-        { text: 'Lancer', onPress: runNetworkDiagnostic }
+        {
+          text: 'Lancer',
+          onPress: async () => {
+            try {
+              await runNetworkDiagnostic();
+              Alert.alert(
+                'Diagnostic terminé',
+                'Consultez les logs de la console pour les détails du diagnostic.',
+                [{ text: 'OK' }]
+              );
+            } catch (error) {
+              console.log('❌ Diagnostic failed from UI:', error);
+              Alert.alert(
+                'Erreur de diagnostic',
+                'Impossible de lancer le diagnostic réseau.',
+                [{ text: 'OK' }]
+              );
+            }
+          },
+        },
       ]
     );
   };
 
   const runNetworkDiagnostic = async () => {
-    console.log('🔧 Starting network diagnostic...');
+    console.log('🔧 === NETWORK DIAGNOSTIC UI ===');
     
-    const diagnosticResults: string[] = [];
+    // Test common router IPs
+    const commonRouterIPs = ['192.168.1.1', '192.168.0.1', '10.0.0.1'];
     
-    try {
-      // Test 1: Check if we can make HTTP requests
-      console.log('🔧 Test 1: HTTP request capability');
+    console.log('🌐 Testing router connectivity...');
+    for (const routerIP of commonRouterIPs) {
       try {
-        const testResponse = await fetch('https://httpbin.org/get', { 
-          method: 'GET',
-          signal: AbortSignal.timeout(3000)
-        });
-        if (testResponse.ok) {
-          diagnosticResults.push('✅ Requêtes HTTP fonctionnelles');
-          console.log('✅ HTTP requests working');
-        } else {
-          diagnosticResults.push('⚠️ Requêtes HTTP partiellement fonctionnelles');
-          console.log('⚠️ HTTP requests partially working');
-        }
-      } catch (httpError) {
-        diagnosticResults.push('❌ Problème avec les requêtes HTTP');
-        console.log('❌ HTTP request failed:', httpError);
-      }
-
-      // Test 2: Test common local network addresses
-      console.log('🔧 Test 2: Local network connectivity');
-      const commonIPs = ['192.168.1.1', '192.168.0.1', '10.0.0.1'];
-      let routerFound = false;
-      
-      for (const ip of commonIPs) {
-        try {
-          const response = await fetch(`http://${ip}`, {
-            method: 'HEAD',
-            signal: AbortSignal.timeout(2000)
-          });
-          if (response.status < 500) {
-            diagnosticResults.push(`✅ Routeur détecté à ${ip}`);
-            console.log(`✅ Router found at ${ip}`);
-            routerFound = true;
-            break;
-          }
-        } catch (routerError) {
-          console.log(`❌ No router at ${ip}:`, routerError);
-        }
-      }
-      
-      if (!routerFound) {
-        diagnosticResults.push('⚠️ Aucun routeur détecté aux adresses communes');
-      }
-
-      // Test 3: Check if port 80 is accessible
-      console.log('🔧 Test 3: Port 80 accessibility');
-      try {
-        const portTestResponse = await fetch('http://httpbin.org:80/get', {
+        const response = await fetch(`http://${routerIP}`, {
           method: 'HEAD',
-          signal: AbortSignal.timeout(3000)
+          timeout: 3000,
         });
-        if (portTestResponse.ok) {
-          diagnosticResults.push('✅ Port 80 accessible');
-          console.log('✅ Port 80 accessible');
-        } else {
-          diagnosticResults.push('⚠️ Port 80 partiellement accessible');
-          console.log('⚠️ Port 80 partially accessible');
-        }
-      } catch (portError) {
-        diagnosticResults.push('❌ Problème d\'accès au port 80');
-        console.log('❌ Port 80 access failed:', portError);
+        console.log(`✅ Router ${routerIP} is reachable (status: ${response.status})`);
+      } catch (error) {
+        console.log(`❌ Router ${routerIP} is not reachable`);
       }
-
-      // Test 4: Platform-specific information
-      console.log('🔧 Test 4: Platform information');
-      diagnosticResults.push(`ℹ️ Plateforme: ${Platform.OS}`);
-      
-      // Show results
-      const resultMessage = diagnosticResults.join('\n\n');
-      console.log('🔧 Diagnostic completed:', diagnosticResults);
-      
-      Alert.alert(
-        'Résultats du diagnostic',
-        resultMessage + '\n\n' +
-        'Recommandations:\n' +
-        '• Vérifiez que les appareils R_VOLUTION sont sur le même réseau Wi-Fi\n' +
-        '• Assurez-vous que le port 80 n\'est pas bloqué par un pare-feu\n' +
-        '• Essayez l\'ajout manuel si la découverte automatique échoue',
-        [{ text: 'OK' }]
-      );
-      
-    } catch (diagnosticError) {
-      console.log('❌ Diagnostic error:', diagnosticError);
-      Alert.alert(
-        'Erreur de diagnostic',
-        'Une erreur s\'est produite pendant le diagnostic réseau.',
-        [{ text: 'OK' }]
-      );
     }
+    
+    console.log('🔧 Network diagnostic completed');
   };
 
-  useEffect(() => {
-    console.log('MainScreen mounted, current devices:', devices.length);
-    // Initial device status update
-    if (devices.length > 0) {
-      updateDeviceStatus();
-    }
-  }, []);
-
-  // Log device changes
-  useEffect(() => {
-    console.log('Device list updated, current count:', devices.length);
-    devices.forEach((device, index) => {
-      console.log(`Device ${index + 1}:`, {
-        id: device.id,
-        name: device.name,
-        ip: device.ip,
-        port: device.port,
-        isOnline: device.isOnline,
-        isManuallyAdded: device.isManuallyAdded
-      });
-    });
-  }, [devices]);
-
   return (
-    <SafeAreaView style={commonStyles.container}>
+    <SafeAreaView style={[commonStyles.container, styles.container]}>
       <View style={styles.header}>
-        <Text style={commonStyles.title}>R_VOLUTION Remote</Text>
-        <Text style={styles.subtitle}>Télécommande IP pour lecteurs multimédia R_VOLUTION</Text>
+        <View style={styles.titleSection}>
+          <Text style={styles.title}>R_VOLUTION Remote</Text>
+          <Text style={styles.subtitle}>
+            {devices.length === 0 
+              ? 'Aucun appareil trouvé' 
+              : `${devices.length} appareil${devices.length > 1 ? 's' : ''} • ${devices.filter(d => d.isOnline).length} en ligne`
+            }
+          </Text>
+        </View>
+        
+        <TouchableOpacity 
+          style={styles.diagnosticButton}
+          onPress={() => setShowDiagnostics(!showDiagnostics)}
+        >
+          <Icon name="settings" size={24} color={colors.text} />
+        </TouchableOpacity>
+      </View>
+
+      {showDiagnostics && (
+        <View style={styles.diagnosticPanel}>
+          <Text style={styles.diagnosticTitle}>Informations réseau</Text>
+          <Text style={styles.diagnosticText}>
+            IP locale: {networkInfo.localIP || 'Détection...'}
+          </Text>
+          <Text style={styles.diagnosticText}>
+            Plages scannées: {networkInfo.networkRange || 'Détection...'}
+          </Text>
+          
+          <TouchableOpacity 
+            style={styles.diagnosticAction}
+            onPress={handleRunDiagnostic}
+          >
+            <Icon name="bug" size={16} color={colors.primary} />
+            <Text style={styles.diagnosticActionText}>Lancer diagnostic</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      <View style={styles.actions}>
+        <Button
+          text={isScanning ? `Scan en cours... ${scanProgress}%` : "Scanner le réseau"}
+          onPress={handleScanNetwork}
+          style={[styles.actionButton, { opacity: isScanning ? 0.6 : 1 }]}
+        />
+        
+        <TouchableOpacity
+          style={styles.addButton}
+          onPress={() => setIsAddModalVisible(true)}
+        >
+          <Icon name="add" size={24} color={colors.background} />
+        </TouchableOpacity>
       </View>
 
       <ScrollView
-        style={styles.content}
+        style={styles.deviceList}
         refreshControl={
           <RefreshControl
             refreshing={isRefreshing}
             onRefresh={handleRefresh}
-            tintColor={colors.primary}
             colors={[colors.primary]}
+            tintColor={colors.primary}
           />
         }
+        showsVerticalScrollIndicator={false}
       >
-        {/* Scan Controls */}
-        <View style={styles.scanSection}>
-          <Button
-            text={isScanning ? `Recherche en cours... ${Math.round(scanProgress)}%` : "🔍 Rechercher appareils R_VOLUTION"}
-            onPress={handleScanNetwork}
-            style={[styles.scanButton, { opacity: isScanning ? 0.7 : 1 }]}
-          />
-          
-          {isScanning && (
-            <View style={styles.scanProgress}>
-              <View style={[styles.progressBar, { width: `${scanProgress}%` }]} />
+        {devices.length === 0 ? (
+          <View style={styles.emptyState}>
+            <Icon name="musical-notes" size={64} color={colors.grey} />
+            <Text style={styles.emptyTitle}>Aucun appareil R_VOLUTION</Text>
+            <Text style={styles.emptyDescription}>
+              Scannez le réseau pour découvrir automatiquement les appareils ou ajoutez-en un manuellement.
+            </Text>
+            
+            <View style={styles.troubleshootingTips}>
+              <Text style={styles.tipsTitle}>💡 Conseils de dépannage :</Text>
+              <Text style={styles.tipText}>• Vérifiez que l'appareil R_VOLUTION est allumé</Text>
+              <Text style={styles.tipText}>• Assurez-vous qu'il est connecté au Wi-Fi</Text>
+              <Text style={styles.tipText}>• Vérifiez que vous êtes sur le même réseau</Text>
+              <Text style={styles.tipText}>• L'appareil doit utiliser le port 80</Text>
+              <Text style={styles.tipText}>• Essayez l'ajout manuel si vous connaissez l'IP</Text>
             </View>
-          )}
-          
-          <Button
-            text="➕ Ajouter R_VOLUTION manuellement"
-            onPress={() => {
-              console.log('Opening add device modal...');
-              setIsAddModalVisible(true);
-            }}
-            style={styles.addButton}
-          />
-        </View>
-
-        {/* Device List */}
-        <View style={styles.deviceSection}>
-          <Text style={styles.sectionTitle}>
-            Appareils R_VOLUTION ({devices.length})
-          </Text>
-
-          {devices.length === 0 ? (
-            <View style={styles.emptyState}>
-              <Icon name="search" size={48} color={colors.grey} style={styles.emptyIcon} />
-              <Text style={styles.emptyTitle}>Aucun appareil R_VOLUTION trouvé</Text>
-              <Text style={styles.emptyText}>
-                Lancez une recherche automatique pour découvrir les appareils R_VOLUTION sur le réseau ou ajoutez-en un manuellement avec son adresse IP
-              </Text>
-            </View>
-          ) : (
-            devices.map((device) => (
+          </View>
+        ) : (
+          <View style={styles.deviceGrid}>
+            {devices.map((device) => (
               <DeviceCard
                 key={device.id}
                 device={device}
@@ -379,221 +302,146 @@ export default function MainScreen() {
                 onRemove={() => handleRemoveDevice(device.id, device.name)}
                 onTest={handleTestDevice}
               />
-            ))
-          )}
-        </View>
-
-        {/* Instructions */}
-        <View style={styles.instructionsSection}>
-          <Text style={styles.instructionsTitle}>Instructions d'utilisation</Text>
-          
-          <View style={styles.instructionItem}>
-            <Icon name="wifi" size={16} color={colors.primary} />
-            <Text style={styles.instructionsText}>
-              <Text style={styles.bold}>Recherche automatique:</Text> Scanne plusieurs plages réseau (192.168.1.x, 192.168.0.x, etc.) pour trouver les appareils R_VOLUTION
-            </Text>
+            ))}
           </View>
-          
-          <View style={styles.instructionItem}>
-            <Icon name="add-circle" size={16} color={colors.primary} />
-            <Text style={styles.instructionsText}>
-              <Text style={styles.bold}>Ajout manuel:</Text> Ajoutez directement un appareil en saisissant son adresse IP (ex: 192.168.1.100)
-            </Text>
-          </View>
-          
-          <View style={styles.instructionItem}>
-            <Icon name="checkmark-circle" size={16} color={colors.primary} />
-            <Text style={styles.instructionsText}>
-              <Text style={styles.bold}>Réseau:</Text> Assurez-vous que les appareils R_VOLUTION sont connectés au même réseau Wi-Fi
-            </Text>
-          </View>
-          
-          <View style={styles.instructionItem}>
-            <Icon name="settings" size={16} color={colors.primary} />
-            <Text style={styles.instructionsText}>
-              <Text style={styles.bold}>Port:</Text> Le port 80 est utilisé par défaut pour la découverte et le contrôle des appareils
-            </Text>
-          </View>
-
-          <View style={styles.tipBox}>
-            <Icon name="bulb" size={16} color="#ff9500" />
-            <Text style={styles.tipText}>
-              <Text style={styles.bold}>Astuce:</Text> La recherche automatique scanne maintenant plusieurs plages réseau en parallèle pour une découverte plus rapide et efficace.
-            </Text>
-          </View>
-
-          <View style={styles.debugBox}>
-            <Icon name="bug" size={16} color="#6c757d" />
-            <Text style={styles.debugText}>
-              <Text style={styles.bold}>Débogage:</Text> Les logs détaillés de la découverte sont visibles dans la console du développeur.
-            </Text>
-          </View>
-
-          <TouchableOpacity style={styles.diagnosticButton} onPress={handleRunDiagnostic}>
-            <Icon name="medical" size={16} color={colors.primary} />
-            <Text style={styles.diagnosticButtonText}>Exécuter diagnostic réseau</Text>
-          </TouchableOpacity>
-        </View>
+        )}
       </ScrollView>
 
       <AddDeviceModal
         visible={isAddModalVisible}
-        onClose={() => {
-          console.log('Closing add device modal...');
-          setIsAddModalVisible(false);
-        }}
+        onClose={() => setIsAddModalVisible(false)}
         onAddDevice={handleAddDevice}
       />
     </SafeAreaView>
   );
-}
+};
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
   header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 20,
     paddingHorizontal: 20,
+    paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: colors.backgroundAlt,
+    borderBottomColor: colors.grey + '20',
+  },
+  titleSection: {
+    flex: 1,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: colors.text,
+    marginBottom: 4,
   },
   subtitle: {
     fontSize: 14,
     color: colors.grey,
-    textAlign: 'center',
-    marginTop: 4,
   },
-  content: {
-    flex: 1,
+  diagnosticButton: {
+    padding: 8,
   },
-  scanSection: {
+  diagnosticPanel: {
+    backgroundColor: colors.backgroundAlt,
+    margin: 20,
     padding: 16,
-    gap: 12,
-  },
-  scanButton: {
-    backgroundColor: colors.primary,
-  },
-  addButton: {
-    backgroundColor: colors.backgroundAlt,
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: colors.grey,
+    borderColor: colors.grey + '20',
   },
-  scanProgress: {
-    height: 4,
-    backgroundColor: colors.backgroundAlt,
-    borderRadius: 2,
-    overflow: 'hidden',
-    marginTop: 8,
-  },
-  progressBar: {
-    height: '100%',
-    backgroundColor: colors.primary,
-    borderRadius: 2,
-  },
-  deviceSection: {
-    paddingTop: 16,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: colors.text,
-    marginBottom: 16,
-    paddingHorizontal: 16,
-  },
-  emptyState: {
-    alignItems: 'center',
-    paddingVertical: 40,
-    paddingHorizontal: 20,
-  },
-  emptyIcon: {
-    marginBottom: 16,
-  },
-  emptyTitle: {
-    fontSize: 18,
+  diagnosticTitle: {
+    fontSize: 16,
     fontWeight: '600',
     color: colors.text,
     marginBottom: 8,
   },
-  emptyText: {
+  diagnosticText: {
     fontSize: 14,
     color: colors.grey,
-    textAlign: 'center',
-    lineHeight: 20,
+    marginBottom: 4,
   },
-  instructionsSection: {
-    padding: 16,
-    marginTop: 20,
-    backgroundColor: colors.backgroundAlt,
-    marginHorizontal: 16,
-    borderRadius: 12,
-    marginBottom: 20,
-  },
-  instructionsTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.text,
-    marginBottom: 16,
-  },
-  instructionItem: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginBottom: 12,
-    gap: 8,
-  },
-  instructionsText: {
-    fontSize: 14,
-    color: colors.grey,
-    lineHeight: 20,
-    flex: 1,
-  },
-  bold: {
-    fontWeight: '600',
-    color: colors.text,
-  },
-  tipBox: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    backgroundColor: '#fff3cd',
-    padding: 12,
-    borderRadius: 8,
-    marginTop: 8,
-    gap: 8,
-  },
-  tipText: {
-    fontSize: 12,
-    color: '#856404',
-    lineHeight: 16,
-    flex: 1,
-  },
-  debugBox: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    backgroundColor: '#f8f9fa',
-    padding: 12,
-    borderRadius: 8,
-    marginTop: 8,
-    gap: 8,
-  },
-  debugText: {
-    fontSize: 12,
-    color: '#6c757d',
-    lineHeight: 16,
-    flex: 1,
-  },
-  diagnosticButton: {
+  diagnosticAction: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.background,
-    padding: 12,
-    borderRadius: 8,
     marginTop: 12,
-    borderWidth: 1,
-    borderColor: colors.primary,
     gap: 8,
   },
-  diagnosticButtonText: {
+  diagnosticActionText: {
     fontSize: 14,
     color: colors.primary,
     fontWeight: '500',
   },
+  actions: {
+    flexDirection: 'row',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    gap: 12,
+  },
+  actionButton: {
+    flex: 1,
+    paddingVertical: 14,
+  },
+  addButton: {
+    backgroundColor: colors.primary,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.15)',
+    elevation: 4,
+  },
+  deviceList: {
+    flex: 1,
+  },
+  emptyState: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 40,
+    paddingVertical: 60,
+  },
+  emptyTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: colors.text,
+    marginTop: 16,
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  emptyDescription: {
+    fontSize: 16,
+    color: colors.grey,
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: 32,
+  },
+  troubleshootingTips: {
+    backgroundColor: colors.backgroundAlt,
+    padding: 20,
+    borderRadius: 12,
+    width: '100%',
+  },
+  tipsTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: 12,
+  },
+  tipText: {
+    fontSize: 14,
+    color: colors.grey,
+    lineHeight: 20,
+    marginBottom: 4,
+  },
+  deviceGrid: {
+    padding: 20,
+    gap: 16,
+  },
 });
+
+export default MainScreen;

@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, Alert, Modal, TouchableOpacity } from 'react-native';
+import { View, Text, TextInput, StyleSheet, Alert, Modal, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { colors } from '../styles/commonStyles';
 import Button from './Button';
 import Icon from './Icon';
@@ -16,6 +16,11 @@ const AddDeviceModal: React.FC<AddDeviceModalProps> = ({ visible, onClose, onAdd
   const [port, setPort] = useState('80');
   const [name, setName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [testResult, setTestResult] = useState<{
+    tested: boolean;
+    success: boolean;
+    message: string;
+  } | null>(null);
 
   const handleAddDevice = async () => {
     console.log('=== ADD DEVICE MODAL - HANDLE ADD DEVICE ===');
@@ -57,6 +62,7 @@ const AddDeviceModal: React.FC<AddDeviceModalProps> = ({ visible, onClose, onAdd
 
     console.log('Validation passed, starting device addition...');
     setIsLoading(true);
+    setTestResult(null);
     
     try {
       console.log('Calling onAddDevice prop...');
@@ -66,6 +72,7 @@ const AddDeviceModal: React.FC<AddDeviceModalProps> = ({ visible, onClose, onAdd
       setIp('');
       setPort('80');
       setName('');
+      setTestResult(null);
       
       console.log('Form cleared, closing modal...');
       onClose();
@@ -73,9 +80,81 @@ const AddDeviceModal: React.FC<AddDeviceModalProps> = ({ visible, onClose, onAdd
     } catch (error) {
       console.log('=== ADD DEVICE MODAL - ERROR ===');
       console.log('Error in modal:', error);
-      // Error is handled by the parent component
+      
+      setTestResult({
+        tested: true,
+        success: false,
+        message: error.message || 'Erreur inconnue'
+      });
+      
+      // Don't re-throw - let user see the error and try again
     } finally {
       console.log('Setting loading to false...');
+      setIsLoading(false);
+    }
+  };
+
+  const handleTestConnection = async () => {
+    console.log('🧪 Testing connection from modal');
+    
+    if (!ip.trim()) {
+      Alert.alert('Erreur', 'Veuillez entrer une adresse IP');
+      return;
+    }
+
+    const ipRegex = /^(\d{1,3}\.){3}\d{1,3}$/;
+    if (!ipRegex.test(ip.trim())) {
+      Alert.alert('Erreur', 'Format d\'adresse IP invalide');
+      return;
+    }
+
+    const portNumber = parseInt(port, 10);
+    if (isNaN(portNumber) || portNumber < 1 || portNumber > 65535) {
+      Alert.alert('Erreur', 'Port invalide');
+      return;
+    }
+
+    setIsLoading(true);
+    setTestResult(null);
+
+    try {
+      console.log(`Testing ${ip.trim()}:${portNumber}`);
+      
+      // Test basic connectivity
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+      
+      const response = await fetch(`http://${ip.trim()}:${portNumber}/`, {
+        method: 'HEAD',
+        signal: controller.signal,
+      });
+      
+      clearTimeout(timeoutId);
+      
+      if (response.ok || response.status < 500) {
+        console.log('✅ Connection test successful');
+        setTestResult({
+          tested: true,
+          success: true,
+          message: `Connexion réussie (HTTP ${response.status})`
+        });
+      } else {
+        console.log('⚠️  Connection test partial');
+        setTestResult({
+          tested: true,
+          success: false,
+          message: `Réponse HTTP ${response.status} - L'appareil répond mais peut ne pas être R_VOLUTION`
+        });
+      }
+      
+    } catch (error) {
+      console.log('❌ Connection test failed:', error);
+      setTestResult({
+        tested: true,
+        success: false,
+        message: 'Connexion échouée - Vérifiez l\'IP et le port'
+      });
+    } finally {
       setIsLoading(false);
     }
   };
@@ -85,7 +164,19 @@ const AddDeviceModal: React.FC<AddDeviceModalProps> = ({ visible, onClose, onAdd
     setIp('');
     setPort('80');
     setName('');
+    setTestResult(null);
     onClose();
+  };
+
+  const getCommonIPs = () => {
+    return [
+      '192.168.1.100',
+      '192.168.1.10',
+      '192.168.0.100',
+      '192.168.0.10',
+      '10.0.0.100',
+      '10.0.0.10',
+    ];
   };
 
   return (
@@ -117,6 +208,7 @@ const AddDeviceModal: React.FC<AddDeviceModalProps> = ({ visible, onClose, onAdd
                 onChangeText={(text) => {
                   console.log('IP input changed:', text);
                   setIp(text);
+                  setTestResult(null); // Clear test result when IP changes
                 }}
                 placeholder="192.168.1.100"
                 placeholderTextColor={colors.grey}
@@ -124,6 +216,25 @@ const AddDeviceModal: React.FC<AddDeviceModalProps> = ({ visible, onClose, onAdd
                 autoCapitalize="none"
                 autoCorrect={false}
               />
+              
+              {/* Quick IP suggestions */}
+              <View style={styles.quickIPs}>
+                <Text style={styles.quickIPsLabel}>IPs courantes :</Text>
+                <View style={styles.quickIPsRow}>
+                  {getCommonIPs().slice(0, 3).map((suggestedIP) => (
+                    <TouchableOpacity
+                      key={suggestedIP}
+                      style={styles.quickIPButton}
+                      onPress={() => {
+                        setIp(suggestedIP);
+                        setTestResult(null);
+                      }}
+                    >
+                      <Text style={styles.quickIPText}>{suggestedIP}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
             </View>
 
             <View style={styles.inputGroup}>
@@ -134,6 +245,7 @@ const AddDeviceModal: React.FC<AddDeviceModalProps> = ({ visible, onClose, onAdd
                 onChangeText={(text) => {
                   console.log('Port input changed:', text);
                   setPort(text);
+                  setTestResult(null);
                 }}
                 placeholder="80"
                 placeholderTextColor={colors.grey}
@@ -156,10 +268,46 @@ const AddDeviceModal: React.FC<AddDeviceModalProps> = ({ visible, onClose, onAdd
               />
             </View>
 
+            {/* Test Connection Button */}
+            <TouchableOpacity
+              style={styles.testButton}
+              onPress={handleTestConnection}
+              disabled={isLoading || !ip.trim()}
+            >
+              {isLoading ? (
+                <ActivityIndicator size="small" color={colors.primary} />
+              ) : (
+                <Icon name="wifi" size={16} color={colors.primary} />
+              )}
+              <Text style={styles.testButtonText}>
+                {isLoading ? 'Test en cours...' : 'Tester la connexion'}
+              </Text>
+            </TouchableOpacity>
+
+            {/* Test Result */}
+            {testResult && (
+              <View style={[
+                styles.testResult,
+                { backgroundColor: testResult.success ? '#d4edda' : '#f8d7da' }
+              ]}>
+                <Icon 
+                  name={testResult.success ? 'checkmark-circle' : 'alert-circle'} 
+                  size={16} 
+                  color={testResult.success ? '#155724' : '#721c24'} 
+                />
+                <Text style={[
+                  styles.testResultText,
+                  { color: testResult.success ? '#155724' : '#721c24' }
+                ]}>
+                  {testResult.message}
+                </Text>
+              </View>
+            )}
+
             <View style={styles.infoBox}>
               <Icon name="information-circle" size={16} color={colors.primary} />
               <Text style={styles.infoText}>
-                L'appareil sera ajouté directement à la liste sans vérification préalable. 
+                L'appareil sera ajouté même s'il n'est pas vérifié comme R_VOLUTION. 
                 Vous pourrez tester la connexion après l'ajout.
               </Text>
             </View>
@@ -210,6 +358,7 @@ const styles = StyleSheet.create({
     padding: 24,
     width: '100%',
     maxWidth: 400,
+    maxHeight: '90%',
     boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.3)',
     elevation: 8,
   },
@@ -253,7 +402,62 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: colors.text,
     borderWidth: 1,
-    borderColor: colors.grey,
+    borderColor: colors.grey + '40',
+  },
+  quickIPs: {
+    marginTop: 8,
+  },
+  quickIPsLabel: {
+    fontSize: 12,
+    color: colors.grey,
+    marginBottom: 6,
+  },
+  quickIPsRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  quickIPButton: {
+    backgroundColor: colors.background,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: colors.primary + '40',
+  },
+  quickIPText: {
+    fontSize: 11,
+    color: colors.primary,
+    fontWeight: '500',
+  },
+  testButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.background,
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 12,
+    gap: 8,
+    borderWidth: 1,
+    borderColor: colors.primary + '40',
+  },
+  testButtonText: {
+    fontSize: 14,
+    color: colors.primary,
+    fontWeight: '500',
+  },
+  testResult: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 12,
+    gap: 8,
+  },
+  testResultText: {
+    fontSize: 14,
+    fontWeight: '500',
+    flex: 1,
   },
   infoBox: {
     flexDirection: 'row',
