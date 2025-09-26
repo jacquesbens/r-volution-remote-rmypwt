@@ -150,7 +150,7 @@ const AddDeviceModal: React.FC<AddDeviceModalProps> = ({ visible, onClose, onAdd
               onChangeText={setIp}
               placeholder="192.168.1.100"
               placeholderTextColor={colors.grey}
-              keyboardType="decimal-pad"
+              keyboardType="numbers-and-punctuation"
               autoCapitalize="none"
               autoCorrect={false}
             />
