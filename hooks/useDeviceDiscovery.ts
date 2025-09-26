@@ -398,6 +398,12 @@ export const useDeviceDiscovery = () => {
 
   // Ultra-fast network scanning using the CGI endpoint - improved to find ALL devices with better error handling
   const scanNetwork = useCallback(async () => {
+    // If already scanning, stop the scan
+    if (isScanning) {
+      stopScanning();
+      return;
+    }
+
     // Clear discovered devices list when starting a new scan
     setDiscoveredDevices([]);
     
@@ -558,7 +564,7 @@ export const useDeviceDiscovery = () => {
       // Reset progress after a short delay
       setTimeout(() => setScanProgress(0), 1000);
     }
-  }, [getLocalNetworkInfo, scanIPBatch]);
+  }, [getLocalNetworkInfo, scanIPBatch, isScanning, stopScanning]);
 
   // Add discovered device to saved devices
   const addDiscoveredDevice = useCallback(async (discoveredDevice: RVolutionDevice) => {

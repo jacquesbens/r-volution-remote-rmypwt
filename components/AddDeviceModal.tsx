@@ -44,9 +44,9 @@ const AddDeviceModal: React.FC<AddDeviceModalProps> = ({ visible, onClose, onAdd
 
     setIsTestingConnection(true);
     try {
-      console.log(`Testing connection to ${ip.trim()}:80`);
+      console.log(`Testing HTTP connection to ${ip.trim()}:80`);
       
-      // Simple connectivity test using port 80
+      // Simple HTTP connectivity test using port 80
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 8000);
       
@@ -59,22 +59,22 @@ const AddDeviceModal: React.FC<AddDeviceModalProps> = ({ visible, onClose, onAdd
       
       if (response.ok || response.status < 500) {
         Alert.alert(
-          'Test de connexion',
-          `✅ L'appareil à l'adresse ${ip.trim()}:80 répond.\n\nStatus: ${response.status} ${response.statusText}`,
+          'Test de connexion HTTP',
+          `✅ L'appareil à l'adresse ${ip.trim()}:80 répond via HTTP.\n\nStatus: ${response.status} ${response.statusText}`,
           [{ text: 'OK' }]
         );
       } else {
         Alert.alert(
-          'Test de connexion',
+          'Test de connexion HTTP',
           `⚠️ L'appareil répond mais avec une erreur.\n\nStatus: ${response.status} ${response.statusText}`,
           [{ text: 'OK' }]
         );
       }
     } catch (error) {
-      console.log('Connection test failed:', error);
+      console.log('HTTP connection test failed:', error);
       Alert.alert(
-        'Test de connexion',
-        `❌ Impossible de se connecter à ${ip.trim()}:80.\n\nErreur: ${error.message}`,
+        'Test de connexion HTTP',
+        `❌ Impossible de se connecter à ${ip.trim()}:80 via HTTP.\n\nErreur: ${error.message}`,
         [{ text: 'OK' }]
       );
     } finally {
@@ -142,11 +142,18 @@ const AddDeviceModal: React.FC<AddDeviceModalProps> = ({ visible, onClose, onAdd
             />
           </View>
 
-
+          <View style={styles.protocolInfoSection}>
+            <Icon name="information-circle" size={20} color={colors.primary} />
+            <View style={styles.protocolInfoContent}>
+              <Text style={styles.protocolInfoTitle}>Protocole utilisé :</Text>
+              <Text style={styles.protocolInfoText}>HTTP sur port 80 (protocole web standard) - utilisé automatiquement</Text>
+              <Text style={styles.protocolInfoSubtext}>Optimisé pour la découverte automatique des appareils R_VOLUTION</Text>
+            </View>
+          </View>
 
           <View style={styles.testSection}>
             <Button
-              text={isTestingConnection ? "Test en cours..." : "Tester la connexion"}
+              text={isTestingConnection ? "Test HTTP en cours..." : "Tester la connexion HTTP"}
               onPress={handleTestConnection}
               style={[styles.testButton, { opacity: isTestingConnection ? 0.6 : 1 }]}
             />
@@ -158,11 +165,11 @@ const AddDeviceModal: React.FC<AddDeviceModalProps> = ({ visible, onClose, onAdd
           <View style={styles.infoSection}>
             <Icon name="information-circle" size={20} color={colors.primary} />
             <View style={styles.infoContent}>
-              <Text style={styles.infoTitle}>Conseils :</Text>
+              <Text style={styles.infoTitle}>Conseils pour HTTP :</Text>
               <Text style={styles.infoText}>• Assurez-vous que l'appareil est allumé et connecté au Wi-Fi</Text>
               <Text style={styles.infoText}>• Vérifiez que vous êtes sur le même réseau</Text>
-              <Text style={styles.infoText}>• L'appareil utilise automatiquement le port 80</Text>
-              <Text style={styles.infoText}>• Vérifiez que l'appareil accepte les connexions</Text>
+              <Text style={styles.infoText}>• L'appareil utilise automatiquement le protocole HTTP sur port 80</Text>
+              <Text style={styles.infoText}>• Vérifiez que l'appareil accepte les connexions HTTP</Text>
               <Text style={styles.infoText}>• Consultez la documentation de votre appareil R_VOLUTION</Text>
             </View>
           </View>
