@@ -177,7 +177,7 @@ const DeviceCard: React.FC<DeviceCardProps> = ({ device, onPress, onRemove, onEd
             style={[styles.actionButton, styles.editButton]}
             onPress={onEdit}
           >
-            <Icon name="create-outline" size={16} color={colors.primary} />
+            <Icon name="create-outline" size={16} color="#FFFFFF" />
           </TouchableOpacity>
         )}
 
@@ -301,7 +301,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   editButton: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#000000',
     borderWidth: 1,
     borderColor: colors.grey + '30',
   },
