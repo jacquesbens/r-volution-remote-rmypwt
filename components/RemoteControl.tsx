@@ -130,7 +130,7 @@ const styles = StyleSheet.create({
     borderRadius: 32,
   },
   
-  // Number pad
+  // Number pad - Updated to use same design as Explorer button
   numberPad: {
     marginBottom: 20,
   },
@@ -143,8 +143,8 @@ const styles = StyleSheet.create({
   },
   
   numberButton: {
-    backgroundColor: colors.surface,
-    borderRadius: 12,
+    backgroundColor: colors.primary,
+    borderRadius: 10,
     width: 64,
     height: 56,
     alignItems: 'center',
@@ -159,7 +159,7 @@ const styles = StyleSheet.create({
   },
   
   numberText: {
-    color: colors.text,
+    color: '#fff',
     fontSize: 18,
     fontWeight: '700',
   },
@@ -588,7 +588,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
           </ModernButton>
         </View>
 
-        {/* Number Pad */}
+        {/* Number Pad - Updated to use same design as Explorer button */}
         <Text style={styles.sectionHeader}>Pavé Numérique</Text>
         <View style={styles.numberPad}>
           <View style={styles.numberRow}>
@@ -629,7 +629,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
               onPress={() => handleCommand('Delete', irCodes.Delete)}
               style={styles.numberButton}
             >
-              <Icon name="backspace" size={18} color={colors.text} />
+              <Icon name="backspace" size={18} color="#fff" />
             </ModernButton>
             <ModernButton
               onPress={() => handleNumber(0)}
@@ -641,7 +641,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
               onPress={() => handleCommand('Format Scroll', irCodes.FormatScroll)}
               style={styles.numberButton}
             >
-              <Icon name="refresh" size={18} color={colors.text} />
+              <Icon name="refresh" size={18} color="#fff" />
             </ModernButton>
           </View>
         </View>
