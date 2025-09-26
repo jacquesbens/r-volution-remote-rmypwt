@@ -178,12 +178,13 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   
+  // Updated navigation buttons to use Explorer button design
   navButton: {
     position: 'absolute',
-    backgroundColor: colors.surface,
-    borderRadius: 20,  // Increased from 16
-    width: 64,         // Increased from 48
-    height: 64,        // Increased from 48
+    backgroundColor: colors.primary,  // Changed from colors.surface to colors.primary
+    borderRadius: 10,                 // Changed from 20 to 10 to match Explorer button
+    width: 64,                        // Increased from 48
+    height: 64,                       // Increased from 48
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
@@ -654,14 +655,14 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
               onPress={() => handleCommand('Cursor Up', irCodes.CursorUp)}
               style={[styles.navButton, styles.navButtonUp]}
             >
-              <Icon name="chevron-up" size={24} color={colors.text} />
+              <Icon name="chevron-up" size={24} color="#fff" />
             </ModernButton>
             
             <ModernButton
               onPress={() => handleCommand('Cursor Left', irCodes.CursorLeft)}
               style={[styles.navButton, styles.navButtonLeft]}
             >
-              <Icon name="chevron-back" size={24} color={colors.text} />
+              <Icon name="chevron-back" size={24} color="#fff" />
             </ModernButton>
             
             <ModernButton
@@ -675,14 +676,14 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
               onPress={() => handleCommand('Cursor Right', irCodes.CursorRight)}
               style={[styles.navButton, styles.navButtonRight]}
             >
-              <Icon name="chevron-forward" size={24} color={colors.text} />
+              <Icon name="chevron-forward" size={24} color="#fff" />
             </ModernButton>
             
             <ModernButton
               onPress={() => handleCommand('Cursor Down', irCodes.CursorDown)}
               style={[styles.navButton, styles.navButtonDown]}
             >
-              <Icon name="chevron-down" size={24} color={colors.text} />
+              <Icon name="chevron-down" size={24} color="#fff" />
             </ModernButton>
           </View>
         </View>
