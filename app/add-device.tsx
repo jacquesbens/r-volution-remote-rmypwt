@@ -32,24 +32,38 @@ const AddDeviceScreen: React.FC = () => {
   const [deviceToEdit, setDeviceToEdit] = useState<RVolutionDevice | null>(null);
 
   const handleScanNetwork = async () => {
-    console.log('🔍 Starting automatic network scan with HTTP protocol');
-    try {
-      await scanNetwork();
-      const foundCount = discoveredDevices.length;
+    console.log('🔍 Scanner button pressed');
+    
+    if (isScanning) {
+      // If currently scanning, stop the scan
+      console.log('🛑 Stopping current scan...');
+      await scanNetwork(); // This will stop the scan since isScanning is true
       Alert.alert(
-        'Scan HTTP terminé',
-        foundCount > 0 
-          ? `${foundCount} appareil${foundCount > 1 ? 's' : ''} R_VOLUTION trouvé${foundCount > 1 ? 's' : ''} ! Vous pouvez maintenant les ajouter à votre liste.`
-          : 'Aucun appareil R_VOLUTION trouvé sur le réseau. Vérifiez que vos appareils sont allumés et connectés au Wi-Fi.',
+        'Scan arrêté',
+        'Le scan du réseau a été arrêté.',
         [{ text: 'OK' }]
       );
-    } catch (error) {
-      console.log('❌ Network scan failed:', error);
-      Alert.alert(
-        'Erreur de scan HTTP',
-        'Impossible de scanner le réseau via HTTP. Vérifiez votre connexion Wi-Fi.',
-        [{ text: 'OK' }]
-      );
+    } else {
+      // If not scanning, start a new scan
+      console.log('🔍 Starting automatic network scan with HTTP protocol');
+      try {
+        await scanNetwork();
+        const foundCount = discoveredDevices.length;
+        Alert.alert(
+          'Scan HTTP terminé',
+          foundCount > 0 
+            ? `${foundCount} appareil${foundCount > 1 ? 's' : ''} R_VOLUTION trouvé${foundCount > 1 ? 's' : ''} ! Vous pouvez maintenant les ajouter à votre liste.`
+            : 'Aucun appareil R_VOLUTION trouvé sur le réseau. Vérifiez que vos appareils sont allumés et connectés au Wi-Fi.',
+          [{ text: 'OK' }]
+        );
+      } catch (error) {
+        console.log('❌ Network scan failed:', error);
+        Alert.alert(
+          'Erreur de scan HTTP',
+          'Impossible de scanner le réseau via HTTP. Vérifiez votre connexion Wi-Fi.',
+          [{ text: 'OK' }]
+        );
+      }
     }
   };
 
@@ -160,6 +174,11 @@ const AddDeviceScreen: React.FC = () => {
     }
   };
 
+  // Check if a discovered device is already in saved devices
+  const isDeviceAlreadyAdded = (discoveredDevice: RVolutionDevice): boolean => {
+    return devices.some(d => d.ip === discoveredDevice.ip && d.port === discoveredDevice.port);
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView 
@@ -192,9 +211,15 @@ const AddDeviceScreen: React.FC = () => {
             </View>
             
             <Button
-              text={isScanning ? `Scanner HTTP... ${scanProgress}%` : "Scanner le réseau"}
+              text={isScanning ? `Arrêter le scan ${scanProgress}%` : "Scanner le réseau"}
               onPress={handleScanNetwork}
-              style={[styles.scanButton, { opacity: isScanning ? 0.7 : 1 }]}
+              style={[
+                styles.scanButton, 
+                { 
+                  opacity: 1,
+                  backgroundColor: isScanning ? colors.error : colors.primary
+                }
+              ]}
             />
             
             {isScanning && (
@@ -214,30 +239,46 @@ const AddDeviceScreen: React.FC = () => {
               </Text>
               
               <View style={styles.devicesList}>
-                {discoveredDevices.map((device) => (
-                  <View key={device.id} style={styles.discoveredDeviceCard}>
-                    <View style={styles.discoveredDeviceInfo}>
-                      <View style={styles.discoveredDeviceHeader}>
-                        <Icon name="wifi" size={20} color={colors.success} />
-                        <Text style={styles.discoveredDeviceName}>{device.name}</Text>
+                {discoveredDevices.map((device) => {
+                  const alreadyAdded = isDeviceAlreadyAdded(device);
+                  return (
+                    <View key={device.id} style={styles.discoveredDeviceCard}>
+                      <View style={styles.discoveredDeviceInfo}>
+                        <View style={styles.discoveredDeviceHeader}>
+                          <Icon name="wifi" size={20} color={colors.success} />
+                          <Text style={styles.discoveredDeviceName}>{device.name}</Text>
+                        </View>
+                        <Text style={styles.discoveredDeviceDetails}>
+                          {device.ip}:{device.port} • HTTP
+                        </Text>
+                        <View style={styles.discoveredDeviceStatus}>
+                          <View style={styles.onlineIndicator} />
+                          <Text style={styles.onlineText}>En ligne</Text>
+                        </View>
                       </View>
-                      <Text style={styles.discoveredDeviceDetails}>
-                        {device.ip}:{device.port} • HTTP
-                      </Text>
-                      <View style={styles.discoveredDeviceStatus}>
-                        <View style={styles.onlineIndicator} />
-                        <Text style={styles.onlineText}>En ligne</Text>
-                      </View>
+                      <TouchableOpacity
+                        style={[
+                          styles.addDiscoveredButton,
+                          alreadyAdded && styles.addDiscoveredButtonDisabled
+                        ]}
+                        onPress={() => handleAddDiscoveredDevice(device)}
+                        disabled={alreadyAdded}
+                      >
+                        <Icon 
+                          name={alreadyAdded ? "checkmark" : "add"} 
+                          size={20} 
+                          color={alreadyAdded ? colors.grey : colors.background} 
+                        />
+                        <Text style={[
+                          styles.addDiscoveredButtonText,
+                          alreadyAdded && styles.addDiscoveredButtonTextDisabled
+                        ]}>
+                          {alreadyAdded ? "Ajouté" : "Ajouter"}
+                        </Text>
+                      </TouchableOpacity>
                     </View>
-                    <TouchableOpacity
-                      style={styles.addDiscoveredButton}
-                      onPress={() => handleAddDiscoveredDevice(device)}
-                    >
-                      <Icon name="add" size={20} color={colors.background} />
-                      <Text style={styles.addDiscoveredButtonText}>Ajouter</Text>
-                    </TouchableOpacity>
-                  </View>
-                ))}
+                  );
+                })}
               </View>
             </View>
           )}
@@ -289,8 +330,6 @@ const AddDeviceScreen: React.FC = () => {
               </View>
             )}
           </View>
-
-
 
           {/* Saved Devices List Section */}
           {devices.length > 0 && (
@@ -476,10 +515,16 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     gap: 4,
   },
+  addDiscoveredButtonDisabled: {
+    backgroundColor: colors.grey + '30',
+  },
   addDiscoveredButtonText: {
     fontSize: 14,
     fontWeight: '600',
     color: colors.background,
+  },
+  addDiscoveredButtonTextDisabled: {
+    color: colors.grey,
   },
   inputContainer: {
     marginBottom: 20,
@@ -519,7 +564,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.grey,
   },
-
   devicesList: {
     gap: 12,
   },
