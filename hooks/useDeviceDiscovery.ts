@@ -2,10 +2,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import { RVolutionDevice, NetworkScanResult } from '../types/Device';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Platform } from 'react-native';
 
 const STORAGE_KEY = 'rvolution_devices';
-const SCAN_TIMEOUT = 5000; // Increased timeout for better reliability
+const SCAN_TIMEOUT = 2000; // Reduced timeout for faster scanning
 const TARGET_DEVICE_NAME = 'R_VOLUTION';
+const CONCURRENT_REQUESTS = 20; // Number of parallel requests
 
 export const useDeviceDiscovery = () => {
   const [devices, setDevices] = useState<RVolutionDevice[]>([]);
@@ -36,15 +38,26 @@ export const useDeviceDiscovery = () => {
     }
   }, []);
 
-  // Check if device is reachable
-  const checkDeviceReachability = async (ip: string, port: number = 80): Promise<boolean> => {
+  // Get network base IP (simplified detection)
+  const getNetworkBaseIPs = (): string[] => {
+    // Common network ranges to scan
+    return [
+      '192.168.1',    // Most common home router range
+      '192.168.0',    // Alternative common range
+      '10.0.0',       // Some routers use this
+      '172.16.0',     // Less common but possible
+      '192.168.2',    // Some ISP routers
+    ];
+  };
+
+  // Check if device is reachable and is R_VOLUTION
+  const checkRVolutionDevice = async (ip: string, port: number = 80): Promise<{ isRVolution: boolean; deviceName?: string }> => {
     try {
-      console.log(`Checking reachability for ${ip}:${port}`);
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), SCAN_TIMEOUT);
 
-      // Try multiple common endpoints
-      const endpoints = ['/status', '/info', '/device', '/'];
+      // Try multiple common endpoints that R_VOLUTION devices might use
+      const endpoints = ['/info', '/status', '/device', '/api/info', '/'];
       
       for (const endpoint of endpoints) {
         try {
@@ -53,226 +66,231 @@ export const useDeviceDiscovery = () => {
             signal: controller.signal,
             headers: {
               'Content-Type': 'application/json',
-            },
-          });
-
-          clearTimeout(timeoutId);
-          if (response.ok || response.status < 500) {
-            console.log(`Device ${ip}:${port} is reachable via ${endpoint} (status: ${response.status})`);
-            return true;
-          }
-        } catch (endpointError) {
-          console.log(`Endpoint ${endpoint} failed for ${ip}:`, endpointError);
-        }
-      }
-
-      clearTimeout(timeoutId);
-      console.log(`Device ${ip}:${port} not reachable on any endpoint`);
-      return false;
-    } catch (error) {
-      console.log(`Device ${ip}:${port} not reachable:`, error);
-      return false;
-    }
-  };
-
-  // Get device info and verify it's an R_VOLUTION device
-  const getDeviceInfo = async (ip: string, port: number = 80): Promise<string | null> => {
-    try {
-      console.log(`Getting device info for ${ip}:${port}`);
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), SCAN_TIMEOUT);
-
-      const response = await fetch(`http://${ip}:${port}/info`, {
-        method: 'GET',
-        signal: controller.signal,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      clearTimeout(timeoutId);
-      
-      if (response.ok) {
-        const data = await response.json();
-        const deviceName = data.name || data.deviceName || data.hostname || '';
-        
-        console.log(`Device info response for ${ip}:${port}:`, data);
-        
-        // Check if the device name matches our target device name
-        if (deviceName === TARGET_DEVICE_NAME || deviceName.includes(TARGET_DEVICE_NAME)) {
-          console.log(`Found R_VOLUTION device at ${ip}: ${deviceName}`);
-          return deviceName;
-        } else {
-          console.log(`Device at ${ip} is not R_VOLUTION: ${deviceName}`);
-          return null;
-        }
-      }
-    } catch (error) {
-      console.log(`Error getting device info for ${ip}:`, error);
-    }
-    return null;
-  };
-
-  // Alternative method to check device by trying to connect and verify response
-  const verifyRVolutionDevice = async (ip: string, port: number = 80): Promise<boolean> => {
-    try {
-      console.log(`Verifying R_VOLUTION device at ${ip}:${port}`);
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), SCAN_TIMEOUT);
-
-      // Try multiple endpoints that R_VOLUTION devices might respond to
-      const endpoints = ['/info', '/status', '/device', '/'];
-      
-      for (const endpoint of endpoints) {
-        try {
-          console.log(`Trying endpoint ${endpoint} for ${ip}:${port}`);
-          const response = await fetch(`http://${ip}:${port}${endpoint}`, {
-            method: 'GET',
-            signal: controller.signal,
-            headers: {
-              'Content-Type': 'application/json',
+              'Accept': 'application/json, text/plain, */*',
             },
           });
 
           if (response.ok) {
-            const text = await response.text();
-            console.log(`Response from ${ip}${endpoint}:`, text.substring(0, 200));
-            
+            const contentType = response.headers.get('content-type');
+            let responseData: any = null;
+            let responseText = '';
+
+            try {
+              if (contentType && contentType.includes('application/json')) {
+                responseData = await response.json();
+                responseText = JSON.stringify(responseData);
+              } else {
+                responseText = await response.text();
+              }
+            } catch (parseError) {
+              console.log(`Parse error for ${ip}${endpoint}:`, parseError);
+              continue;
+            }
+
             // Check if response contains R_VOLUTION identifier
-            if (text.includes('R_VOLUTION') || text.includes('R-VOLUTION')) {
-              console.log(`Verified R_VOLUTION device at ${ip}${endpoint}`);
+            const isRVolution = responseText.includes('R_VOLUTION') || 
+                               responseText.includes('R-VOLUTION') ||
+                               responseText.includes('RVOLUTION') ||
+                               (responseData && (
+                                 responseData.name?.includes('R_VOLUTION') ||
+                                 responseData.deviceName?.includes('R_VOLUTION') ||
+                                 responseData.model?.includes('R_VOLUTION') ||
+                                 responseData.hostname?.includes('R_VOLUTION')
+                               ));
+
+            if (isRVolution) {
               clearTimeout(timeoutId);
-              return true;
+              const deviceName = responseData?.name || responseData?.deviceName || responseData?.hostname || TARGET_DEVICE_NAME;
+              console.log(`✅ Found R_VOLUTION device at ${ip}:${port}${endpoint} - Name: ${deviceName}`);
+              return { isRVolution: true, deviceName };
             }
           }
         } catch (endpointError) {
-          console.log(`Endpoint ${endpoint} failed for ${ip}:`, endpointError);
+          // Silently continue to next endpoint
         }
       }
 
       clearTimeout(timeoutId);
-      return false;
+      return { isRVolution: false };
     } catch (error) {
-      console.log(`Error verifying R_VOLUTION device at ${ip}:`, error);
-      return false;
+      return { isRVolution: false };
     }
   };
 
-  // Scan network for R_VOLUTION devices
+  // Scan a batch of IPs concurrently
+  const scanIPBatch = async (baseIP: string, startRange: number, endRange: number): Promise<RVolutionDevice[]> => {
+    const promises: Promise<RVolutionDevice | null>[] = [];
+    
+    for (let i = startRange; i <= endRange; i++) {
+      const ip = `${baseIP}.${i}`;
+      
+      const promise = checkRVolutionDevice(ip, 80).then(async (result) => {
+        if (result.isRVolution) {
+          // Check if device already exists
+          const existingDevice = devices.find(d => d.ip === ip);
+          if (!existingDevice) {
+            return {
+              id: `auto_${ip}_${Date.now()}`,
+              name: result.deviceName || TARGET_DEVICE_NAME,
+              ip: ip,
+              port: 80,
+              isOnline: true,
+              lastSeen: new Date(),
+              isManuallyAdded: false,
+            };
+          }
+        }
+        return null;
+      }).catch(() => null);
+      
+      promises.push(promise);
+    }
+    
+    const results = await Promise.all(promises);
+    return results.filter((device): device is RVolutionDevice => device !== null);
+  };
+
+  // Scan network for R_VOLUTION devices with improved parallel processing
   const scanNetwork = useCallback(async () => {
     setIsScanning(true);
     setScanProgress(0);
     
     try {
-      // Get current network info (simplified for demo)
-      const baseIP = '192.168.1'; // This would normally be detected from network info
+      console.log(`🔍 Starting enhanced network scan for ${TARGET_DEVICE_NAME} devices...`);
+      
+      const networkBases = getNetworkBaseIPs();
       const foundDevices: RVolutionDevice[] = [];
+      let totalProgress = 0;
+      const totalNetworks = networkBases.length;
       
-      // Scan common IP range (1-254)
-      const totalIPs = 254;
-      
-      console.log(`Starting network scan for ${TARGET_DEVICE_NAME} devices...`);
-      
-      for (let i = 1; i <= totalIPs; i++) {
-        const ip = `${baseIP}.${i}`;
-        setScanProgress((i / totalIPs) * 100);
+      // Scan each network base concurrently
+      for (let networkIndex = 0; networkIndex < networkBases.length; networkIndex++) {
+        const baseIP = networkBases[networkIndex];
+        console.log(`📡 Scanning network ${baseIP}.x (${networkIndex + 1}/${totalNetworks})`);
         
-        // First check if device is reachable
-        const isReachable = await checkDeviceReachability(ip);
+        // Scan in smaller batches for better performance and progress tracking
+        const batchSize = 25; // Scan 25 IPs at a time
+        const networkDevices: RVolutionDevice[] = [];
         
-        if (isReachable) {
-          console.log(`Device found at ${ip}, checking if it's R_VOLUTION...`);
+        for (let start = 1; start <= 254; start += batchSize) {
+          const end = Math.min(start + batchSize - 1, 254);
           
-          // Try to get device info first
-          let deviceName = await getDeviceInfo(ip);
+          console.log(`🔎 Scanning ${baseIP}.${start}-${end}`);
           
-          // If device info doesn't work, try verification method
-          if (!deviceName) {
-            const isRVolution = await verifyRVolutionDevice(ip);
-            if (isRVolution) {
-              deviceName = TARGET_DEVICE_NAME;
-            }
-          }
-          
-          if (deviceName) {
-            const existingDevice = devices.find(d => d.ip === ip);
+          try {
+            const batchDevices = await scanIPBatch(baseIP, start, end);
+            networkDevices.push(...batchDevices);
             
-            if (!existingDevice) {
-              const newDevice: RVolutionDevice = {
-                id: `${ip}_${Date.now()}`,
-                name: deviceName,
-                ip: ip,
-                port: 80,
-                isOnline: true,
-                lastSeen: new Date(),
-                isManuallyAdded: false,
-              };
-              
-              foundDevices.push(newDevice);
-              console.log('Found and verified R_VOLUTION device:', newDevice);
-            } else {
-              console.log(`R_VOLUTION device at ${ip} already exists in list`);
+            if (batchDevices.length > 0) {
+              console.log(`✅ Found ${batchDevices.length} R_VOLUTION devices in batch ${baseIP}.${start}-${end}`);
+              batchDevices.forEach(device => {
+                console.log(`   - ${device.name} at ${device.ip}:${device.port}`);
+              });
             }
+          } catch (batchError) {
+            console.log(`❌ Error scanning batch ${baseIP}.${start}-${end}:`, batchError);
           }
+          
+          // Update progress
+          const networkProgress = ((end / 254) * 100) / totalNetworks;
+          const baseProgress = (networkIndex / totalNetworks) * 100;
+          totalProgress = baseProgress + networkProgress;
+          setScanProgress(Math.round(totalProgress));
         }
+        
+        foundDevices.push(...networkDevices);
+        console.log(`📊 Network ${baseIP}.x scan complete. Found ${networkDevices.length} devices.`);
       }
       
+      // Update device list if we found new devices
       if (foundDevices.length > 0) {
         const updatedDevices = [...devices, ...foundDevices];
         setDevices(updatedDevices);
         await saveDevices(updatedDevices);
-        console.log(`Network scan completed. Found ${foundDevices.length} new R_VOLUTION devices.`);
+        console.log(`🎉 Network scan completed successfully! Found ${foundDevices.length} new R_VOLUTION devices:`);
+        foundDevices.forEach((device, index) => {
+          console.log(`   ${index + 1}. ${device.name} at ${device.ip}:${device.port}`);
+        });
       } else {
-        console.log('Network scan completed. No new R_VOLUTION devices found.');
+        console.log(`🔍 Network scan completed. No new R_VOLUTION devices found.`);
+        console.log(`💡 Troubleshooting tips:`);
+        console.log(`   - Ensure R_VOLUTION devices are powered on and connected to Wi-Fi`);
+        console.log(`   - Check that devices are on the same network as this mobile device`);
+        console.log(`   - Verify that R_VOLUTION devices are using port 80`);
+        console.log(`   - Try manual addition if you know the device IP address`);
       }
       
     } catch (error) {
-      console.log('Error during network scan:', error);
+      console.log('❌ Error during network scan:', error);
     } finally {
       setIsScanning(false);
       setScanProgress(0);
     }
   }, [devices, saveDevices]);
 
-  // Add device manually - COMPLETELY SIMPLIFIED VERSION
+  // Add device manually with optional verification
   const addDeviceManually = useCallback(async (ip: string, port: number = 80, customName?: string) => {
-    console.log(`=== MANUAL DEVICE ADDITION STARTED ===`);
-    console.log(`IP: ${ip}, Port: ${port}, Custom Name: ${customName}`);
+    console.log(`📱 Manual device addition started`);
+    console.log(`   IP: ${ip}, Port: ${port}, Custom Name: ${customName}`);
     
     try {
+      // Validate IP format
+      const ipRegex = /^(\d{1,3}\.){3}\d{1,3}$/;
+      if (!ipRegex.test(ip)) {
+        throw new Error('Format d\'adresse IP invalide. Utilisez le format: 192.168.1.100');
+      }
+
       // Check if device already exists
       const existingDevice = devices.find(d => d.ip === ip && d.port === port);
       if (existingDevice) {
-        console.log('Device already exists:', existingDevice);
+        console.log('❌ Device already exists:', existingDevice);
         throw new Error('Cet appareil est déjà dans la liste');
       }
 
-      // For manual addition, we'll be very permissive
-      // Just create the device without extensive verification
-      const deviceName = customName || `${TARGET_DEVICE_NAME} (${ip})`;
+      // Try to verify the device first (optional, non-blocking)
+      let deviceName = customName || `${TARGET_DEVICE_NAME} (${ip})`;
+      let isVerified = false;
+      
+      console.log(`🔍 Attempting to verify device at ${ip}:${port}...`);
+      
+      try {
+        const verificationResult = await checkRVolutionDevice(ip, port);
+        if (verificationResult.isRVolution) {
+          isVerified = true;
+          deviceName = verificationResult.deviceName || deviceName;
+          console.log(`✅ Device verified as R_VOLUTION: ${deviceName}`);
+        } else {
+          console.log(`⚠️  Device not verified as R_VOLUTION, but adding anyway (manual addition)`);
+        }
+      } catch (verificationError) {
+        console.log(`⚠️  Verification failed, but adding anyway (manual addition):`, verificationError);
+      }
       
       const newDevice: RVolutionDevice = {
         id: `manual_${ip}_${port}_${Date.now()}`,
         name: deviceName,
         ip: ip,
         port: port,
-        isOnline: true, // Assume online for manual addition
+        isOnline: isVerified, // Set based on verification result
         lastSeen: new Date(),
         isManuallyAdded: true,
       };
       
-      console.log('Creating new device without verification:', newDevice);
+      console.log(`📝 Creating new device:`, {
+        name: newDevice.name,
+        ip: newDevice.ip,
+        port: newDevice.port,
+        verified: isVerified
+      });
       
       const updatedDevices = [...devices, newDevice];
       setDevices(updatedDevices);
       await saveDevices(updatedDevices);
       
-      console.log('=== MANUAL DEVICE ADDITION COMPLETED SUCCESSFULLY ===');
-      console.log('Device added:', newDevice);
+      console.log(`✅ Manual device addition completed successfully!`);
       return newDevice;
     } catch (error) {
-      console.log('=== MANUAL DEVICE ADDITION FAILED ===');
-      console.log('Error details:', error);
+      console.log(`❌ Manual device addition failed:`, error);
       throw error;
     }
   }, [devices, saveDevices]);
@@ -286,42 +304,48 @@ export const useDeviceDiscovery = () => {
     console.log('Device removed successfully');
   }, [devices, saveDevices]);
 
-  // Update device status
+  // Update device status with improved checking
   const updateDeviceStatus = useCallback(async () => {
-    console.log('Updating device status for all devices...');
+    if (devices.length === 0) {
+      console.log('📊 No devices to update status for');
+      return;
+    }
+    
+    console.log(`📊 Updating status for ${devices.length} devices...`);
+    
     const updatedDevices = await Promise.all(
       devices.map(async (device) => {
-        // For manually added devices, we'll do a simple ping test
-        let isOnline = device.isOnline; // Keep current status as default
-        
         try {
-          const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 2000); // Shorter timeout for status check
+          const result = await checkRVolutionDevice(device.ip, device.port);
+          const isOnline = result.isRVolution;
           
-          const response = await fetch(`http://${device.ip}:${device.port}/`, {
-            method: 'HEAD', // Use HEAD for lighter request
-            signal: controller.signal,
-          });
+          if (isOnline) {
+            console.log(`✅ ${device.name} (${device.ip}) is online`);
+          } else {
+            console.log(`❌ ${device.name} (${device.ip}) is offline`);
+          }
           
-          clearTimeout(timeoutId);
-          isOnline = true; // If we get any response, consider it online
-          console.log(`Device ${device.ip} is online (status: ${response.status})`);
+          return {
+            ...device,
+            isOnline,
+            lastSeen: isOnline ? new Date() : device.lastSeen,
+            name: result.deviceName || device.name, // Update name if we got a better one
+          };
         } catch (error) {
-          isOnline = false;
-          console.log(`Device ${device.ip} appears offline:`, error);
+          console.log(`❌ ${device.name} (${device.ip}) status check failed:`, error);
+          return {
+            ...device,
+            isOnline: false,
+          };
         }
-        
-        return {
-          ...device,
-          isOnline,
-          lastSeen: isOnline ? new Date() : device.lastSeen,
-        };
       })
     );
     
     setDevices(updatedDevices);
     await saveDevices(updatedDevices);
-    console.log('Device status update completed');
+    
+    const onlineCount = updatedDevices.filter(d => d.isOnline).length;
+    console.log(`📊 Device status update completed: ${onlineCount}/${updatedDevices.length} devices online`);
   }, [devices, saveDevices]);
 
   useEffect(() => {

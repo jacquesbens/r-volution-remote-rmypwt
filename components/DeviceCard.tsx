@@ -1,6 +1,6 @@
 
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { RVolutionDevice } from '../types/Device';
 import { colors, commonStyles } from '../styles/commonStyles';
 import Icon from './Icon';
@@ -9,9 +9,40 @@ interface DeviceCardProps {
   device: RVolutionDevice;
   onPress: () => void;
   onRemove: () => void;
+  onTest?: (device: RVolutionDevice) => Promise<boolean>;
 }
 
-const DeviceCard: React.FC<DeviceCardProps> = ({ device, onPress, onRemove }) => {
+const DeviceCard: React.FC<DeviceCardProps> = ({ device, onPress, onRemove, onTest }) => {
+  const [isTesting, setIsTesting] = useState(false);
+
+  const handleTestConnection = async () => {
+    if (!onTest || isTesting) return;
+    
+    setIsTesting(true);
+    console.log(`🧪 Testing connection to ${device.name} (${device.ip}:${device.port})`);
+    
+    try {
+      const isConnected = await onTest(device);
+      
+      Alert.alert(
+        'Test de connexion',
+        isConnected 
+          ? `✅ Connexion réussie avec ${device.name}\n\nL'appareil répond correctement sur ${device.ip}:${device.port}`
+          : `❌ Connexion échouée avec ${device.name}\n\nL'appareil ne répond pas sur ${device.ip}:${device.port}\n\nVérifiez que l'appareil est allumé et connecté au réseau.`,
+        [{ text: 'OK' }]
+      );
+    } catch (error) {
+      console.log('❌ Test connection error:', error);
+      Alert.alert(
+        'Erreur de test',
+        `Une erreur s'est produite lors du test de connexion avec ${device.name}.\n\nErreur: ${error instanceof Error ? error.message : 'Erreur inconnue'}`,
+        [{ text: 'OK' }]
+      );
+    } finally {
+      setIsTesting(false);
+    }
+  };
+
   return (
     <TouchableOpacity style={styles.card} onPress={onPress}>
       <View style={styles.cardContent}>
@@ -24,9 +55,23 @@ const DeviceCard: React.FC<DeviceCardProps> = ({ device, onPress, onRemove }) =>
           <Text style={styles.deviceStatus}>
             {device.isOnline ? 'En ligne' : 'Hors ligne'} • {device.isManuallyAdded ? 'Manuel' : 'Découvert'}
           </Text>
+          {device.lastSeen && (
+            <Text style={styles.lastSeen}>
+              Dernière connexion: {new Date(device.lastSeen).toLocaleString('fr-FR')}
+            </Text>
+          )}
         </View>
         
         <View style={styles.actions}>
+          {onTest && (
+            <TouchableOpacity 
+              style={[styles.testButton, { opacity: isTesting ? 0.5 : 1 }]} 
+              onPress={handleTestConnection}
+              disabled={isTesting}
+            >
+              <Icon name={isTesting ? "hourglass" : "wifi"} size={18} color={colors.primary} />
+            </TouchableOpacity>
+          )}
           <TouchableOpacity style={styles.removeButton} onPress={onRemove}>
             <Icon name="trash-outline" size={20} color={colors.text} />
           </TouchableOpacity>
@@ -79,9 +124,21 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: colors.grey,
   },
+  lastSeen: {
+    fontSize: 11,
+    color: colors.grey,
+    fontStyle: 'italic',
+    marginTop: 2,
+  },
   actions: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 8,
+  },
+  testButton: {
+    padding: 8,
+    borderRadius: 6,
+    backgroundColor: colors.background,
   },
   removeButton: {
     padding: 8,
