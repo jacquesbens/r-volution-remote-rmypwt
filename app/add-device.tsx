@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, ActivityIndicator, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, ActivityIndicator, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { colors } from '../styles/commonStyles';
@@ -137,110 +137,121 @@ const AddDeviceScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {/* Title */}
-        <View style={styles.titleContainer}>
-          <Text style={styles.title}>R_volution Remote</Text>
-          <Text style={styles.subtitle}>ajouter un appareil</Text>
-        </View>
-
-        {/* Automatic Addition Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Ajout automatique</Text>
-          <Text style={styles.sectionDescription}>
-            Scannez votre réseau pour trouver des appareils
-          </Text>
-          
-          <Button
-            text={isScanning ? `Scanner... ${scanProgress}%` : "Scanner"}
-            onPress={handleScanNetwork}
-            style={[styles.scanButton, { opacity: isScanning ? 0.7 : 1 }]}
-          />
-          
-          {isScanning && (
-            <View style={styles.scanningIndicator}>
-              <ActivityIndicator size="small" color={colors.primary} />
-              <Text style={styles.scanningText}>Recherche en cours...</Text>
-            </View>
-          )}
-        </View>
-
-        {/* Manual Addition Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Ajout manuel</Text>
-          
-          <View style={styles.inputContainer}>
-            <Text style={styles.inputLabel}>Nom</Text>
-            <TextInput
-              style={styles.input}
-              value={deviceName}
-              onChangeText={setDeviceName}
-              placeholder="Mon lecteur"
-              placeholderTextColor={colors.grey + '80'}
-            />
+      <KeyboardAvoidingView 
+        style={styles.keyboardAvoidingView}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+      >
+        <ScrollView 
+          style={styles.scrollView} 
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollViewContent}
+          keyboardShouldPersistTaps="handled"
+        >
+          {/* Title */}
+          <View style={styles.titleContainer}>
+            <Text style={styles.title}>R_volution Remote</Text>
+            <Text style={styles.subtitle}>ajouter un appareil</Text>
           </View>
 
-          <View style={styles.inputContainer}>
-            <Text style={styles.inputLabel}>IP / Hôte</Text>
-            <TextInput
-              style={styles.input}
-              value={ipAddress}
-              onChangeText={setIpAddress}
-              placeholder="192.168.1.20"
-              placeholderTextColor={colors.grey + '80'}
-              keyboardType="numbers-and-punctuation"
-              autoCapitalize="none"
-              autoCorrect={false}
-            />
-          </View>
-
-          <Button
-            text={isAdding ? "Ajout en cours..." : "Ajouter"}
-            onPress={handleAddDevice}
-            style={[styles.addButton, { opacity: isAdding ? 0.7 : 1 }]}
-          />
-          
-          {isAdding && (
-            <View style={styles.addingIndicator}>
-              <ActivityIndicator size="small" color={colors.primary} />
-              <Text style={styles.addingText}>Ajout en cours...</Text>
-            </View>
-          )}
-        </View>
-
-        {/* Devices List Section */}
-        {devices.length > 0 && (
+          {/* Automatic Addition Section */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Appareils ajoutés ({devices.length})</Text>
+            <Text style={styles.sectionTitle}>Ajout automatique</Text>
             <Text style={styles.sectionDescription}>
-              Appuyez sur un appareil pour le contrôler
+              Scannez votre réseau pour trouver des appareils
             </Text>
             
-            <View style={styles.devicesList}>
-              {devices.map((device) => (
-                <DeviceCard
-                  key={device.id}
-                  device={device}
-                  onPress={() => handleDevicePress(device)}
-                  onRemove={() => handleRemoveDevice(device.id)}
-                  onEdit={() => handleEditDevice(device)}
-                />
-              ))}
-            </View>
+            <Button
+              text={isScanning ? `Scanner... ${scanProgress}%` : "Scanner"}
+              onPress={handleScanNetwork}
+              style={[styles.scanButton, { opacity: isScanning ? 0.7 : 1 }]}
+            />
+            
+            {isScanning && (
+              <View style={styles.scanningIndicator}>
+                <ActivityIndicator size="small" color={colors.primary} />
+                <Text style={styles.scanningText}>Recherche en cours...</Text>
+              </View>
+            )}
           </View>
-        )}
 
-        {/* Empty state */}
-        {devices.length === 0 && (
-          <View style={styles.emptyState}>
-            <Icon name="wifi-outline" size={64} color={colors.grey} />
-            <Text style={styles.emptyStateTitle}>Aucun appareil trouvé</Text>
-            <Text style={styles.emptyStateDescription}>
-              Utilisez le scan automatique ou ajoutez un appareil manuellement
-            </Text>
+          {/* Manual Addition Section */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Ajout manuel</Text>
+            
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Nom</Text>
+              <TextInput
+                style={styles.input}
+                value={deviceName}
+                onChangeText={setDeviceName}
+                placeholder="Mon lecteur"
+                placeholderTextColor={colors.grey + '80'}
+              />
+            </View>
+
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>IP / Hôte</Text>
+              <TextInput
+                style={styles.input}
+                value={ipAddress}
+                onChangeText={setIpAddress}
+                placeholder="192.168.1.20"
+                placeholderTextColor={colors.grey + '80'}
+                keyboardType="numbers-and-punctuation"
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+            </View>
+
+            <Button
+              text={isAdding ? "Ajout en cours..." : "Ajouter"}
+              onPress={handleAddDevice}
+              style={[styles.addButton, { opacity: isAdding ? 0.7 : 1 }]}
+            />
+            
+            {isAdding && (
+              <View style={styles.addingIndicator}>
+                <ActivityIndicator size="small" color={colors.primary} />
+                <Text style={styles.addingText}>Ajout en cours...</Text>
+              </View>
+            )}
           </View>
-        )}
-      </ScrollView>
+
+          {/* Devices List Section */}
+          {devices.length > 0 && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Appareils ajoutés ({devices.length})</Text>
+              <Text style={styles.sectionDescription}>
+                Appuyez sur un appareil pour le contrôler
+              </Text>
+              
+              <View style={styles.devicesList}>
+                {devices.map((device) => (
+                  <DeviceCard
+                    key={device.id}
+                    device={device}
+                    onPress={() => handleDevicePress(device)}
+                    onRemove={() => handleRemoveDevice(device.id)}
+                    onEdit={() => handleEditDevice(device)}
+                  />
+                ))}
+              </View>
+            </View>
+          )}
+
+          {/* Empty state */}
+          {devices.length === 0 && (
+            <View style={styles.emptyState}>
+              <Icon name="wifi-outline" size={64} color={colors.grey} />
+              <Text style={styles.emptyStateTitle}>Aucun appareil trouvé</Text>
+              <Text style={styles.emptyStateDescription}>
+                Utilisez le scan automatique ou ajoutez un appareil manuellement
+              </Text>
+            </View>
+          )}
+        </ScrollView>
+      </KeyboardAvoidingView>
 
       {/* Edit Device Modal */}
       <EditDeviceModal
@@ -258,8 +269,15 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
+  keyboardAvoidingView: {
+    flex: 1,
+  },
   scrollView: {
     flex: 1,
+  },
+  scrollViewContent: {
+    flexGrow: 1,
+    paddingBottom: 20,
   },
   titleContainer: {
     paddingHorizontal: 20,

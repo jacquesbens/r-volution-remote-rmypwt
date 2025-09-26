@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, Alert, Modal, TouchableOpacity, ActivityIndicator, ScrollView } from 'react-native';
+import { View, Text, TextInput, StyleSheet, Alert, Modal, TouchableOpacity, ActivityIndicator, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import Button from './Button';
 import { colors } from '../styles/commonStyles';
 import Icon from './Icon';
@@ -97,7 +97,11 @@ const AddDeviceModal: React.FC<AddDeviceModalProps> = ({ visible, onClose, onAdd
       presentationStyle="pageSheet"
       onRequestClose={handleClose}
     >
-      <View style={styles.container}>
+      <KeyboardAvoidingView 
+        style={styles.container}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+      >
         <View style={styles.header}>
           <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
             <Icon name="close" size={24} color={colors.text} />
@@ -106,7 +110,12 @@ const AddDeviceModal: React.FC<AddDeviceModalProps> = ({ visible, onClose, onAdd
           <View style={styles.placeholder} />
         </View>
 
-        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        <ScrollView 
+          style={styles.content} 
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+        >
           <View style={styles.section}>
             <Text style={styles.label}>Adresse IP *</Text>
             <TextInput
@@ -180,7 +189,7 @@ const AddDeviceModal: React.FC<AddDeviceModalProps> = ({ visible, onClose, onAdd
             <ActivityIndicator size="small" color={colors.background} style={styles.addLoader} />
           )}
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 };
@@ -213,6 +222,10 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     paddingHorizontal: 20,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingBottom: 20,
   },
   section: {
     marginTop: 24,
