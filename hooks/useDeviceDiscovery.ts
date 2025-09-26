@@ -4,7 +4,7 @@ import { RVolutionDevice, NetworkScanResult } from '../types/Device';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const STORAGE_KEY = 'rvolution_devices';
-const SCAN_TIMEOUT = 3000; // Increased timeout for better reliability
+const SCAN_TIMEOUT = 5000; // Increased timeout for better reliability
 const TARGET_DEVICE_NAME = 'R_VOLUTION';
 
 export const useDeviceDiscovery = () => {
@@ -36,24 +36,39 @@ export const useDeviceDiscovery = () => {
     }
   }, []);
 
-  // Check if device is reachable and has the correct name
+  // Check if device is reachable
   const checkDeviceReachability = async (ip: string, port: number = 80): Promise<boolean> => {
     try {
       console.log(`Checking reachability for ${ip}:${port}`);
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), SCAN_TIMEOUT);
 
-      const response = await fetch(`http://${ip}:${port}/status`, {
-        method: 'GET',
-        signal: controller.signal,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      // Try multiple common endpoints
+      const endpoints = ['/status', '/info', '/device', '/'];
+      
+      for (const endpoint of endpoints) {
+        try {
+          const response = await fetch(`http://${ip}:${port}${endpoint}`, {
+            method: 'GET',
+            signal: controller.signal,
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          });
+
+          clearTimeout(timeoutId);
+          if (response.ok || response.status < 500) {
+            console.log(`Device ${ip}:${port} is reachable via ${endpoint} (status: ${response.status})`);
+            return true;
+          }
+        } catch (endpointError) {
+          console.log(`Endpoint ${endpoint} failed for ${ip}:`, endpointError);
+        }
+      }
 
       clearTimeout(timeoutId);
-      console.log(`Device ${ip}:${port} reachability check result: ${response.ok}`);
-      return response.ok;
+      console.log(`Device ${ip}:${port} not reachable on any endpoint`);
+      return false;
     } catch (error) {
       console.log(`Device ${ip}:${port} not reachable:`, error);
       return false;
@@ -219,7 +234,7 @@ export const useDeviceDiscovery = () => {
     }
   }, [devices, saveDevices]);
 
-  // Add device manually
+  // Add device manually - SIMPLIFIED AND MORE PERMISSIVE
   const addDeviceManually = useCallback(async (ip: string, port: number = 80, customName?: string) => {
     console.log(`=== MANUAL DEVICE ADDITION STARTED ===`);
     console.log(`IP: ${ip}, Port: ${port}, Custom Name: ${customName}`);
@@ -232,41 +247,67 @@ export const useDeviceDiscovery = () => {
         throw new Error('Cet appareil R_VOLUTION est déjà dans la liste');
       }
 
-      console.log(`Checking reachability for manual addition: ${ip}:${port}`);
-      const isReachable = await checkDeviceReachability(ip, port);
+      console.log(`Checking basic reachability for manual addition: ${ip}:${port}`);
+      
+      // Simplified reachability check - just try to connect
+      let isReachable = false;
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 3000);
+        
+        const response = await fetch(`http://${ip}:${port}/`, {
+          method: 'GET',
+          signal: controller.signal,
+        });
+        
+        clearTimeout(timeoutId);
+        // Accept any response that doesn't timeout - even errors indicate the device exists
+        isReachable = true;
+        console.log(`Device responded at ${ip}:${port} with status: ${response.status}`);
+      } catch (error) {
+        console.log(`Basic connectivity test failed for ${ip}:${port}:`, error);
+        // Try one more endpoint
+        try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 3000);
+          
+          const response = await fetch(`http://${ip}:${port}/status`, {
+            method: 'GET',
+            signal: controller.signal,
+          });
+          
+          clearTimeout(timeoutId);
+          isReachable = true;
+          console.log(`Device responded at ${ip}:${port}/status with status: ${response.status}`);
+        } catch (secondError) {
+          console.log(`Second connectivity test also failed for ${ip}:${port}:`, secondError);
+        }
+      }
       
       if (!isReachable) {
         console.log(`Manual addition failed: Device not reachable at ${ip}:${port}`);
-        throw new Error(`Appareil R_VOLUTION non accessible à l'adresse ${ip}:${port}. Vérifiez que l'appareil est allumé et connecté au réseau.`);
+        throw new Error(`Aucun appareil trouvé à l'adresse ${ip}:${port}. Vérifiez que l'appareil est allumé et connecté au réseau.`);
       }
       
-      console.log(`Device is reachable, attempting to verify R_VOLUTION device...`);
+      console.log(`Device is reachable, proceeding with manual addition...`);
       
-      // Try to verify it's an R_VOLUTION device
-      let deviceName = customName;
+      // For manual addition, we'll be more permissive and allow adding any reachable device
+      let deviceName = customName || `${TARGET_DEVICE_NAME} (Manuel)`;
       
-      if (!deviceName) {
-        console.log('No custom name provided, trying to get device info...');
-        deviceName = await getDeviceInfo(ip, port);
-        
-        // If we can't get device info, try verification
-        if (!deviceName) {
-          console.log('Device info failed, trying verification method...');
-          const isRVolution = await verifyRVolutionDevice(ip, port);
-          if (isRVolution) {
-            deviceName = TARGET_DEVICE_NAME;
-            console.log('Device verified as R_VOLUTION through verification method');
-          } else {
-            // Allow manual addition even if we can't verify, but warn the user
-            deviceName = `${TARGET_DEVICE_NAME} (Manuel)`;
-            console.log(`Warning: Could not verify device at ${ip}:${port} as R_VOLUTION, adding manually anyway`);
-          }
+      // Try to get actual device info if possible, but don't fail if we can't
+      try {
+        const actualName = await getDeviceInfo(ip, port);
+        if (actualName) {
+          deviceName = actualName;
+          console.log(`Got actual device name: ${actualName}`);
         }
+      } catch (error) {
+        console.log(`Could not get device info, using default name: ${deviceName}`);
       }
       
       const newDevice: RVolutionDevice = {
         id: `manual_${ip}_${port}_${Date.now()}`,
-        name: deviceName || `${TARGET_DEVICE_NAME} (Manuel)`,
+        name: deviceName,
         ip: ip,
         port: port,
         isOnline: true,
@@ -288,7 +329,7 @@ export const useDeviceDiscovery = () => {
       console.log('Error details:', error);
       throw error;
     }
-  }, [devices, saveDevices, checkDeviceReachability, getDeviceInfo, verifyRVolutionDevice]);
+  }, [devices, saveDevices]);
 
   // Remove device
   const removeDevice = useCallback(async (deviceId: string) => {

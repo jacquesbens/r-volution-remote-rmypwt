@@ -45,13 +45,21 @@ export default function MainScreen() {
       const result = await addDeviceManually(ip, port, name);
       console.log('addDeviceManually result:', result);
       
+      console.log('Device addition successful, closing modal...');
       setIsAddModalVisible(false);
-      console.log('Modal closed, showing success alert...');
       
+      console.log('Showing success alert...');
       Alert.alert(
         'Succès', 
-        `Appareil R_VOLUTION "${result.name}" ajouté avec succès à l'adresse ${ip}:${port}`,
-        [{ text: 'OK', onPress: () => console.log('Success alert dismissed') }]
+        `Appareil "${result.name}" ajouté avec succès à l'adresse ${ip}:${port}`,
+        [{ 
+          text: 'OK', 
+          onPress: () => {
+            console.log('Success alert dismissed');
+            // Force a refresh of the device list
+            updateDeviceStatus();
+          }
+        }]
       );
     } catch (error) {
       console.log('=== HANDLE ADD DEVICE ERROR ===');
@@ -59,12 +67,15 @@ export default function MainScreen() {
       console.log('Error message:', error instanceof Error ? error.message : String(error));
       console.log('Full error:', error);
       
-      const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue lors de l\'ajout de l\'appareil R_VOLUTION';
+      const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue lors de l\'ajout de l\'appareil';
       
       Alert.alert(
         'Erreur d\'ajout', 
         errorMessage,
-        [{ text: 'OK', onPress: () => console.log('Error alert dismissed') }]
+        [{ 
+          text: 'Réessayer', 
+          onPress: () => console.log('Error alert dismissed - user can retry')
+        }]
       );
     }
   };
@@ -103,10 +114,27 @@ export default function MainScreen() {
   };
 
   useEffect(() => {
-    console.log('MainScreen mounted, updating device status...');
+    console.log('MainScreen mounted, current devices:', devices.length);
     // Initial device status update
-    updateDeviceStatus();
+    if (devices.length > 0) {
+      updateDeviceStatus();
+    }
   }, []);
+
+  // Log device changes
+  useEffect(() => {
+    console.log('Device list updated, current count:', devices.length);
+    devices.forEach((device, index) => {
+      console.log(`Device ${index + 1}:`, {
+        id: device.id,
+        name: device.name,
+        ip: device.ip,
+        port: device.port,
+        isOnline: device.isOnline,
+        isManuallyAdded: device.isManuallyAdded
+      });
+    });
+  }, [devices]);
 
   return (
     <SafeAreaView style={commonStyles.container}>
@@ -184,6 +212,9 @@ export default function MainScreen() {
           </Text>
           <Text style={styles.instructionsText}>
             • Le port 80 est utilisé par défaut pour la découverte et le contrôle des appareils
+          </Text>
+          <Text style={styles.instructionsText}>
+            • L'ajout manuel accepte tout appareil qui répond à l'adresse IP spécifiée
           </Text>
         </View>
       </ScrollView>
