@@ -5,9 +5,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
 
 const STORAGE_KEY = 'rvolution_devices';
-const FAST_SCAN_TIMEOUT = 1500; // Increased timeout for better reliability
+const FAST_SCAN_TIMEOUT = 800; // Much faster timeout
 const TARGET_DEVICE_NAME = 'R_VOLUTION';
-const CONCURRENT_REQUESTS = 20; // Reduced concurrency for better stability
+const CONCURRENT_REQUESTS = 50; // Much higher concurrency
 const HTTP_PORT = 80; // Fixed port for HTTP protocol
 const CGI_ENDPOINT = '/cgi-bin/do?'; // The fast endpoint you mentioned
 
@@ -124,17 +124,17 @@ export const useDeviceDiscovery = () => {
     }
   }, []);
 
-  // Enhanced device verification using the CGI endpoint - improved error handling
+  // Enhanced device verification using the CGI endpoint - improved detection
   const verifyRVolutionDevice = useCallback(async (ip: string, abortSignal?: AbortSignal): Promise<{
     isRVolution: boolean;
     deviceName?: string;
     responseData?: any;
     endpoint?: string;
   }> => {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), FAST_SCAN_TIMEOUT);
-    
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), FAST_SCAN_TIMEOUT);
+      
       // Combine timeout and external abort signals
       const combinedSignal = abortSignal || controller.signal;
       
@@ -245,33 +245,23 @@ export const useDeviceDiscovery = () => {
       return { isRVolution: false };
       
     } catch (error) {
-      clearTimeout(timeoutId);
-      
       // Check if scan was aborted
       if (error.name === 'AbortError') {
         console.log(`🛑 Scan aborted for ${ip}`);
         throw error;
       }
-      
-      // Handle specific network errors more gracefully
-      if (error.message.includes('Network request failed')) {
-        console.log(`🔍 Network error for ${ip}: Device not reachable or not responding`);
-      } else if (error.message.includes('timeout')) {
-        console.log(`⏰ Timeout for ${ip}: Device took too long to respond`);
-      } else {
-        console.log(`🔍 Scan ${ip}: ${error.message}`);
-      }
-      
+      // Silently fail for faster scanning, but log for debugging
+      console.log(`🔍 Scan ${ip}: ${error.message}`);
       return { isRVolution: false };
     }
   }, []);
 
   // Fast connectivity check using the CGI endpoint
   const checkDeviceReachability = useCallback(async (ip: string, abortSignal?: AbortSignal): Promise<boolean> => {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), FAST_SCAN_TIMEOUT);
-    
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), FAST_SCAN_TIMEOUT);
+      
       // Combine timeout and external abort signals
       const combinedSignal = abortSignal || controller.signal;
       
@@ -285,8 +275,6 @@ export const useDeviceDiscovery = () => {
       return isReachable;
       
     } catch (error) {
-      clearTimeout(timeoutId);
-      
       if (error.name === 'AbortError') {
         throw error;
       }
@@ -320,7 +308,7 @@ export const useDeviceDiscovery = () => {
     }
   }, [verifyRVolutionDevice, checkDeviceReachability]);
 
-  // Ultra-fast IP batch scanning with improved device discovery and error handling
+  // Ultra-fast IP batch scanning with improved device discovery
   const scanIPBatch = useCallback(async (baseIP: string, startRange: number, endRange: number, abortSignal?: AbortSignal): Promise<RVolutionDevice[]> => {
     const promises: Promise<RVolutionDevice | null>[] = [];
     
@@ -359,12 +347,8 @@ export const useDeviceDiscovery = () => {
     }
     
     try {
-      const results = await Promise.allSettled(promises);
-      const foundDevices = results
-        .filter((result): result is PromiseFulfilledResult<RVolutionDevice> => 
-          result.status === 'fulfilled' && result.value !== null
-        )
-        .map(result => result.value);
+      const results = await Promise.all(promises);
+      const foundDevices = results.filter((device): device is RVolutionDevice => device !== null);
       
       if (foundDevices.length > 0) {
         console.log(`📡 Batch ${baseIP}.${startRange}-${endRange}: Found ${foundDevices.length} devices`);
@@ -396,7 +380,7 @@ export const useDeviceDiscovery = () => {
     console.log('🛑 Network scan stopped');
   }, []);
 
-  // Ultra-fast network scanning using the CGI endpoint - improved to find ALL devices with better error handling
+  // Ultra-fast network scanning using the CGI endpoint - improved to find ALL devices
   const scanNetwork = useCallback(async () => {
     // If already scanning, stop the scan
     if (isScanning) {
@@ -426,10 +410,11 @@ export const useDeviceDiscovery = () => {
       const allFoundDevices: RVolutionDevice[] = [];
       let totalProgress = 0;
       
-      // Scan first 3 network ranges for better performance and reliability
-      const totalNetworks = Math.min(networkBases.length, 3);
-      console.log(`🌐 Scanning ${totalNetworks} primary network ranges for better performance...`);
+      // Scan ALL network ranges to ensure we find all devices
+      const totalNetworks = networkBases.length;
+      console.log(`🌐 Comprehensive scanning ${totalNetworks} network ranges to find ALL devices...`);
       
+      // Scan all network ranges, not just the first 2
       for (let networkIndex = 0; networkIndex < totalNetworks; networkIndex++) {
         // Check if scan was aborted
         if (abortSignal.aborted) {
@@ -440,77 +425,63 @@ export const useDeviceDiscovery = () => {
         const baseIP = networkBases[networkIndex];
         console.log(`📡 Scanning network ${baseIP}.x (${networkIndex + 1}/${totalNetworks})`);
         
-        const batchSize = Math.min(CONCURRENT_REQUESTS, 15); // Smaller batches for better reliability
+        const batchSize = Math.min(CONCURRENT_REQUESTS, 25); // Slightly smaller batches for better reliability
         const networkDevices: RVolutionDevice[] = [];
         
-        // Scan common IP ranges first for faster discovery
-        const commonRanges = [
-          { start: 1, end: 50 },    // Router and common devices
-          { start: 100, end: 150 }, // Common DHCP range
-          { start: 200, end: 254 }, // High range devices
-        ];
+        // Scan FULL IP range to ensure we don't miss any devices
+        const fullRange = { start: 1, end: 254 };
         
-        for (const range of commonRanges) {
+        console.log(`🔍 Full range scan: ${baseIP}.${fullRange.start}-${fullRange.end}`);
+        
+        for (let start = fullRange.start; start <= fullRange.end; start += batchSize) {
           // Check if scan was aborted
           if (abortSignal.aborted) {
-            console.log('🛑 Scan aborted during range iteration');
+            console.log('🛑 Scan aborted during batch iteration');
             return;
           }
 
-          console.log(`🔍 Scanning range: ${baseIP}.${range.start}-${range.end}`);
+          const end = Math.min(start + batchSize - 1, fullRange.end);
           
-          for (let start = range.start; start <= range.end; start += batchSize) {
-            // Check if scan was aborted
-            if (abortSignal.aborted) {
-              console.log('🛑 Scan aborted during batch iteration');
+          console.log(`🔎 Scanning batch ${baseIP}.${start}-${end}`);
+          
+          try {
+            const batchDevices = await scanIPBatch(baseIP, start, end, abortSignal);
+            
+            if (batchDevices.length > 0) {
+              console.log(`✅ Found ${batchDevices.length} R_VOLUTION devices in batch ${baseIP}.${start}-${end}`);
+              
+              // Add to network devices
+              networkDevices.push(...batchDevices);
+              
+              // Update discovered devices in real-time for immediate UI feedback
+              setDiscoveredDevices(prev => {
+                // Avoid duplicates by checking IP addresses
+                const existingIPs = prev.map(d => d.ip);
+                const newDevices = batchDevices.filter(d => !existingIPs.includes(d.ip));
+                return [...prev, ...newDevices];
+              });
+              
+              batchDevices.forEach(device => {
+                console.log(`   🎵 ${device.name} at ${device.ip}:${device.port}`);
+              });
+            }
+          } catch (batchError) {
+            if (batchError.name === 'AbortError') {
+              console.log('🛑 Batch scan aborted');
               return;
             }
-
-            const end = Math.min(start + batchSize - 1, range.end);
-            
-            console.log(`🔎 Scanning batch ${baseIP}.${start}-${end}`);
-            
-            try {
-              const batchDevices = await scanIPBatch(baseIP, start, end, abortSignal);
-              
-              if (batchDevices.length > 0) {
-                console.log(`✅ Found ${batchDevices.length} R_VOLUTION devices in batch ${baseIP}.${start}-${end}`);
-                
-                // Add to network devices
-                networkDevices.push(...batchDevices);
-                
-                // Update discovered devices in real-time for immediate UI feedback
-                setDiscoveredDevices(prev => {
-                  // Avoid duplicates by checking IP addresses
-                  const existingIPs = prev.map(d => d.ip);
-                  const newDevices = batchDevices.filter(d => !existingIPs.includes(d.ip));
-                  return [...prev, ...newDevices];
-                });
-                
-                batchDevices.forEach(device => {
-                  console.log(`   🎵 ${device.name} at ${device.ip}:${device.port}`);
-                });
-              }
-            } catch (batchError) {
-              if (batchError.name === 'AbortError') {
-                console.log('🛑 Batch scan aborted');
-                return;
-              }
-              console.log(`❌ Error scanning batch ${baseIP}.${start}-${end}:`, batchError);
-            }
-            
-            // Update progress more granularly
-            const totalIPs = commonRanges.reduce((sum, r) => sum + (r.end - r.start + 1), 0);
-            const currentIP = start - range.start + 1;
-            const rangeProgress = currentIP / totalIPs;
-            const networkProgress = (rangeProgress / totalNetworks) * 100;
-            const baseProgress = (networkIndex / totalNetworks) * 100;
-            totalProgress = baseProgress + networkProgress;
-            setScanProgress(Math.round(totalProgress));
-            
-            // Small delay to prevent overwhelming the network
-            await new Promise(resolve => setTimeout(resolve, 50));
+            console.log(`❌ Error scanning batch ${baseIP}.${start}-${end}:`, batchError);
           }
+          
+          // Update progress more granularly
+          const batchProgress = ((end - fullRange.start + 1) / (fullRange.end - fullRange.start + 1));
+          const networkProgress = (batchProgress / totalNetworks) * 100;
+          const baseProgress = (networkIndex / totalNetworks) * 100;
+          totalProgress = baseProgress + networkProgress;
+          setScanProgress(Math.round(totalProgress));
+          
+          // Small delay to prevent overwhelming the network
+          await new Promise(resolve => setTimeout(resolve, 10));
         }
         
         allFoundDevices.push(...networkDevices);
