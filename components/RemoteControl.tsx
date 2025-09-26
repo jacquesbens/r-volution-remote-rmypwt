@@ -179,7 +179,40 @@ const styles = StyleSheet.create({
     marginTop: 3,
   },
 
-  // New media control buttons section
+  // Page buttons section - positioned below CH buttons
+  pageButtonsSection: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    marginBottom: 20,
+  },
+
+  pageButton: {
+    backgroundColor: colors.primary,
+    borderRadius: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: colors.border,
+    minWidth: 80,
+  },
+
+  pageButtonText: {
+    color: '#fff',
+    fontSize: 11,
+    fontWeight: '600',
+    marginTop: 3,
+  },
+
+  // New media control buttons section - reordered: -60, -10, +10, +60
   mediaControlsExtended: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -304,12 +337,12 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
 
-  // Home, Menu buttons section - positioned below navigation with same design as special buttons
+  // Home, Menu, Back buttons section - positioned below navigation with same design as special buttons
   navigationControlsSection: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 40,
+    paddingHorizontal: 20,
     marginBottom: 20,
   },
 
@@ -327,7 +360,7 @@ const styles = StyleSheet.create({
     elevation: 2,
     borderWidth: 1,
     borderColor: colors.border,
-    flex: 0.45,
+    flex: 0.3,
   },
 
   navigationControlButtonText: {
@@ -713,6 +746,27 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
           </ModernButton>
         </View>
 
+        {/* Page Buttons Section - positioned below CH buttons */}
+        <View style={styles.pageButtonsSection}>
+          <ModernButton
+            onPress={() => handleCommand('Page Down', irCodes.PageDown)}
+            style={styles.pageButton}
+          >
+            <Icon name="arrow-down" size={16} color="#fff" />
+            <Text style={styles.pageButtonText}>Page -</Text>
+          </ModernButton>
+          
+          <View style={{ flex: 0.3 }} />
+          
+          <ModernButton
+            onPress={() => handleCommand('Page Up', irCodes.PageUp)}
+            style={styles.pageButton}
+          >
+            <Icon name="arrow-up" size={16} color="#fff" />
+            <Text style={styles.pageButtonText}>Page +</Text>
+          </ModernButton>
+        </View>
+
         {/* Stop Button - positioned below play button */}
         <View style={styles.stopButtonContainer}>
           <ModernButton
@@ -724,8 +778,16 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
           </ModernButton>
         </View>
 
-        {/* New Media Control Buttons - Skip Forward/Rewind */}
+        {/* New Media Control Buttons - Reordered: -60, -10, +10, +60 */}
         <View style={styles.mediaControlsExtended}>
+          <ModernButton
+            onPress={() => handleCommand('60s Rewind', irCodes.Skip60Rewind)}
+            style={styles.mediaControlButton}
+          >
+            <Icon name="play-back" size={12} color="#fff" />
+            <Text style={styles.mediaControlButtonText}>-60s</Text>
+          </ModernButton>
+          
           <ModernButton
             onPress={() => handleCommand('10s Rewind', irCodes.Skip10Rewind)}
             style={styles.mediaControlButton}
@@ -740,14 +802,6 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
           >
             <Icon name="play-forward" size={12} color="#fff" />
             <Text style={styles.mediaControlButtonText}>+10s</Text>
-          </ModernButton>
-          
-          <ModernButton
-            onPress={() => handleCommand('60s Rewind', irCodes.Skip60Rewind)}
-            style={styles.mediaControlButton}
-          >
-            <Icon name="play-back" size={12} color="#fff" />
-            <Text style={styles.mediaControlButtonText}>-60s</Text>
           </ModernButton>
           
           <ModernButton
@@ -856,7 +910,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
           </View>
         </View>
 
-        {/* Home, Menu buttons - positioned below navigation (removed Back from here) */}
+        {/* Home, Menu, Back buttons - positioned below navigation with Back moved to the right of Menu */}
         <View style={styles.navigationControlsSection}>
           <ModernButton
             onPress={() => handleCommand('Home', irCodes.Home)}
@@ -872,6 +926,14 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
           >
             <Icon name="menu" size={16} color="#fff" />
             <Text style={styles.navigationControlButtonText}>Menu</Text>
+          </ModernButton>
+
+          <ModernButton
+            onPress={() => handleCommand('Return', irCodes.Return)}
+            style={styles.navigationControlButton}
+          >
+            <Icon name="arrow-back" size={16} color="#fff" />
+            <Text style={styles.navigationControlButtonText}>Back</Text>
           </ModernButton>
         </View>
 
@@ -931,22 +993,6 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
           >
             <Icon name="sunny" size={16} color={colors.text} />
             <Text style={styles.functionButtonText}>Dimmer</Text>
-          </ModernButton>
-          
-          <ModernButton
-            onPress={() => handleCommand('Page Up', irCodes.PageUp)}
-            style={styles.functionButton}
-          >
-            <Icon name="arrow-up" size={16} color={colors.text} />
-            <Text style={styles.functionButtonText}>Page ↑</Text>
-          </ModernButton>
-          
-          <ModernButton
-            onPress={() => handleCommand('Page Down', irCodes.PageDown)}
-            style={styles.functionButton}
-          >
-            <Icon name="arrow-down" size={16} color={colors.text} />
-            <Text style={styles.functionButtonText}>Page ↓</Text>
           </ModernButton>
         </View>
 
@@ -1026,16 +1072,8 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
           </ModernButton>
         </View>
 
-        {/* Bottom Buttons Section - NEW: Back and Repeat buttons at the bottom */}
+        {/* Bottom Buttons Section - Only Repeat button now */}
         <View style={styles.bottomButtonsSection}>
-          <ModernButton
-            onPress={() => handleCommand('Return', irCodes.Return)}
-            style={styles.bottomButton}
-          >
-            <Icon name="arrow-back" size={16} color="#fff" />
-            <Text style={styles.bottomButtonText}>Back</Text>
-          </ModernButton>
-          
           <ModernButton
             onPress={() => handleCommand('Repeat', irCodes.Repeat)}
             style={styles.bottomButton}
