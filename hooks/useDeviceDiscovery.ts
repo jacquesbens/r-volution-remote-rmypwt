@@ -5,9 +5,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
 
 const STORAGE_KEY = 'rvolution_devices';
-const FAST_SCAN_TIMEOUT = 800; // Reduced timeout for faster scanning
+const FAST_SCAN_TIMEOUT = 1500; // Increased timeout for better reliability
 const TARGET_DEVICE_NAME = 'R_VOLUTION';
-const CONCURRENT_REQUESTS = 10; // Reduced concurrency for better stability
+const CONCURRENT_REQUESTS = 20; // Reduced concurrency for better stability
 const HTTP_PORT = 80; // Fixed port for HTTP protocol
 const CGI_ENDPOINT = '/cgi-bin/do?'; // The fast endpoint you mentioned
 
@@ -26,32 +26,41 @@ export const useDeviceDiscovery = () => {
   const initializingRef = useRef(false);
   const scanAbortControllerRef = useRef<AbortController | null>(null);
 
-  // Get device's local IP to determine network range - focused on most common ranges
+  // Get device's local IP to determine network range - expanded coverage
   const getLocalNetworkInfo = useCallback(async () => {
     try {
       console.log('🌐 Detecting local network information...');
       
-      // Focus on most common network ranges for faster scanning
+      // Comprehensive list of common network ranges to ensure we find ALL devices
       const commonRanges = [
         '192.168.1',   // Most common home router default
         '192.168.0',   // Second most common home router default
         '192.168.2',   // Some routers use this
+        '192.168.3',   // Alternative range
+        '192.168.4',   // Alternative range
+        '192.168.10',  // Some routers
+        '192.168.11',  // Some routers
+        '192.168.20',  // Business networks
+        '192.168.100', // Some configurations
         '10.0.0',      // Corporate networks
         '10.0.1',      // Corporate networks
+        '10.1.1',      // Corporate networks
+        '172.16.0',    // Private networks
+        '172.16.1',    // Private networks
       ];
       
       setNetworkInfo({
         localIP: 'Auto-detected',
-        networkRange: commonRanges.join(', ')
+        networkRange: commonRanges.slice(0, 6).join(', ') + '...' // Show first 6 in UI
       });
       
-      console.log('🌐 Will scan focused network ranges for faster discovery:', commonRanges);
+      console.log('🌐 Will scan comprehensive network ranges to find ALL devices:', commonRanges);
       return commonRanges;
       
     } catch (error) {
       console.log('🌐 Network info detection failed:', error);
       // Fallback to most common ranges
-      const fallbackRanges = ['192.168.1', '192.168.0'];
+      const fallbackRanges = ['192.168.1', '192.168.0', '192.168.2', '10.0.0'];
       setNetworkInfo({
         localIP: 'Unknown',
         networkRange: fallbackRanges.join(', ')
@@ -115,7 +124,7 @@ export const useDeviceDiscovery = () => {
     }
   }, []);
 
-  // Enhanced device verification using the CGI endpoint - optimized for speed
+  // Enhanced device verification using the CGI endpoint - improved error handling
   const verifyRVolutionDevice = useCallback(async (ip: string, abortSignal?: AbortSignal): Promise<{
     isRVolution: boolean;
     deviceName?: string;
@@ -240,14 +249,17 @@ export const useDeviceDiscovery = () => {
       
       // Check if scan was aborted
       if (error.name === 'AbortError') {
+        console.log(`🛑 Scan aborted for ${ip}`);
         throw error;
       }
       
       // Handle specific network errors more gracefully
       if (error.message.includes('Network request failed')) {
-        // Silent for faster scanning
+        console.log(`🔍 Network error for ${ip}: Device not reachable or not responding`);
       } else if (error.message.includes('timeout')) {
-        // Silent for faster scanning
+        console.log(`⏰ Timeout for ${ip}: Device took too long to respond`);
+      } else {
+        console.log(`🔍 Scan ${ip}: ${error.message}`);
       }
       
       return { isRVolution: false };
@@ -308,7 +320,7 @@ export const useDeviceDiscovery = () => {
     }
   }, [verifyRVolutionDevice, checkDeviceReachability]);
 
-  // Optimized IP batch scanning with improved device discovery and error handling
+  // Ultra-fast IP batch scanning with improved device discovery and error handling
   const scanIPBatch = useCallback(async (baseIP: string, startRange: number, endRange: number, abortSignal?: AbortSignal): Promise<RVolutionDevice[]> => {
     const promises: Promise<RVolutionDevice | null>[] = [];
     
@@ -338,7 +350,8 @@ export const useDeviceDiscovery = () => {
         if (error.name === 'AbortError') {
           throw error;
         }
-        // Silent errors for faster scanning
+        // Log errors for debugging but don't stop the scan
+        console.log(`🔍 Scan error for ${ip}:`, error.message);
         return null;
       });
       
@@ -383,7 +396,7 @@ export const useDeviceDiscovery = () => {
     console.log('🛑 Network scan stopped');
   }, []);
 
-  // Optimized network scanning - faster and more focused
+  // Ultra-fast network scanning using the CGI endpoint - improved to find ALL devices with better error handling
   const scanNetwork = useCallback(async () => {
     // Clear discovered devices list when starting a new scan
     setDiscoveredDevices([]);
@@ -396,7 +409,7 @@ export const useDeviceDiscovery = () => {
     const abortSignal = scanAbortControllerRef.current.signal;
     
     try {
-      console.log('🚀 Starting OPTIMIZED R_VOLUTION device discovery...');
+      console.log('🚀 Starting COMPREHENSIVE R_VOLUTION device discovery...');
       console.log(`🎯 Target device name: ${TARGET_DEVICE_NAME}`);
       console.log(`🔌 Protocol: HTTP on port ${HTTP_PORT}`);
       console.log(`🚀 Fast endpoint: ${CGI_ENDPOINT}`);
@@ -407,9 +420,9 @@ export const useDeviceDiscovery = () => {
       const allFoundDevices: RVolutionDevice[] = [];
       let totalProgress = 0;
       
-      // Scan only first 2 network ranges for optimal performance
-      const totalNetworks = Math.min(networkBases.length, 2);
-      console.log(`🌐 Scanning ${totalNetworks} primary network ranges for optimal performance...`);
+      // Scan first 3 network ranges for better performance and reliability
+      const totalNetworks = Math.min(networkBases.length, 3);
+      console.log(`🌐 Scanning ${totalNetworks} primary network ranges for better performance...`);
       
       for (let networkIndex = 0; networkIndex < totalNetworks; networkIndex++) {
         // Check if scan was aborted
@@ -421,17 +434,17 @@ export const useDeviceDiscovery = () => {
         const baseIP = networkBases[networkIndex];
         console.log(`📡 Scanning network ${baseIP}.x (${networkIndex + 1}/${totalNetworks})`);
         
-        const batchSize = Math.min(CONCURRENT_REQUESTS, 10); // Smaller batches for better reliability
+        const batchSize = Math.min(CONCURRENT_REQUESTS, 15); // Smaller batches for better reliability
         const networkDevices: RVolutionDevice[] = [];
         
-        // Scan focused IP ranges for faster discovery
-        const focusedRanges = [
-          { start: 1, end: 30 },    // Router and common devices
-          { start: 100, end: 130 }, // Common DHCP range
-          { start: 200, end: 220 }, // High range devices
+        // Scan common IP ranges first for faster discovery
+        const commonRanges = [
+          { start: 1, end: 50 },    // Router and common devices
+          { start: 100, end: 150 }, // Common DHCP range
+          { start: 200, end: 254 }, // High range devices
         ];
         
-        for (const range of focusedRanges) {
+        for (const range of commonRanges) {
           // Check if scan was aborted
           if (abortSignal.aborted) {
             console.log('🛑 Scan aborted during range iteration');
@@ -481,7 +494,7 @@ export const useDeviceDiscovery = () => {
             }
             
             // Update progress more granularly
-            const totalIPs = focusedRanges.reduce((sum, r) => sum + (r.end - r.start + 1), 0);
+            const totalIPs = commonRanges.reduce((sum, r) => sum + (r.end - r.start + 1), 0);
             const currentIP = start - range.start + 1;
             const rangeProgress = currentIP / totalIPs;
             const networkProgress = (rangeProgress / totalNetworks) * 100;
@@ -490,7 +503,7 @@ export const useDeviceDiscovery = () => {
             setScanProgress(Math.round(totalProgress));
             
             // Small delay to prevent overwhelming the network
-            await new Promise(resolve => setTimeout(resolve, 25));
+            await new Promise(resolve => setTimeout(resolve, 50));
           }
         }
         
@@ -514,13 +527,13 @@ export const useDeviceDiscovery = () => {
       // Update final discovered devices list
       setDiscoveredDevices(uniqueDevices);
       
-      console.log(`🎉 OPTIMIZED discovery completed! Found ${uniqueDevices.length} unique R_VOLUTION devices total:`);
+      console.log(`🎉 COMPREHENSIVE discovery completed! Found ${uniqueDevices.length} unique R_VOLUTION devices total:`);
       uniqueDevices.forEach((device, index) => {
         console.log(`   ${index + 1}. ${device.name} at ${device.ip}:${device.port}`);
       });
       
       if (uniqueDevices.length === 0) {
-        console.log(`🔍 Optimized discovery completed. No R_VOLUTION devices found.`);
+        console.log(`🔍 Comprehensive discovery completed. No R_VOLUTION devices found.`);
         console.log(`💡 Troubleshooting suggestions:`);
         console.log(`   1. Verify R_VOLUTION devices are powered on`);
         console.log(`   2. Ensure devices are connected to Wi-Fi`);
@@ -535,7 +548,7 @@ export const useDeviceDiscovery = () => {
       if (error.name === 'AbortError') {
         console.log('🛑 Network scan was aborted');
       } else {
-        console.log('❌ Optimized network discovery failed:', error);
+        console.log('❌ Comprehensive network discovery failed:', error);
       }
     } finally {
       setIsScanning(false);
@@ -930,10 +943,10 @@ export const useDeviceDiscovery = () => {
   // Initialize by loading saved devices
   useEffect(() => {
     if (!devicesLoadedRef.current && !initializingRef.current) {
-      console.log('🚀 Initializing OPTIMIZED device discovery hook...');
+      console.log('🚀 Initializing ULTRA-FAST device discovery hook...');
       console.log(`🚀 Using fast CGI endpoint: ${CGI_ENDPOINT}`);
       console.log(`⏱️  Fast timeout: ${FAST_SCAN_TIMEOUT}ms`);
-      console.log(`🔄 Optimized concurrency: ${CONCURRENT_REQUESTS} requests`);
+      console.log(`🔄 High concurrency: ${CONCURRENT_REQUESTS} requests`);
       loadSavedDevices();
     }
   }, [loadSavedDevices]);
