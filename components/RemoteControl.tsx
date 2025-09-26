@@ -896,6 +896,27 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
           </ModernButton>
         </View>
 
+        {/* Channel Controls - Using same design as Explorer button */}
+        <View style={styles.volumeSection}>
+          <ModernButton
+            onPress={() => handleCommand('Channel Down', irCodes.PageDown)}
+            style={styles.volumeButton}
+          >
+            <Icon name="remove" size={16} color="#fff" />
+            <Text style={styles.volumeText}>CH -</Text>
+          </ModernButton>
+          
+          <View style={{ flex: 0.2 }} />
+          
+          <ModernButton
+            onPress={() => handleCommand('Channel Up', irCodes.PageUp)}
+            style={styles.volumeButton}
+          >
+            <Icon name="add" size={16} color="#fff" />
+            <Text style={styles.volumeText}>CH +</Text>
+          </ModernButton>
+        </View>
+
         {/* R_Video and Explorer Buttons - Now positioned below Volume with REDUCED SIZE */}
         <View style={styles.specialButtonsSection}>
           <ModernButton
