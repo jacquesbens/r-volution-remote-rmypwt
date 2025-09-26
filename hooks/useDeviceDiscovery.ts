@@ -73,11 +73,15 @@ export const useDeviceDiscovery = () => {
         devicesWithDates.forEach((device: RVolutionDevice, index: number) => {
           console.log(`   ${index + 1}. ${device.name} (${device.ip}:${device.port}) - ${device.isOnline ? 'Online' : 'Offline'}`);
         });
+        
+        return devicesWithDates;
       } else {
         console.log('📱 No saved devices found');
+        return [];
       }
     } catch (error) {
       console.log('❌ Error loading saved devices:', error);
+      return [];
     }
   }, []);
 
@@ -655,13 +659,14 @@ export const useDeviceDiscovery = () => {
     }
   }, [devices, saveDevices]);
 
-  // Update device status with enhanced checking - FIXED VERSION
+  // Update device status with enhanced checking - IMPROVED VERSION
   const updateDeviceStatus = useCallback(async () => {
     if (devices.length === 0) {
       console.log('📊 No devices to update status for');
       return;
     }
     
+    console.log(`📊 === DEVICE STATUS UPDATE STARTED ===`);
     console.log(`📊 Updating status for ${devices.length} devices...`);
     
     const updatedDevices = await Promise.all(
@@ -697,13 +702,16 @@ export const useDeviceDiscovery = () => {
             }
           }
           
-          return {
+          const updatedDevice = {
             ...device,
             isOnline,
             lastSeen: isOnline ? new Date() : device.lastSeen,
             name: deviceName,
             port: actualPort,
           };
+          
+          console.log(`   📊 ${device.name} status: ${isOnline ? 'ONLINE' : 'OFFLINE'}`);
+          return updatedDevice;
         } catch (error) {
           console.log(`❌ ${device.name} status check failed:`, error.message);
           return {
@@ -714,11 +722,15 @@ export const useDeviceDiscovery = () => {
       })
     );
     
+    // Update state and save to storage
     setDevices(updatedDevices);
     await saveDevices(updatedDevices);
     
     const onlineCount = updatedDevices.filter(d => d.isOnline).length;
     console.log(`📊 Status update completed: ${onlineCount}/${updatedDevices.length} devices online`);
+    console.log(`📊 === DEVICE STATUS UPDATE COMPLETED ===`);
+    
+    return updatedDevices;
   }, [devices, saveDevices, verifyRVolutionDevice, checkDeviceReachability]);
 
   // Enhanced network diagnostic function
@@ -855,7 +867,9 @@ export const useDeviceDiscovery = () => {
     }
   }, [checkDeviceReachability]);
 
+  // Initialize by loading saved devices
   useEffect(() => {
+    console.log('🚀 Initializing device discovery hook...');
     loadSavedDevices();
   }, [loadSavedDevices]);
 
