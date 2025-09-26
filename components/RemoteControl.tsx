@@ -220,15 +220,15 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   
-  // Navigation
+  // Navigation - INCREASED SIZE
   navigationSection: {
     alignItems: 'center',
     marginBottom: 20,
   },
   
   navigationContainer: {
-    width: 180,
-    height: 180,
+    width: 240,  // Increased from 180
+    height: 240, // Increased from 180
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
@@ -237,9 +237,9 @@ const styles = StyleSheet.create({
   navButton: {
     position: 'absolute',
     backgroundColor: colors.surface,
-    borderRadius: 16,
-    width: 48,
-    height: 48,
+    borderRadius: 20,  // Increased from 16
+    width: 64,         // Increased from 48
+    height: 64,        // Increased from 48
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
@@ -258,9 +258,9 @@ const styles = StyleSheet.create({
   
   okButton: {
     backgroundColor: colors.primary,
-    borderRadius: 20,
-    width: 72,
-    height: 72,
+    borderRadius: 28,  // Increased from 20
+    width: 96,         // Increased from 72
+    height: 96,        // Increased from 72
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
@@ -272,7 +272,7 @@ const styles = StyleSheet.create({
   
   okText: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: 20,      // Increased from 16
     fontWeight: '700',
   },
   
@@ -666,14 +666,14 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
               onPress={() => handleCommand('Cursor Up', irCodes.CursorUp)}
               style={[styles.navButton, styles.navButtonUp]}
             >
-              <Icon name="chevron-up" size={20} color={colors.text} />
+              <Icon name="chevron-up" size={24} color={colors.text} />
             </ModernButton>
             
             <ModernButton
               onPress={() => handleCommand('Cursor Left', irCodes.CursorLeft)}
               style={[styles.navButton, styles.navButtonLeft]}
             >
-              <Icon name="chevron-back" size={20} color={colors.text} />
+              <Icon name="chevron-back" size={24} color={colors.text} />
             </ModernButton>
             
             <ModernButton
@@ -687,14 +687,14 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
               onPress={() => handleCommand('Cursor Right', irCodes.CursorRight)}
               style={[styles.navButton, styles.navButtonRight]}
             >
-              <Icon name="chevron-forward" size={20} color={colors.text} />
+              <Icon name="chevron-forward" size={24} color={colors.text} />
             </ModernButton>
             
             <ModernButton
               onPress={() => handleCommand('Cursor Down', irCodes.CursorDown)}
               style={[styles.navButton, styles.navButtonDown]}
             >
-              <Icon name="chevron-down" size={20} color={colors.text} />
+              <Icon name="chevron-down" size={24} color={colors.text} />
             </ModernButton>
           </View>
         </View>
