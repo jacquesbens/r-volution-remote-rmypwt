@@ -72,8 +72,15 @@ export const useDeviceDiscovery = () => {
       const savedDevices = await AsyncStorage.getItem(STORAGE_KEY);
       if (savedDevices) {
         const parsedDevices = JSON.parse(savedDevices);
-        setDevices(parsedDevices);
-        console.log('📱 Loaded saved devices:', parsedDevices.length);
+        
+        // Convert lastSeen strings back to Date objects
+        const devicesWithDates = parsedDevices.map((device: any) => ({
+          ...device,
+          lastSeen: device.lastSeen ? new Date(device.lastSeen) : new Date(0),
+        }));
+        
+        setDevices(devicesWithDates);
+        console.log('📱 Loaded saved devices:', devicesWithDates.length);
       }
     } catch (error) {
       console.log('❌ Error loading saved devices:', error);

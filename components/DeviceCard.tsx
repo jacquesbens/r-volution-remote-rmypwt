@@ -44,6 +44,11 @@ const DeviceCard: React.FC<DeviceCardProps> = ({ device, onPress, onRemove, onTe
   };
 
   const formatLastSeen = (date: Date) => {
+    // Safety check: ensure date is a valid Date object
+    if (!date || !(date instanceof Date) || isNaN(date.getTime())) {
+      return 'Jamais';
+    }
+
     const now = new Date();
     const diffMs = now.getTime() - date.getTime();
     const diffMins = Math.floor(diffMs / (1000 * 60));
@@ -67,6 +72,24 @@ const DeviceCard: React.FC<DeviceCardProps> = ({ device, onPress, onRemove, onTe
     if (device.isOnline) return 'En ligne';
     if (lastTestResult?.success) return 'Testé OK';
     return 'Hors ligne';
+  };
+
+  // Helper function to safely check if lastSeen is valid
+  const isValidLastSeen = (lastSeen: any): boolean => {
+    if (!lastSeen) return false;
+    
+    // If it's already a Date object
+    if (lastSeen instanceof Date) {
+      return !isNaN(lastSeen.getTime()) && lastSeen.getTime() > 0;
+    }
+    
+    // If it's a string, try to parse it
+    if (typeof lastSeen === 'string') {
+      const parsed = new Date(lastSeen);
+      return !isNaN(parsed.getTime()) && parsed.getTime() > 0;
+    }
+    
+    return false;
   };
 
   return (
@@ -103,9 +126,9 @@ const DeviceCard: React.FC<DeviceCardProps> = ({ device, onPress, onRemove, onTe
               {getStatusText()}
             </Text>
             
-            {device.lastSeen && device.lastSeen.getTime() > 0 && (
+            {isValidLastSeen(device.lastSeen) && (
               <Text style={styles.lastSeenText}>
-                {formatLastSeen(device.lastSeen)}
+                {formatLastSeen(device.lastSeen instanceof Date ? device.lastSeen : new Date(device.lastSeen))}
               </Text>
             )}
           </View>
@@ -142,13 +165,17 @@ const DeviceCard: React.FC<DeviceCardProps> = ({ device, onPress, onRemove, onTe
         <TouchableOpacity
           style={styles.actionButton}
           onPress={() => {
+            const lastSeenText = isValidLastSeen(device.lastSeen) 
+              ? formatLastSeen(device.lastSeen instanceof Date ? device.lastSeen : new Date(device.lastSeen))
+              : 'Jamais';
+              
             Alert.alert(
               'Informations de l\'appareil',
               `Nom: ${device.name}\n` +
               `Adresse: ${device.ip}:${device.port}\n` +
               `Statut: ${getStatusText()}\n` +
               `Type: ${device.isManuallyAdded ? 'Ajout manuel' : 'Découverte automatique'}\n` +
-              `Dernière connexion: ${device.lastSeen && device.lastSeen.getTime() > 0 ? formatLastSeen(device.lastSeen) : 'Jamais'}`,
+              `Dernière connexion: ${lastSeenText}`,
               [{ text: 'OK' }]
             );
           }}
