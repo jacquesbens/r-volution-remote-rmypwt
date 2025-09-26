@@ -290,17 +290,7 @@ const AddDeviceScreen: React.FC = () => {
             )}
           </View>
 
-          {/* Protocol Information Section */}
-          <View style={styles.protocolInfoSection}>
-            <Icon name="information-circle" size={20} color={colors.primary} />
-            <View style={styles.protocolInfoContent}>
-              <Text style={styles.protocolInfoTitle}>Protocole HTTP optimisé</Text>
-              <Text style={styles.protocolInfoText}>• Utilise exclusivement le protocole HTTP sur port 80</Text>
-              <Text style={styles.protocolInfoText}>• Découverte automatique plus rapide et fiable</Text>
-              <Text style={styles.protocolInfoText}>• Compatible avec tous les appareils R_VOLUTION</Text>
-              <Text style={styles.protocolInfoText}>• Aucune configuration de port nécessaire</Text>
-            </View>
-          </View>
+
 
           {/* Saved Devices List Section */}
           {devices.length > 0 && (
@@ -529,30 +519,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.grey,
   },
-  protocolInfoSection: {
-    flexDirection: 'row',
-    backgroundColor: colors.primary + '10',
-    marginHorizontal: 20,
-    marginVertical: 12,
-    borderRadius: 16,
-    padding: 20,
-    gap: 12,
-  },
-  protocolInfoContent: {
-    flex: 1,
-  },
-  protocolInfoTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.text,
-    marginBottom: 8,
-  },
-  protocolInfoText: {
-    fontSize: 14,
-    color: colors.grey,
-    lineHeight: 20,
-    marginBottom: 4,
-  },
+
   devicesList: {
     gap: 12,
   },
