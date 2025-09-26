@@ -142,7 +142,7 @@ const AddDeviceScreen: React.FC = () => {
             onChangeText={setIpAddress}
             placeholder="192.168.1.20"
             placeholderTextColor={colors.grey + '80'}
-            keyboardType="numeric"
+            keyboardType="decimal-pad"
             autoCapitalize="none"
             autoCorrect={false}
           />
