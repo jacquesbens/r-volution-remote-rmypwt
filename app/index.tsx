@@ -23,6 +23,7 @@ const MainScreen: React.FC = () => {
     removeDevice,
     updateDeviceStatus,
     runNetworkDiagnostic,
+    verifyRVolutionDevice,
   } = useDeviceDiscovery();
 
   const [isAddModalVisible, setIsAddModalVisible] = useState(false);
@@ -31,7 +32,7 @@ const MainScreen: React.FC = () => {
 
   useEffect(() => {
     console.log('🏠 MainScreen mounted, devices:', devices.length);
-  }, []);
+  }, [devices.length]);
 
   useEffect(() => {
     console.log('📱 Devices updated:', devices.length);
@@ -126,8 +127,6 @@ const MainScreen: React.FC = () => {
     console.log('🧪 Device test requested from UI:', device.name);
     
     try {
-      // Import the verification function from the hook
-      const { verifyRVolutionDevice } = useDeviceDiscovery();
       const result = await verifyRVolutionDevice(device.ip, device.port);
       
       const isWorking = result.isRVolution;
@@ -183,28 +182,6 @@ const MainScreen: React.FC = () => {
         },
       ]
     );
-  };
-
-  const runNetworkDiagnostic = async () => {
-    console.log('🔧 === NETWORK DIAGNOSTIC UI ===');
-    
-    // Test common router IPs
-    const commonRouterIPs = ['192.168.1.1', '192.168.0.1', '10.0.0.1'];
-    
-    console.log('🌐 Testing router connectivity...');
-    for (const routerIP of commonRouterIPs) {
-      try {
-        const response = await fetch(`http://${routerIP}`, {
-          method: 'HEAD',
-          timeout: 3000,
-        });
-        console.log(`✅ Router ${routerIP} is reachable (status: ${response.status})`);
-      } catch (error) {
-        console.log(`❌ Router ${routerIP} is not reachable`);
-      }
-    }
-    
-    console.log('🔧 Network diagnostic completed');
   };
 
   return (

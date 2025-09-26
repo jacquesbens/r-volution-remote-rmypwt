@@ -91,7 +91,7 @@ export const useDeviceDiscovery = () => {
   }, []);
 
   // Enhanced device verification with multiple strategies
-  const verifyRVolutionDevice = async (ip: string, port: number = 80): Promise<{
+  const verifyRVolutionDevice = useCallback(async (ip: string, port: number = 80): Promise<{
     isRVolution: boolean;
     deviceName?: string;
     responseData?: any;
@@ -208,10 +208,10 @@ export const useDeviceDiscovery = () => {
       console.log(`❌ Verification failed for ${ip}:${port}:`, error.message);
       return { isRVolution: false };
     }
-  };
+  }, []);
 
   // Check basic connectivity to an IP/port
-  const checkDeviceReachability = async (ip: string, port: number = 80): Promise<boolean> => {
+  const checkDeviceReachability = useCallback(async (ip: string, port: number = 80): Promise<boolean> => {
     try {
       console.log(`🔗 Testing connectivity to ${ip}:${port}`);
       
@@ -232,10 +232,10 @@ export const useDeviceDiscovery = () => {
       console.log(`❌ ${ip}:${port} is unreachable:`, error.message);
       return false;
     }
-  };
+  }, []);
 
   // Get device info (for diagnostics)
-  const getDeviceInfo = async (ip: string, port: number = 80): Promise<any> => {
+  const getDeviceInfo = useCallback(async (ip: string, port: number = 80): Promise<any> => {
     try {
       const result = await verifyRVolutionDevice(ip, port);
       return {
@@ -256,10 +256,10 @@ export const useDeviceDiscovery = () => {
         error: error.message,
       };
     }
-  };
+  }, [verifyRVolutionDevice, checkDeviceReachability]);
 
   // Scan a batch of IPs concurrently with improved error handling
-  const scanIPBatch = async (baseIP: string, startRange: number, endRange: number): Promise<RVolutionDevice[]> => {
+  const scanIPBatch = useCallback(async (baseIP: string, startRange: number, endRange: number): Promise<RVolutionDevice[]> => {
     const promises: Promise<RVolutionDevice | null>[] = [];
     
     for (let i = startRange; i <= endRange; i++) {
@@ -295,7 +295,7 @@ export const useDeviceDiscovery = () => {
     
     const results = await Promise.all(promises);
     return results.filter((device): device is RVolutionDevice => device !== null);
-  };
+  }, [devices, verifyRVolutionDevice]);
 
   // Enhanced network scanning with better progress tracking
   const scanNetwork = useCallback(async () => {
@@ -378,7 +378,7 @@ export const useDeviceDiscovery = () => {
       setIsScanning(false);
       setScanProgress(0);
     }
-  }, [devices, saveDevices, getLocalNetworkInfo]);
+  }, [devices, saveDevices, getLocalNetworkInfo, scanIPBatch]);
 
   // Enhanced manual device addition
   const addDeviceManually = useCallback(async (ip: string, port: number = 80, customName?: string) => {
