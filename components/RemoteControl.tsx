@@ -282,40 +282,6 @@ const styles = StyleSheet.create({
     marginTop: 3,
   },
   
-  // Number pad - Updated to use same design as Explorer button
-  numberPad: {
-    marginBottom: 20,
-  },
-  
-  numberRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 12,
-    paddingHorizontal: 20,
-  },
-  
-  numberButton: {
-    backgroundColor: colors.primary,
-    borderRadius: 10,
-    width: 64,
-    height: 56,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  
-  numberText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: '700',
-  },
-  
   // Navigation - INCREASED SIZE
   navigationSection: {
     alignItems: 'center',
@@ -404,6 +370,40 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '600',
     marginTop: 3,
+  },
+  
+  // Number pad - Updated to use same design as Explorer button
+  numberPad: {
+    marginBottom: 20,
+  },
+  
+  numberRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+    paddingHorizontal: 20,
+  },
+  
+  numberButton: {
+    backgroundColor: colors.primary,
+    borderRadius: 10,
+    width: 64,
+    height: 56,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  
+  numberText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: '700',
   },
   
   // Function buttons grid - Updated to remove Audio and Subtitle buttons
@@ -874,63 +874,6 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
           </ModernButton>
         </View>
 
-        {/* Number Pad - Updated to use same design as Explorer button */}
-        <View style={styles.numberPad}>
-          <View style={styles.numberRow}>
-            {[1, 2, 3].map(num => (
-              <ModernButton
-                key={num}
-                onPress={() => handleNumber(num)}
-                style={styles.numberButton}
-              >
-                <Text style={styles.numberText}>{num}</Text>
-              </ModernButton>
-            ))}
-          </View>
-          <View style={styles.numberRow}>
-            {[4, 5, 6].map(num => (
-              <ModernButton
-                key={num}
-                onPress={() => handleNumber(num)}
-                style={styles.numberButton}
-              >
-                <Text style={styles.numberText}>{num}</Text>
-              </ModernButton>
-            ))}
-          </View>
-          <View style={styles.numberRow}>
-            {[7, 8, 9].map(num => (
-              <ModernButton
-                key={num}
-                onPress={() => handleNumber(num)}
-                style={styles.numberButton}
-              >
-                <Text style={styles.numberText}>{num}</Text>
-              </ModernButton>
-            ))}
-          </View>
-          <View style={styles.numberRow}>
-            <ModernButton
-              onPress={() => handleCommand('Delete', irCodes.Delete)}
-              style={styles.numberButton}
-            >
-              <Icon name="backspace" size={18} color="#fff" />
-            </ModernButton>
-            <ModernButton
-              onPress={() => handleNumber(0)}
-              style={styles.numberButton}
-            >
-              <Text style={styles.numberText}>0</Text>
-            </ModernButton>
-            <ModernButton
-              onPress={() => handleCommand('Format Scroll', irCodes.FormatScroll)}
-              style={styles.numberButton}
-            >
-              <Icon name="refresh" size={18} color="#fff" />
-            </ModernButton>
-          </View>
-        </View>
-
         {/* Navigation */}
         <View style={styles.navigationSection}>
           <View style={styles.navigationContainer}>
@@ -996,6 +939,63 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
             <Icon name="arrow-back" size={16} color="#fff" />
             <Text style={styles.navigationControlButtonText}>Back</Text>
           </ModernButton>
+        </View>
+
+        {/* Number Pad - NOW POSITIONED BELOW HOME, MENU, BACK BUTTONS */}
+        <View style={styles.numberPad}>
+          <View style={styles.numberRow}>
+            {[1, 2, 3].map(num => (
+              <ModernButton
+                key={num}
+                onPress={() => handleNumber(num)}
+                style={styles.numberButton}
+              >
+                <Text style={styles.numberText}>{num}</Text>
+              </ModernButton>
+            ))}
+          </View>
+          <View style={styles.numberRow}>
+            {[4, 5, 6].map(num => (
+              <ModernButton
+                key={num}
+                onPress={() => handleNumber(num)}
+                style={styles.numberButton}
+              >
+                <Text style={styles.numberText}>{num}</Text>
+              </ModernButton>
+            ))}
+          </View>
+          <View style={styles.numberRow}>
+            {[7, 8, 9].map(num => (
+              <ModernButton
+                key={num}
+                onPress={() => handleNumber(num)}
+                style={styles.numberButton}
+              >
+                <Text style={styles.numberText}>{num}</Text>
+              </ModernButton>
+            ))}
+          </View>
+          <View style={styles.numberRow}>
+            <ModernButton
+              onPress={() => handleCommand('Delete', irCodes.Delete)}
+              style={styles.numberButton}
+            >
+              <Icon name="backspace" size={18} color="#fff" />
+            </ModernButton>
+            <ModernButton
+              onPress={() => handleNumber(0)}
+              style={styles.numberButton}
+            >
+              <Text style={styles.numberText}>0</Text>
+            </ModernButton>
+            <ModernButton
+              onPress={() => handleCommand('Format Scroll', irCodes.FormatScroll)}
+              style={styles.numberButton}
+            >
+              <Icon name="refresh" size={18} color="#fff" />
+            </ModernButton>
+          </View>
         </View>
 
         {/* Function Buttons - Updated to remove Audio and Subtitle buttons */}
