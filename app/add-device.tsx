@@ -140,7 +140,8 @@ const AddDeviceScreen: React.FC = () => {
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Title */}
         <View style={styles.titleContainer}>
-          <Text style={styles.title}>Ajouter un appareil</Text>
+          <Text style={styles.title}>R_volution Remote</Text>
+          <Text style={styles.subtitle}>ajouter un appareil</Text>
         </View>
 
         {/* Automatic Addition Section */}
@@ -268,6 +269,12 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: '700',
     color: colors.text,
+  },
+  subtitle: {
+    fontSize: 16,
+    fontWeight: '400',
+    color: colors.grey,
+    marginTop: 4,
   },
   section: {
     backgroundColor: colors.backgroundAlt,
