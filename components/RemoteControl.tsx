@@ -74,12 +74,12 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   
-  // Power and main controls - updated to include Di button
+  // Power and main controls - updated to align On left and Dimmer right like CH buttons
   powerSection: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: 8,
     marginBottom: 20,
   },
   
@@ -97,7 +97,7 @@ const styles = StyleSheet.create({
     elevation: 2,
     borderWidth: 1,
     borderColor: colors.border,
-    flex: 0.31,
+    minWidth: 80,
   },
   
   powerButtonText: {
@@ -105,6 +105,22 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '600',
     marginTop: 3,
+  },
+
+  offButton: {
+    backgroundColor: colors.primary,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
   
   // Media controls - NEW LAYOUT: CH- | Play | CH+
@@ -737,7 +753,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
   return (
     <View style={styles.container}>
       <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
-        {/* Power Controls - Updated to include Di button to the right of Off */}
+        {/* Power Controls - Updated to align On left and Dimmer right like CH buttons */}
         <View style={styles.powerSection}>
           <ModernButton
             onPress={() => handleCommand('Power On', irCodes.PowerOn)}
@@ -749,10 +765,9 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
           
           <ModernButton
             onPress={() => handleCommand('Power Off', irCodes.PowerOff)}
-            style={styles.powerButton}
+            style={styles.offButton}
           >
-            <Icon name="power" size={16} color="#fff" />
-            <Text style={styles.powerButtonText}>OFF</Text>
+            <Icon name="power" size={20} color="#fff" />
           </ModernButton>
 
           <ModernButton
@@ -760,7 +775,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
             style={styles.powerButton}
           >
             <Icon name="sunny" size={16} color="#fff" />
-            <Text style={styles.powerButtonText}>Di</Text>
+            <Text style={styles.powerButtonText}>Dimmer</Text>
           </ModernButton>
         </View>
 
