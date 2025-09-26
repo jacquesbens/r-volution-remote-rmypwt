@@ -21,66 +21,6 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     paddingBottom: 20,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-    marginBottom: 20,
-  },
-  headerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  headerTitle: {
-    color: colors.text,
-    fontSize: 18,
-    fontWeight: '600',
-    marginLeft: 10,
-  },
-  closeButton: {
-    padding: 8,
-  },
-  deviceInfo: {
-    alignItems: 'center',
-    marginBottom: 24,
-    backgroundColor: colors.surface,
-    padding: 16,
-    borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  deviceName: {
-    color: colors.text,
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  deviceIP: {
-    color: colors.textSecondary,
-    fontSize: 14,
-    marginTop: 4,
-  },
-  statusIndicator: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  statusText: {
-    marginLeft: 6,
-    fontSize: 12,
-    fontWeight: '500',
-  },
-  onlineText: {
-    color: '#4CAF50',
-  },
-  offlineText: {
-    color: '#f44336',
-  },
   
   // Section headers
   sectionHeader: {
@@ -523,30 +463,6 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
   return (
     <View style={styles.container}>
       <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
-        {/* Header */}
-        <View style={styles.header}>
-          <View style={styles.headerLeft}>
-            <Icon name="tv" size={20} color={colors.primary} />
-            <Text style={styles.headerTitle}>Télécommande R_volution</Text>
-          </View>
-        </View>
-
-        {/* Device Info */}
-        <View style={styles.deviceInfo}>
-          <Text style={styles.deviceName}>{device.name}</Text>
-          <Text style={styles.deviceIP}>{device.ip}:80</Text>
-          <View style={styles.statusIndicator}>
-            <Icon 
-              name={device.isOnline ? "checkmark-circle" : "close-circle"} 
-              size={12} 
-              color={device.isOnline ? '#4CAF50' : '#f44336'} 
-            />
-            <Text style={[styles.statusText, device.isOnline ? styles.onlineText : styles.offlineText]}>
-              {device.isOnline ? 'En ligne' : 'Hors ligne'}
-            </Text>
-          </View>
-        </View>
-
         {/* Power Controls */}
         <Text style={styles.sectionHeader}>Alimentation</Text>
         <View style={styles.powerSection}>
