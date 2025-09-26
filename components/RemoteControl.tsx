@@ -545,7 +545,6 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
     <View style={styles.container}>
       <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
         {/* Power Controls - Updated to remove toggle and use Explorer button design */}
-        <Text style={styles.sectionHeader}>Alimentation</Text>
         <View style={styles.powerSection}>
           <ModernButton
             onPress={() => handleCommand('Power On', irCodes.PowerOn)}
@@ -565,7 +564,6 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
         </View>
 
         {/* Media Controls */}
-        <Text style={styles.sectionHeader}>Contrôles Média</Text>
         <View style={styles.mediaControls}>
           <ModernButton
             onPress={() => handleCommand('Return', irCodes.Return)}
@@ -590,7 +588,6 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
         </View>
 
         {/* Number Pad - Updated to use same design as Explorer button */}
-        <Text style={styles.sectionHeader}>Pavé Numérique</Text>
         <View style={styles.numberPad}>
           <View style={styles.numberRow}>
             {[1, 2, 3].map(num => (
@@ -648,7 +645,6 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
         </View>
 
         {/* Navigation */}
-        <Text style={styles.sectionHeader}>Navigation</Text>
         <View style={styles.navigationSection}>
           <View style={styles.navigationContainer}>
             <ModernButton
@@ -716,7 +712,6 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
         </View>
 
         {/* Function Buttons - removed Home, Menu, and Back from here */}
-        <Text style={styles.sectionHeader}>Fonctions</Text>
         <View style={styles.functionGrid}>
           <ModernButton
             onPress={() => handleCommand('Info', irCodes.Info)}
@@ -792,7 +787,6 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
         </View>
 
         {/* Volume Controls - Now positioned above R_Video and Explorer with Explorer button design */}
-        <Text style={styles.sectionHeader}>Volume</Text>
         <View style={styles.volumeSection}>
           <ModernButton
             onPress={() => handleCommand('Volume Down', irCodes.VolumeDown)}
