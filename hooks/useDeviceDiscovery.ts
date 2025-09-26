@@ -5,9 +5,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
 
 const STORAGE_KEY = 'rvolution_devices';
-const SCAN_TIMEOUT = 3000; // Increased timeout for better reliability
+const SCAN_TIMEOUT = 8000; // Increased timeout for better reliability
 const TARGET_DEVICE_NAME = 'R_VOLUTION';
-const CONCURRENT_REQUESTS = 15; // Reduced for better stability
+const CONCURRENT_REQUESTS = 10; // Reduced for better stability
 
 export const useDeviceDiscovery = () => {
   const [devices, setDevices] = useState<RVolutionDevice[]>([]);
@@ -23,27 +23,15 @@ export const useDeviceDiscovery = () => {
     try {
       console.log('🌐 Detecting local network information...');
       
-      // Try to get local IP using a simple method
-      const response = await fetch('https://api.ipify.org?format=json', {
-        method: 'GET',
-        timeout: 5000,
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        console.log('🌐 External IP detected:', data.ip);
-      }
-      
       // For local network detection, we'll use common ranges
-      // In a real app, you might use react-native-network-info
       const commonRanges = [
         '192.168.1',
         '192.168.0', 
         '192.168.2',
+        '192.168.10',
+        '192.168.100',
         '10.0.0',
         '172.16.0',
-        '192.168.100',
-        '192.168.10',
       ];
       
       setNetworkInfo({
@@ -97,18 +85,90 @@ export const useDeviceDiscovery = () => {
     }
   }, []);
 
+  // Test multiple ports for R_VOLUTION devices
+  const testMultiplePorts = useCallback(async (ip: string): Promise<{port: number, response: any} | null> => {
+    const commonPorts = [80, 8080, 8000, 3000, 5000, 9000];
+    
+    for (const port of commonPorts) {
+      try {
+        console.log(`   Testing port ${port} on ${ip}`);
+        
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000);
+        
+        const response = await fetch(`http://${ip}:${port}/`, {
+          method: 'GET',
+          signal: controller.signal,
+          headers: {
+            'Accept': 'application/json, text/plain, text/html, */*',
+            'User-Agent': 'R_VOLUTION-Remote/1.0',
+            'Cache-Control': 'no-cache',
+          },
+        });
+        
+        clearTimeout(timeoutId);
+        
+        if (response.ok) {
+          console.log(`   ✅ Port ${port} responded with status ${response.status}`);
+          return { port, response };
+        }
+        
+      } catch (error) {
+        // Continue to next port
+        console.log(`   ❌ Port ${port} failed: ${error.message}`);
+      }
+    }
+    
+    return null;
+  }, []);
+
   // Enhanced device verification with multiple strategies
   const verifyRVolutionDevice = useCallback(async (ip: string, port: number = 80): Promise<{
     isRVolution: boolean;
     deviceName?: string;
     responseData?: any;
     endpoint?: string;
+    actualPort?: number;
   }> => {
     console.log(`🔍 Verifying R_VOLUTION device at ${ip}:${port}`);
     
     try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), SCAN_TIMEOUT);
+      // First, try the specified port
+      let testPort = port;
+      let workingResponse = null;
+      
+      // If port 80 fails, try other common ports
+      if (port === 80) {
+        const portTest = await testMultiplePorts(ip);
+        if (portTest) {
+          testPort = portTest.port;
+          workingResponse = portTest.response;
+          console.log(`   Found working port: ${testPort}`);
+        }
+      }
+      
+      if (!workingResponse) {
+        // Try the original port with longer timeout
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), SCAN_TIMEOUT);
+
+        try {
+          workingResponse = await fetch(`http://${ip}:${testPort}/`, {
+            method: 'GET',
+            signal: controller.signal,
+            headers: {
+              'Accept': 'application/json, text/plain, text/html, */*',
+              'User-Agent': 'R_VOLUTION-Remote/1.0',
+              'Cache-Control': 'no-cache',
+            },
+          });
+          clearTimeout(timeoutId);
+        } catch (fetchError) {
+          clearTimeout(timeoutId);
+          console.log(`❌ No response from ${ip}:${testPort}`);
+          return { isRVolution: false };
+        }
+      }
 
       // Try multiple endpoints that R_VOLUTION devices might use
       const endpoints = [
@@ -125,9 +185,12 @@ export const useDeviceDiscovery = () => {
       
       for (const endpoint of endpoints) {
         try {
-          console.log(`   Testing ${ip}:${port}${endpoint}`);
+          console.log(`   Testing ${ip}:${testPort}${endpoint}`);
           
-          const response = await fetch(`http://${ip}:${port}${endpoint}`, {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), SCAN_TIMEOUT);
+          
+          const response = await fetch(`http://${ip}:${testPort}${endpoint}`, {
             method: 'GET',
             signal: controller.signal,
             headers: {
@@ -137,6 +200,7 @@ export const useDeviceDiscovery = () => {
             },
           });
 
+          clearTimeout(timeoutId);
           console.log(`   Response status: ${response.status}`);
           
           if (response.ok) {
@@ -166,6 +230,7 @@ export const useDeviceDiscovery = () => {
               'r_volution',
               'r-volution',
               'rvolution',
+              'revolution', // Sometimes the underscore might be missing
             ];
             
             const isRVolution = detectionPatterns.some(pattern => 
@@ -176,25 +241,26 @@ export const useDeviceDiscovery = () => {
               responseData.model?.toLowerCase().includes('volution') ||
               responseData.hostname?.toLowerCase().includes('volution') ||
               responseData.manufacturer?.toLowerCase().includes('volution') ||
-              responseData.product?.toLowerCase().includes('volution')
+              responseData.product?.toLowerCase().includes('volution') ||
+              responseData.brand?.toLowerCase().includes('volution')
             ));
 
             if (isRVolution) {
-              clearTimeout(timeoutId);
               const deviceName = responseData?.name || 
                                responseData?.deviceName || 
                                responseData?.hostname || 
                                responseData?.model ||
                                `${TARGET_DEVICE_NAME} (${ip})`;
               
-              console.log(`✅ R_VOLUTION device confirmed at ${ip}:${port}${endpoint}`);
+              console.log(`✅ R_VOLUTION device confirmed at ${ip}:${testPort}${endpoint}`);
               console.log(`   Device name: ${deviceName}`);
               
               return { 
                 isRVolution: true, 
                 deviceName,
                 responseData,
-                endpoint 
+                endpoint,
+                actualPort: testPort
               };
             } else {
               console.log(`   No R_VOLUTION patterns found in response`);
@@ -207,52 +273,61 @@ export const useDeviceDiscovery = () => {
         }
       }
 
-      clearTimeout(timeoutId);
-      console.log(`❌ No R_VOLUTION device found at ${ip}:${port}`);
-      return { isRVolution: false };
+      console.log(`❌ No R_VOLUTION device found at ${ip}:${testPort}`);
+      return { isRVolution: false, actualPort: testPort };
       
     } catch (error) {
       console.log(`❌ Verification failed for ${ip}:${port}:`, error.message);
       return { isRVolution: false };
     }
-  }, []);
+  }, [testMultiplePorts]);
 
-  // Check basic connectivity to an IP/port
-  const checkDeviceReachability = useCallback(async (ip: string, port: number = 80): Promise<boolean> => {
-    try {
-      console.log(`🔗 Testing connectivity to ${ip}:${port}`);
-      
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 3000);
-      
-      const response = await fetch(`http://${ip}:${port}/`, {
-        method: 'HEAD', // Use HEAD for faster response
-        signal: controller.signal,
-      });
-      
-      clearTimeout(timeoutId);
-      const isReachable = response.status < 500; // Accept any response that's not a server error
-      console.log(`${isReachable ? '✅' : '❌'} ${ip}:${port} is ${isReachable ? 'reachable' : 'unreachable'} (status: ${response.status})`);
-      return isReachable;
-      
-    } catch (error) {
-      console.log(`❌ ${ip}:${port} is unreachable:`, error.message);
-      return false;
+  // Check basic connectivity to an IP/port with retry logic
+  const checkDeviceReachability = useCallback(async (ip: string, port: number = 80, retries: number = 2): Promise<boolean> => {
+    for (let attempt = 0; attempt <= retries; attempt++) {
+      try {
+        console.log(`🔗 Testing connectivity to ${ip}:${port} (attempt ${attempt + 1}/${retries + 1})`);
+        
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 6000);
+        
+        const response = await fetch(`http://${ip}:${port}/`, {
+          method: 'HEAD', // Use HEAD for faster response
+          signal: controller.signal,
+        });
+        
+        clearTimeout(timeoutId);
+        const isReachable = response.status < 500; // Accept any response that's not a server error
+        console.log(`${isReachable ? '✅' : '❌'} ${ip}:${port} is ${isReachable ? 'reachable' : 'unreachable'} (status: ${response.status})`);
+        return isReachable;
+        
+      } catch (error) {
+        console.log(`❌ ${ip}:${port} attempt ${attempt + 1} failed:`, error.message);
+        if (attempt < retries) {
+          // Wait before retry
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+      }
     }
+    
+    console.log(`❌ ${ip}:${port} is unreachable after ${retries + 1} attempts`);
+    return false;
   }, []);
 
   // Get device info (for diagnostics)
   const getDeviceInfo = useCallback(async (ip: string, port: number = 80): Promise<any> => {
     try {
       const result = await verifyRVolutionDevice(ip, port);
+      const reachable = await checkDeviceReachability(ip, result.actualPort || port);
+      
       return {
         ip,
-        port,
+        port: result.actualPort || port,
         isRVolution: result.isRVolution,
         deviceName: result.deviceName,
         responseData: result.responseData,
         endpoint: result.endpoint,
-        reachable: await checkDeviceReachability(ip, port),
+        reachable,
       };
     } catch (error) {
       return {
@@ -277,12 +352,12 @@ export const useDeviceDiscovery = () => {
           // Check if device already exists
           const existingDevice = devices.find(d => d.ip === ip);
           if (!existingDevice) {
-            console.log(`🎉 New R_VOLUTION device discovered: ${result.deviceName} at ${ip}`);
+            console.log(`🎉 New R_VOLUTION device discovered: ${result.deviceName} at ${ip}:${result.actualPort || 80}`);
             return {
               id: `auto_${ip}_${Date.now()}`,
               name: result.deviceName || `${TARGET_DEVICE_NAME} (${ip})`,
               ip: ip,
-              port: 80,
+              port: result.actualPort || 80,
               isOnline: true,
               lastSeen: new Date(),
               isManuallyAdded: false,
@@ -312,7 +387,8 @@ export const useDeviceDiscovery = () => {
     try {
       console.log('🚀 Starting enhanced R_VOLUTION device discovery...');
       console.log(`🎯 Target device name: ${TARGET_DEVICE_NAME}`);
-      console.log(`🔌 Target port: 80`);
+      console.log(`🔌 Target ports: 80, 8080, 8000, 3000, 5000, 9000`);
+      console.log(`⏱️  Timeout: ${SCAN_TIMEOUT}ms per request`);
       
       const networkBases = await getLocalNetworkInfo();
       const foundDevices: RVolutionDevice[] = [];
@@ -326,7 +402,7 @@ export const useDeviceDiscovery = () => {
         const baseIP = networkBases[networkIndex];
         console.log(`📡 Scanning network ${baseIP}.x (${networkIndex + 1}/${totalNetworks})`);
         
-        const batchSize = 20; // Optimal batch size
+        const batchSize = CONCURRENT_REQUESTS; // Use configured batch size
         const networkDevices: RVolutionDevice[] = [];
         
         for (let start = 1; start <= 254; start += batchSize) {
@@ -374,9 +450,11 @@ export const useDeviceDiscovery = () => {
         console.log(`   1. Verify R_VOLUTION devices are powered on`);
         console.log(`   2. Ensure devices are connected to Wi-Fi`);
         console.log(`   3. Check that devices are on the same network`);
-        console.log(`   4. Confirm devices are using port 80`);
+        console.log(`   4. Try different ports (8080, 8000, 3000, etc.)`);
         console.log(`   5. Try manual addition with known IP address`);
         console.log(`   6. Check device documentation for network settings`);
+        console.log(`   7. Verify firewall settings on the device`);
+        console.log(`   8. Check if the device uses HTTPS instead of HTTP`);
       }
       
     } catch (error) {
@@ -421,8 +499,8 @@ export const useDeviceDiscovery = () => {
 
       console.log('🔍 Testing device connectivity...');
       
-      // Test basic connectivity first
-      const isReachable = await checkDeviceReachability(ip, port);
+      // Test basic connectivity first with retry
+      const isReachable = await checkDeviceReachability(ip, port, 3);
       console.log(`🔗 Device reachability: ${isReachable ? 'YES' : 'NO'}`);
       
       // Try to verify as R_VOLUTION device
@@ -431,10 +509,11 @@ export const useDeviceDiscovery = () => {
       
       let deviceName = customName || `${TARGET_DEVICE_NAME} (${ip})`;
       let isVerified = verificationResult.isRVolution;
+      let actualPort = verificationResult.actualPort || port;
       
       if (isVerified) {
         deviceName = verificationResult.deviceName || deviceName;
-        console.log(`✅ Device verified as R_VOLUTION: ${deviceName}`);
+        console.log(`✅ Device verified as R_VOLUTION: ${deviceName} on port ${actualPort}`);
       } else if (isReachable) {
         console.log(`⚠️  Device is reachable but not verified as R_VOLUTION`);
         console.log(`   Adding anyway as manual device`);
@@ -444,10 +523,10 @@ export const useDeviceDiscovery = () => {
       }
       
       const newDevice: RVolutionDevice = {
-        id: `manual_${ip}_${port}_${Date.now()}`,
+        id: `manual_${ip}_${actualPort}_${Date.now()}`,
         name: deviceName,
         ip: ip,
-        port: port,
+        port: actualPort,
         isOnline: isReachable,
         lastSeen: isReachable ? new Date() : new Date(0),
         isManuallyAdded: true,
@@ -516,6 +595,7 @@ export const useDeviceDiscovery = () => {
             isOnline,
             lastSeen: isOnline ? new Date() : device.lastSeen,
             name: result.deviceName || device.name,
+            port: result.actualPort || device.port, // Update port if different one was found
           };
         } catch (error) {
           console.log(`❌ ${device.name} status check failed:`, error.message);
@@ -534,9 +614,9 @@ export const useDeviceDiscovery = () => {
     console.log(`📊 Status update completed: ${onlineCount}/${updatedDevices.length} devices online`);
   }, [devices, saveDevices, verifyRVolutionDevice, checkDeviceReachability]);
 
-  // Network diagnostic function
+  // Enhanced network diagnostic function
   const runNetworkDiagnostic = useCallback(async (targetIP?: string) => {
-    console.log('🔧 === NETWORK DIAGNOSTIC STARTED ===');
+    console.log('🔧 === ENHANCED NETWORK DIAGNOSTIC STARTED ===');
     
     try {
       const networkBases = await getLocalNetworkInfo();
@@ -544,29 +624,66 @@ export const useDeviceDiscovery = () => {
       
       if (targetIP) {
         console.log(`🎯 Testing specific IP: ${targetIP}`);
-        const deviceInfo = await getDeviceInfo(targetIP, 80);
-        console.log('📋 Device info:', deviceInfo);
-        return deviceInfo;
+        
+        // Test multiple ports on the target IP
+        console.log('🔌 Testing multiple ports...');
+        const portTest = await testMultiplePorts(targetIP);
+        
+        if (portTest) {
+          console.log(`✅ Found working port ${portTest.port} on ${targetIP}`);
+          const deviceInfo = await getDeviceInfo(targetIP, portTest.port);
+          console.log('📋 Device info:', deviceInfo);
+          return deviceInfo;
+        } else {
+          console.log(`❌ No working ports found on ${targetIP}`);
+          return {
+            ip: targetIP,
+            reachable: false,
+            error: 'No working ports found'
+          };
+        }
       }
       
       // Test a few common IPs in each range
       const testIPs = [];
-      for (const base of networkBases.slice(0, 2)) { // Test first 2 ranges
-        testIPs.push(`${base}.1`, `${base}.2`, `${base}.10`, `${base}.100`);
+      for (const base of networkBases.slice(0, 3)) { // Test first 3 ranges
+        testIPs.push(`${base}.1`, `${base}.2`, `${base}.10`, `${base}.100`, `${base}.254`);
       }
       
       console.log('🧪 Testing sample IPs:', testIPs);
       
       const results = await Promise.all(
         testIPs.map(async (ip) => {
-          const info = await getDeviceInfo(ip, 80);
-          console.log(`📋 ${ip}:`, info);
-          return info;
+          console.log(`🔍 Testing ${ip}...`);
+          
+          // First try port discovery
+          const portTest = await testMultiplePorts(ip);
+          if (portTest) {
+            const info = await getDeviceInfo(ip, portTest.port);
+            console.log(`📋 ${ip}:${portTest.port}:`, info);
+            return info;
+          } else {
+            // Try default port 80
+            const info = await getDeviceInfo(ip, 80);
+            console.log(`📋 ${ip}:80:`, info);
+            return info;
+          }
         })
       );
       
       const reachableDevices = results.filter(r => r.reachable);
-      console.log(`📊 Diagnostic complete: ${reachableDevices.length}/${testIPs.length} test IPs reachable`);
+      const rvolutionDevices = results.filter(r => r.isRVolution);
+      
+      console.log(`📊 Diagnostic complete:`);
+      console.log(`   ${reachableDevices.length}/${testIPs.length} test IPs reachable`);
+      console.log(`   ${rvolutionDevices.length} R_VOLUTION devices found`);
+      
+      if (rvolutionDevices.length > 0) {
+        console.log('🎉 R_VOLUTION devices found:');
+        rvolutionDevices.forEach(device => {
+          console.log(`   🎵 ${device.deviceName || 'Unknown'} at ${device.ip}:${device.port}`);
+        });
+      }
       
       return results;
       
@@ -574,9 +691,48 @@ export const useDeviceDiscovery = () => {
       console.log('❌ Network diagnostic failed:', error);
       throw error;
     } finally {
-      console.log('🔧 === NETWORK DIAGNOSTIC FINISHED ===');
+      console.log('🔧 === ENHANCED NETWORK DIAGNOSTIC FINISHED ===');
     }
-  }, [getLocalNetworkInfo, getDeviceInfo]);
+  }, [getLocalNetworkInfo, getDeviceInfo, testMultiplePorts]);
+
+  // Test a specific IP address (for manual testing)
+  const testSpecificIP = useCallback(async (ip: string, port?: number) => {
+    console.log(`🧪 === TESTING SPECIFIC IP: ${ip} ===`);
+    
+    try {
+      // Test multiple ports if no specific port provided
+      if (!port) {
+        console.log('🔌 Testing multiple ports...');
+        const portTest = await testMultiplePorts(ip);
+        
+        if (portTest) {
+          console.log(`✅ Found working port ${portTest.port}`);
+          const deviceInfo = await getDeviceInfo(ip, portTest.port);
+          console.log('📋 Device info:', deviceInfo);
+          return deviceInfo;
+        } else {
+          console.log('❌ No working ports found');
+          return {
+            ip,
+            reachable: false,
+            error: 'No working ports found'
+          };
+        }
+      } else {
+        // Test specific port
+        console.log(`🔌 Testing port ${port}...`);
+        const deviceInfo = await getDeviceInfo(ip, port);
+        console.log('📋 Device info:', deviceInfo);
+        return deviceInfo;
+      }
+      
+    } catch (error) {
+      console.log('❌ IP test failed:', error);
+      throw error;
+    } finally {
+      console.log(`🧪 === IP TEST FINISHED ===`);
+    }
+  }, [getDeviceInfo, testMultiplePorts]);
 
   useEffect(() => {
     loadSavedDevices();
@@ -595,5 +751,6 @@ export const useDeviceDiscovery = () => {
     checkDeviceReachability,
     getDeviceInfo,
     runNetworkDiagnostic,
+    testSpecificIP,
   };
 };

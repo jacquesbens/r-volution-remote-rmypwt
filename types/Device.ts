@@ -21,6 +21,7 @@ export interface NetworkScanResult {
   isRVolution?: boolean;
   responseData?: any;
   endpoint?: string;
+  actualPort?: number;
 }
 
 export interface DeviceInfo {
@@ -32,6 +33,7 @@ export interface DeviceInfo {
   endpoint?: string;
   reachable: boolean;
   error?: string;
+  actualPort?: number;
 }
 
 export interface NetworkDiagnostic {
@@ -39,4 +41,17 @@ export interface NetworkDiagnostic {
   networkRange?: string;
   routerReachable?: boolean;
   testResults?: DeviceInfo[];
+}
+
+export interface PortTestResult {
+  port: number;
+  response: Response;
+}
+
+export interface DeviceVerificationResult {
+  isRVolution: boolean;
+  deviceName?: string;
+  responseData?: any;
+  endpoint?: string;
+  actualPort?: number;
 }

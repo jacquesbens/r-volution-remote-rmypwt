@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, StyleSheet, Alert, RefreshControl, TouchableOpacity, Platform } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, Alert, RefreshControl, TouchableOpacity, Platform, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useDeviceDiscovery } from '../hooks/useDeviceDiscovery';
@@ -23,12 +23,15 @@ const MainScreen: React.FC = () => {
     removeDevice,
     updateDeviceStatus,
     runNetworkDiagnostic,
+    testSpecificIP,
     verifyRVolutionDevice,
   } = useDeviceDiscovery();
 
   const [isAddModalVisible, setIsAddModalVisible] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showDiagnostics, setShowDiagnostics] = useState(false);
+  const [testIP, setTestIP] = useState('');
+  const [isTestingIP, setIsTestingIP] = useState(false);
 
   useEffect(() => {
     console.log('🏠 MainScreen mounted, devices:', devices.length);
@@ -164,10 +167,13 @@ const MainScreen: React.FC = () => {
           text: 'Lancer',
           onPress: async () => {
             try {
-              await runNetworkDiagnostic();
+              const results = await runNetworkDiagnostic();
+              const reachableCount = results?.filter((r: any) => r.reachable).length || 0;
+              const rvolutionCount = results?.filter((r: any) => r.isRVolution).length || 0;
+              
               Alert.alert(
                 'Diagnostic terminé',
-                'Consultez les logs de la console pour les détails du diagnostic.',
+                `Résultats:\n• ${reachableCount} appareils accessibles trouvés\n• ${rvolutionCount} appareils R_VOLUTION détectés\n\nConsultez les logs pour plus de détails.`,
                 [{ text: 'OK' }]
               );
             } catch (error) {
@@ -182,6 +188,62 @@ const MainScreen: React.FC = () => {
         },
       ]
     );
+  };
+
+  const handleTestSpecificIP = async () => {
+    if (!testIP.trim()) {
+      Alert.alert('Erreur', 'Veuillez entrer une adresse IP à tester.');
+      return;
+    }
+
+    console.log('🧪 Specific IP test requested from UI:', testIP);
+    setIsTestingIP(true);
+    
+    try {
+      const result = await testSpecificIP(testIP.trim());
+      
+      let message = `IP: ${result.ip}\n`;
+      message += `Port: ${result.port || 'Non détecté'}\n`;
+      message += `Accessible: ${result.reachable ? 'Oui' : 'Non'}\n`;
+      message += `R_VOLUTION: ${result.isRVolution ? 'Oui' : 'Non'}\n`;
+      
+      if (result.deviceName) {
+        message += `Nom: ${result.deviceName}\n`;
+      }
+      
+      if (result.error) {
+        message += `Erreur: ${result.error}`;
+      }
+      
+      Alert.alert(
+        'Test d\'IP terminé',
+        message,
+        result.isRVolution ? [
+          { text: 'OK' },
+          {
+            text: 'Ajouter',
+            onPress: () => {
+              setTestIP('');
+              setIsAddModalVisible(true);
+              // Pre-fill the modal with the tested IP
+              setTimeout(() => {
+                // This would need to be implemented in the AddDeviceModal
+              }, 100);
+            }
+          }
+        ] : [{ text: 'OK' }]
+      );
+      
+    } catch (error) {
+      console.log('❌ IP test failed from UI:', error);
+      Alert.alert(
+        'Erreur de test',
+        `Impossible de tester l'IP ${testIP}.\n\nErreur: ${error.message}`,
+        [{ text: 'OK' }]
+      );
+    } finally {
+      setIsTestingIP(false);
+    }
   };
 
   return (
@@ -207,21 +269,50 @@ const MainScreen: React.FC = () => {
 
       {showDiagnostics && (
         <View style={styles.diagnosticPanel}>
-          <Text style={styles.diagnosticTitle}>Informations réseau</Text>
-          <Text style={styles.diagnosticText}>
-            IP locale: {networkInfo.localIP || 'Détection...'}
-          </Text>
-          <Text style={styles.diagnosticText}>
-            Plages scannées: {networkInfo.networkRange || 'Détection...'}
-          </Text>
+          <Text style={styles.diagnosticTitle}>Outils de diagnostic</Text>
           
-          <TouchableOpacity 
-            style={styles.diagnosticAction}
-            onPress={handleRunDiagnostic}
-          >
-            <Icon name="bug" size={16} color={colors.primary} />
-            <Text style={styles.diagnosticActionText}>Lancer diagnostic</Text>
-          </TouchableOpacity>
+          <View style={styles.networkInfo}>
+            <Text style={styles.diagnosticText}>
+              IP locale: {networkInfo.localIP || 'Détection...'}
+            </Text>
+            <Text style={styles.diagnosticText}>
+              Plages scannées: {networkInfo.networkRange || 'Détection...'}
+            </Text>
+          </View>
+          
+          <View style={styles.ipTestSection}>
+            <Text style={styles.diagnosticSubtitle}>Test d'IP spécifique</Text>
+            <View style={styles.ipTestRow}>
+              <TextInput
+                style={styles.ipInput}
+                value={testIP}
+                onChangeText={setTestIP}
+                placeholder="192.168.1.100"
+                placeholderTextColor={colors.grey}
+                keyboardType="numeric"
+              />
+              <TouchableOpacity 
+                style={[styles.testButton, { opacity: isTestingIP ? 0.6 : 1 }]}
+                onPress={handleTestSpecificIP}
+                disabled={isTestingIP}
+              >
+                <Icon name={isTestingIP ? "hourglass" : "search"} size={16} color={colors.background} />
+                <Text style={styles.testButtonText}>
+                  {isTestingIP ? 'Test...' : 'Tester'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+          
+          <View style={styles.diagnosticActions}>
+            <TouchableOpacity 
+              style={styles.diagnosticAction}
+              onPress={handleRunDiagnostic}
+            >
+              <Icon name="bug" size={16} color={colors.primary} />
+              <Text style={styles.diagnosticActionText}>Diagnostic réseau</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       )}
 
@@ -265,8 +356,10 @@ const MainScreen: React.FC = () => {
               <Text style={styles.tipText}>• Vérifiez que l'appareil R_VOLUTION est allumé</Text>
               <Text style={styles.tipText}>• Assurez-vous qu'il est connecté au Wi-Fi</Text>
               <Text style={styles.tipText}>• Vérifiez que vous êtes sur le même réseau</Text>
-              <Text style={styles.tipText}>• L'appareil doit utiliser le port 80</Text>
+              <Text style={styles.tipText}>• L'appareil peut utiliser différents ports (80, 8080, 8000, etc.)</Text>
               <Text style={styles.tipText}>• Essayez l'ajout manuel si vous connaissez l'IP</Text>
+              <Text style={styles.tipText}>• Utilisez l'outil de test d'IP ci-dessus</Text>
+              <Text style={styles.tipText}>• Vérifiez les paramètres firewall de l'appareil</Text>
             </View>
           </View>
         ) : (
@@ -334,17 +427,61 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: colors.text,
+    marginBottom: 12,
+  },
+  diagnosticSubtitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.text,
     marginBottom: 8,
+  },
+  networkInfo: {
+    marginBottom: 16,
   },
   diagnosticText: {
     fontSize: 14,
     color: colors.grey,
     marginBottom: 4,
   },
+  ipTestSection: {
+    marginBottom: 16,
+  },
+  ipTestRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  ipInput: {
+    flex: 1,
+    backgroundColor: colors.background,
+    borderWidth: 1,
+    borderColor: colors.grey + '30',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 14,
+    color: colors.text,
+  },
+  testButton: {
+    backgroundColor: colors.primary,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 8,
+    gap: 6,
+  },
+  testButtonText: {
+    color: colors.background,
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  diagnosticActions: {
+    flexDirection: 'row',
+    gap: 16,
+  },
   diagnosticAction: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 12,
     gap: 8,
   },
   diagnosticActionText: {

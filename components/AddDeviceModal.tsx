@@ -1,8 +1,8 @@
 
 import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, Alert, Modal, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { colors } from '../styles/commonStyles';
+import { View, Text, TextInput, StyleSheet, Alert, Modal, TouchableOpacity, ActivityIndicator, ScrollView } from 'react-native';
 import Button from './Button';
+import { colors } from '../styles/commonStyles';
 import Icon from './Icon';
 
 interface AddDeviceModalProps {
@@ -16,113 +16,51 @@ const AddDeviceModal: React.FC<AddDeviceModalProps> = ({ visible, onClose, onAdd
   const [port, setPort] = useState('80');
   const [name, setName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [testResult, setTestResult] = useState<{
-    tested: boolean;
-    success: boolean;
-    message: string;
-  } | null>(null);
+  const [isTestingConnection, setIsTestingConnection] = useState(false);
 
   const handleAddDevice = async () => {
-    console.log('=== ADD DEVICE MODAL - HANDLE ADD DEVICE ===');
-    console.log('Form values:', { ip: ip.trim(), port, name: name.trim() });
-    
     if (!ip.trim()) {
-      console.log('Validation failed: No IP provided');
-      Alert.alert('Erreur', 'Veuillez entrer une adresse IP');
-      return;
-    }
-
-    // Basic IP validation
-    const ipRegex = /^(\d{1,3}\.){3}\d{1,3}$/;
-    if (!ipRegex.test(ip.trim())) {
-      console.log('Validation failed: Invalid IP format');
-      Alert.alert('Erreur', 'Format d\'adresse IP invalide (ex: 192.168.1.100)');
-      return;
-    }
-
-    // Validate IP ranges (0-255 for each octet)
-    const octets = ip.trim().split('.');
-    const invalidOctet = octets.find(octet => {
-      const num = parseInt(octet, 10);
-      return isNaN(num) || num < 0 || num > 255;
-    });
-    
-    if (invalidOctet) {
-      console.log('Validation failed: Invalid IP range');
-      Alert.alert('Erreur', 'Adresse IP invalide. Chaque partie doit être entre 0 et 255');
+      Alert.alert('Erreur', 'Veuillez entrer une adresse IP.');
       return;
     }
 
     const portNumber = parseInt(port, 10);
     if (isNaN(portNumber) || portNumber < 1 || portNumber > 65535) {
-      console.log('Validation failed: Invalid port');
-      Alert.alert('Erreur', 'Port invalide (1-65535)');
+      Alert.alert('Erreur', 'Le port doit être un nombre entre 1 et 65535.');
       return;
     }
 
-    console.log('Validation passed, starting device addition...');
     setIsLoading(true);
-    setTestResult(null);
-    
     try {
-      console.log('Calling onAddDevice prop...');
       await onAddDevice(ip.trim(), portNumber, name.trim() || undefined);
-      
-      console.log('Device addition successful, clearing form...');
-      setIp('');
-      setPort('80');
-      setName('');
-      setTestResult(null);
-      
-      console.log('Form cleared, closing modal...');
-      onClose();
-      
+      handleClose();
     } catch (error) {
-      console.log('=== ADD DEVICE MODAL - ERROR ===');
-      console.log('Error in modal:', error);
-      
-      setTestResult({
-        tested: true,
-        success: false,
-        message: error.message || 'Erreur inconnue'
-      });
-      
-      // Don't re-throw - let user see the error and try again
+      console.log('AddDeviceModal: Error adding device:', error);
+      // Error is already handled by parent component
     } finally {
-      console.log('Setting loading to false...');
       setIsLoading(false);
     }
   };
 
   const handleTestConnection = async () => {
-    console.log('🧪 Testing connection from modal');
-    
     if (!ip.trim()) {
-      Alert.alert('Erreur', 'Veuillez entrer une adresse IP');
-      return;
-    }
-
-    const ipRegex = /^(\d{1,3}\.){3}\d{1,3}$/;
-    if (!ipRegex.test(ip.trim())) {
-      Alert.alert('Erreur', 'Format d\'adresse IP invalide');
+      Alert.alert('Erreur', 'Veuillez entrer une adresse IP pour tester.');
       return;
     }
 
     const portNumber = parseInt(port, 10);
     if (isNaN(portNumber) || portNumber < 1 || portNumber > 65535) {
-      Alert.alert('Erreur', 'Port invalide');
+      Alert.alert('Erreur', 'Le port doit être un nombre entre 1 et 65535.');
       return;
     }
 
-    setIsLoading(true);
-    setTestResult(null);
-
+    setIsTestingConnection(true);
     try {
-      console.log(`Testing ${ip.trim()}:${portNumber}`);
+      console.log(`Testing connection to ${ip.trim()}:${portNumber}`);
       
-      // Test basic connectivity
+      // Simple connectivity test
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 5000);
+      const timeoutId = setTimeout(() => controller.abort(), 8000);
       
       const response = await fetch(`http://${ip.trim()}:${portNumber}/`, {
         method: 'HEAD',
@@ -132,39 +70,36 @@ const AddDeviceModal: React.FC<AddDeviceModalProps> = ({ visible, onClose, onAdd
       clearTimeout(timeoutId);
       
       if (response.ok || response.status < 500) {
-        console.log('✅ Connection test successful');
-        setTestResult({
-          tested: true,
-          success: true,
-          message: `Connexion réussie (HTTP ${response.status})`
-        });
+        Alert.alert(
+          'Test de connexion',
+          `✅ L'appareil à l'adresse ${ip.trim()}:${portNumber} répond.\n\nStatus: ${response.status} ${response.statusText}`,
+          [{ text: 'OK' }]
+        );
       } else {
-        console.log('⚠️  Connection test partial');
-        setTestResult({
-          tested: true,
-          success: false,
-          message: `Réponse HTTP ${response.status} - L'appareil répond mais peut ne pas être R_VOLUTION`
-        });
+        Alert.alert(
+          'Test de connexion',
+          `⚠️ L'appareil répond mais avec une erreur.\n\nStatus: ${response.status} ${response.statusText}`,
+          [{ text: 'OK' }]
+        );
       }
-      
     } catch (error) {
-      console.log('❌ Connection test failed:', error);
-      setTestResult({
-        tested: true,
-        success: false,
-        message: 'Connexion échouée - Vérifiez l\'IP et le port'
-      });
+      console.log('Connection test failed:', error);
+      Alert.alert(
+        'Test de connexion',
+        `❌ Impossible de se connecter à ${ip.trim()}:${portNumber}.\n\nErreur: ${error.message}`,
+        [{ text: 'OK' }]
+      );
     } finally {
-      setIsLoading(false);
+      setIsTestingConnection(false);
     }
   };
 
   const handleClose = () => {
-    console.log('Modal close requested, clearing form...');
     setIp('');
     setPort('80');
     setName('');
-    setTestResult(null);
+    setIsLoading(false);
+    setIsTestingConnection(false);
     onClose();
   };
 
@@ -174,170 +109,149 @@ const AddDeviceModal: React.FC<AddDeviceModalProps> = ({ visible, onClose, onAdd
       '192.168.1.10',
       '192.168.0.100',
       '192.168.0.10',
+      '192.168.2.100',
       '10.0.0.100',
-      '10.0.0.10',
+    ];
+  };
+
+  const getCommonPorts = () => {
+    return [
+      { port: '80', label: '80 (HTTP standard)' },
+      { port: '8080', label: '8080 (HTTP alternatif)' },
+      { port: '8000', label: '8000 (Développement)' },
+      { port: '3000', label: '3000 (Node.js)' },
+      { port: '5000', label: '5000 (Flask/Python)' },
+      { port: '9000', label: '9000 (Divers)' },
     ];
   };
 
   return (
     <Modal
       visible={visible}
-      transparent
-      animationType="fade"
+      animationType="slide"
+      presentationStyle="pageSheet"
       onRequestClose={handleClose}
     >
-      <View style={styles.overlay}>
-        <View style={styles.modal}>
-          <View style={styles.header}>
-            <Text style={styles.title}>Ajouter appareil R_VOLUTION</Text>
-            <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
-              <Icon name="close" size={24} color={colors.text} />
-            </TouchableOpacity>
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
+            <Icon name="close" size={24} color={colors.text} />
+          </TouchableOpacity>
+          <Text style={styles.title}>Ajouter un appareil</Text>
+          <View style={styles.placeholder} />
+        </View>
+
+        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+          <View style={styles.section}>
+            <Text style={styles.label}>Adresse IP *</Text>
+            <TextInput
+              style={styles.input}
+              value={ip}
+              onChangeText={setIp}
+              placeholder="192.168.1.100"
+              placeholderTextColor={colors.grey}
+              keyboardType="numeric"
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+            
+            <Text style={styles.sectionTitle}>IPs communes :</Text>
+            <View style={styles.commonOptions}>
+              {getCommonIPs().map((commonIP) => (
+                <TouchableOpacity
+                  key={commonIP}
+                  style={styles.commonOption}
+                  onPress={() => setIp(commonIP)}
+                >
+                  <Text style={styles.commonOptionText}>{commonIP}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
           </View>
 
-          <View style={styles.form}>
-            <Text style={styles.description}>
-              Ajoutez manuellement un appareil R_VOLUTION en saisissant son adresse IP sur le réseau local.
-            </Text>
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Adresse IP de l'appareil *</Text>
-              <TextInput
-                style={styles.input}
-                value={ip}
-                onChangeText={(text) => {
-                  console.log('IP input changed:', text);
-                  setIp(text);
-                  setTestResult(null); // Clear test result when IP changes
-                }}
-                placeholder="192.168.1.100"
-                placeholderTextColor={colors.grey}
-                keyboardType="numeric"
-                autoCapitalize="none"
-                autoCorrect={false}
-              />
-              
-              {/* Quick IP suggestions */}
-              <View style={styles.quickIPs}>
-                <Text style={styles.quickIPsLabel}>IPs courantes :</Text>
-                <View style={styles.quickIPsRow}>
-                  {getCommonIPs().slice(0, 3).map((suggestedIP) => (
-                    <TouchableOpacity
-                      key={suggestedIP}
-                      style={styles.quickIPButton}
-                      onPress={() => {
-                        setIp(suggestedIP);
-                        setTestResult(null);
-                      }}
-                    >
-                      <Text style={styles.quickIPText}>{suggestedIP}</Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              </View>
+          <View style={styles.section}>
+            <Text style={styles.label}>Port</Text>
+            <TextInput
+              style={styles.input}
+              value={port}
+              onChangeText={setPort}
+              placeholder="80"
+              placeholderTextColor={colors.grey}
+              keyboardType="numeric"
+            />
+            
+            <Text style={styles.sectionTitle}>Ports communes :</Text>
+            <View style={styles.portOptions}>
+              {getCommonPorts().map((portOption) => (
+                <TouchableOpacity
+                  key={portOption.port}
+                  style={[
+                    styles.portOption,
+                    port === portOption.port && styles.portOptionSelected
+                  ]}
+                  onPress={() => setPort(portOption.port)}
+                >
+                  <Text style={[
+                    styles.portOptionText,
+                    port === portOption.port && styles.portOptionTextSelected
+                  ]}>
+                    {portOption.label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
             </View>
+          </View>
 
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Port (défaut: 80)</Text>
-              <TextInput
-                style={styles.input}
-                value={port}
-                onChangeText={(text) => {
-                  console.log('Port input changed:', text);
-                  setPort(text);
-                  setTestResult(null);
-                }}
-                placeholder="80"
-                placeholderTextColor={colors.grey}
-                keyboardType="numeric"
-              />
-            </View>
+          <View style={styles.section}>
+            <Text style={styles.label}>Nom personnalisé (optionnel)</Text>
+            <TextInput
+              style={styles.input}
+              value={name}
+              onChangeText={setName}
+              placeholder="Mon lecteur R_VOLUTION"
+              placeholderTextColor={colors.grey}
+              autoCapitalize="words"
+            />
+          </View>
 
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Nom personnalisé (optionnel)</Text>
-              <TextInput
-                style={styles.input}
-                value={name}
-                onChangeText={(text) => {
-                  console.log('Name input changed:', text);
-                  setName(text);
-                }}
-                placeholder="Mon lecteur R_VOLUTION"
-                placeholderTextColor={colors.grey}
-                autoCapitalize="words"
-              />
-            </View>
-
-            {/* Test Connection Button */}
-            <TouchableOpacity
-              style={styles.testButton}
+          <View style={styles.testSection}>
+            <Button
+              text={isTestingConnection ? "Test en cours..." : "Tester la connexion"}
               onPress={handleTestConnection}
-              disabled={isLoading || !ip.trim()}
-            >
-              {isLoading ? (
-                <ActivityIndicator size="small" color={colors.primary} />
-              ) : (
-                <Icon name="wifi" size={16} color={colors.primary} />
-              )}
-              <Text style={styles.testButtonText}>
-                {isLoading ? 'Test en cours...' : 'Tester la connexion'}
-              </Text>
-            </TouchableOpacity>
-
-            {/* Test Result */}
-            {testResult && (
-              <View style={[
-                styles.testResult,
-                { backgroundColor: testResult.success ? '#d4edda' : '#f8d7da' }
-              ]}>
-                <Icon 
-                  name={testResult.success ? 'checkmark-circle' : 'alert-circle'} 
-                  size={16} 
-                  color={testResult.success ? '#155724' : '#721c24'} 
-                />
-                <Text style={[
-                  styles.testResultText,
-                  { color: testResult.success ? '#155724' : '#721c24' }
-                ]}>
-                  {testResult.message}
-                </Text>
-              </View>
+              style={[styles.testButton, { opacity: isTestingConnection ? 0.6 : 1 }]}
+            />
+            {isTestingConnection && (
+              <ActivityIndicator size="small" color={colors.primary} style={styles.testLoader} />
             )}
-
-            <View style={styles.infoBox}>
-              <Icon name="information-circle" size={16} color={colors.primary} />
-              <Text style={styles.infoText}>
-                L'appareil sera ajouté même s'il n'est pas vérifié comme R_VOLUTION. 
-                Vous pourrez tester la connexion après l'ajout.
-              </Text>
-            </View>
-
-            <View style={styles.warningBox}>
-              <Icon name="warning" size={16} color="#ff9500" />
-              <Text style={styles.warningText}>
-                Assurez-vous que l'appareil R_VOLUTION est allumé et connecté au même réseau Wi-Fi.
-              </Text>
-            </View>
           </View>
 
-          <View style={styles.buttons}>
-            <Button
-              text="Annuler"
-              onPress={handleClose}
-              style={[styles.button, styles.cancelButton]}
-              textStyle={styles.cancelButtonText}
-            />
-            <Button
-              text={isLoading ? "Ajout..." : "Ajouter"}
-              onPress={() => {
-                console.log('Add button pressed, isLoading:', isLoading);
-                if (!isLoading) {
-                  handleAddDevice();
-                }
-              }}
-              style={[styles.button, styles.addButton, { opacity: isLoading ? 0.5 : 1 }]}
-            />
+          <View style={styles.infoSection}>
+            <Icon name="information-circle" size={20} color={colors.primary} />
+            <View style={styles.infoContent}>
+              <Text style={styles.infoTitle}>Conseils :</Text>
+              <Text style={styles.infoText}>• Assurez-vous que l'appareil est allumé et connecté au Wi-Fi</Text>
+              <Text style={styles.infoText}>• Vérifiez que vous êtes sur le même réseau</Text>
+              <Text style={styles.infoText}>• Testez différents ports si le port 80 ne fonctionne pas</Text>
+              <Text style={styles.infoText}>• Consultez la documentation de votre appareil R_VOLUTION</Text>
+            </View>
           </View>
+        </ScrollView>
+
+        <View style={styles.footer}>
+          <Button
+            text="Annuler"
+            onPress={handleClose}
+            style={styles.cancelButton}
+            textStyle={styles.cancelButtonText}
+          />
+          <Button
+            text={isLoading ? "Ajout..." : "Ajouter"}
+            onPress={handleAddDevice}
+            style={[styles.addButton, { opacity: isLoading ? 0.6 : 1 }]}
+          />
+          {isLoading && (
+            <ActivityIndicator size="small" color={colors.background} style={styles.addLoader} />
+          )}
         </View>
       </View>
     </Modal>
@@ -345,167 +259,164 @@ const AddDeviceModal: React.FC<AddDeviceModalProps> = ({ visible, onClose, onAdd
 };
 
 const styles = StyleSheet.create({
-  overlay: {
+  container: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  modal: {
-    backgroundColor: colors.backgroundAlt,
-    borderRadius: 16,
-    padding: 24,
-    width: '100%',
-    maxWidth: 400,
-    maxHeight: '90%',
-    boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.3)',
-    elevation: 8,
+    backgroundColor: colors.background,
   },
   header: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: colors.text,
-    flex: 1,
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.grey + '20',
   },
   closeButton: {
     padding: 4,
   },
-  form: {
-    marginBottom: 24,
+  title: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: colors.text,
   },
-  description: {
-    fontSize: 14,
-    color: colors.grey,
-    lineHeight: 20,
-    marginBottom: 20,
+  placeholder: {
+    width: 32,
   },
-  inputGroup: {
-    marginBottom: 16,
+  content: {
+    flex: 1,
+    paddingHorizontal: 20,
+  },
+  section: {
+    marginTop: 24,
   },
   label: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
     color: colors.text,
     marginBottom: 8,
   },
   input: {
-    backgroundColor: colors.background,
+    backgroundColor: colors.backgroundAlt,
+    borderWidth: 1,
+    borderColor: colors.grey + '30',
     borderRadius: 8,
-    padding: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     fontSize: 16,
     color: colors.text,
-    borderWidth: 1,
-    borderColor: colors.grey + '40',
   },
-  quickIPs: {
-    marginTop: 8,
-  },
-  quickIPsLabel: {
-    fontSize: 12,
+  sectionTitle: {
+    fontSize: 14,
+    fontWeight: '500',
     color: colors.grey,
-    marginBottom: 6,
+    marginTop: 16,
+    marginBottom: 8,
   },
-  quickIPsRow: {
+  commonOptions: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 8,
   },
-  quickIPButton: {
-    backgroundColor: colors.background,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
+  commonOption: {
+    backgroundColor: colors.backgroundAlt,
     borderWidth: 1,
-    borderColor: colors.primary + '40',
+    borderColor: colors.grey + '30',
+    borderRadius: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
   },
-  quickIPText: {
-    fontSize: 11,
+  commonOptionText: {
+    fontSize: 14,
+    color: colors.text,
+  },
+  portOptions: {
+    gap: 8,
+  },
+  portOption: {
+    backgroundColor: colors.backgroundAlt,
+    borderWidth: 1,
+    borderColor: colors.grey + '30',
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  portOptionSelected: {
+    backgroundColor: colors.primary + '20',
+    borderColor: colors.primary,
+  },
+  portOptionText: {
+    fontSize: 14,
+    color: colors.text,
+  },
+  portOptionTextSelected: {
     color: colors.primary,
     fontWeight: '500',
+  },
+  testSection: {
+    marginTop: 24,
+    position: 'relative',
   },
   testButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.background,
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 12,
-    gap: 8,
+    backgroundColor: colors.backgroundAlt,
     borderWidth: 1,
-    borderColor: colors.primary + '40',
+    borderColor: colors.primary,
   },
-  testButtonText: {
-    fontSize: 14,
-    color: colors.primary,
-    fontWeight: '500',
+  testLoader: {
+    position: 'absolute',
+    right: 16,
+    top: 14,
   },
-  testResult: {
+  infoSection: {
     flexDirection: 'row',
-    alignItems: 'center',
-    padding: 12,
+    backgroundColor: colors.primary + '10',
     borderRadius: 8,
-    marginBottom: 12,
-    gap: 8,
-  },
-  testResultText: {
-    fontSize: 14,
-    fontWeight: '500',
-    flex: 1,
-  },
-  infoBox: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    backgroundColor: colors.background,
-    padding: 12,
-    borderRadius: 8,
-    marginTop: 8,
-    gap: 8,
-  },
-  infoText: {
-    fontSize: 12,
-    color: colors.grey,
-    lineHeight: 16,
-    flex: 1,
-  },
-  warningBox: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    backgroundColor: '#fff3cd',
-    padding: 12,
-    borderRadius: 8,
-    marginTop: 8,
-    gap: 8,
-  },
-  warningText: {
-    fontSize: 12,
-    color: '#856404',
-    lineHeight: 16,
-    flex: 1,
-  },
-  buttons: {
-    flexDirection: 'row',
+    padding: 16,
+    marginTop: 24,
+    marginBottom: 24,
     gap: 12,
   },
-  button: {
+  infoContent: {
     flex: 1,
-    paddingVertical: 12,
-    borderRadius: 8,
+  },
+  infoTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: 8,
+  },
+  infoText: {
+    fontSize: 13,
+    color: colors.grey,
+    lineHeight: 18,
+    marginBottom: 4,
+  },
+  footer: {
+    flexDirection: 'row',
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    paddingBottom: 12,
+    borderTopWidth: 1,
+    borderTopColor: colors.grey + '20',
+    gap: 12,
+    position: 'relative',
   },
   cancelButton: {
-    backgroundColor: colors.background,
+    flex: 1,
+    backgroundColor: colors.backgroundAlt,
+    borderWidth: 1,
+    borderColor: colors.grey + '30',
   },
   cancelButtonText: {
-    color: colors.grey,
+    color: colors.text,
   },
   addButton: {
-    backgroundColor: colors.primary,
+    flex: 1,
+  },
+  addLoader: {
+    position: 'absolute',
+    right: 32,
+    top: 26,
   },
 });
 
