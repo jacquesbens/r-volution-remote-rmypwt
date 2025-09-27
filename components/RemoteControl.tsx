@@ -306,6 +306,14 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     paddingHorizontal: 0, // Supprimé le padding pour un alignement parfait
   },
+
+  // Style spécial pour la dernière ligne du pavé numérique (sans marge en bas)
+  numberRowLast: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 0, // PAS DE MARGE EN BAS POUR LA DERNIÈRE LIGNE
+    paddingHorizontal: 0,
+  },
   
   numberButton: {
     backgroundColor: colors.primary,
@@ -949,7 +957,8 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
               </CustomButton>
             ))}
           </View>
-          <View style={styles.numberRow}>
+          {/* Dernière ligne du pavé numérique - SANS MARGE EN BAS */}
+          <View style={styles.numberRowLast}>
             <CustomButton
               onPress={() => handleCommand('Delete', 'Delete')}
               onLongPress={() => handleLongPress('Delete', 'Delete')}
