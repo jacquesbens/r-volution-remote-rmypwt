@@ -94,7 +94,7 @@ export default function DeviceControlScreen() {
           <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
             <Icon name="arrow-back" size={24} color={colors.text} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Télécommande</Text>
+          <Text style={styles.headerTitle}>Chargement...</Text>
           <View style={styles.placeholder} />
         </View>
         
@@ -141,7 +141,7 @@ export default function DeviceControlScreen() {
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <Icon name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Télécommande</Text>
+        <Text style={styles.headerTitle}>{device.name}</Text>
         <View style={styles.placeholder} />
       </View>
 
