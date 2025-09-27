@@ -457,7 +457,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
   // CORRECTION: Utiliser correctement le hook personnalisé pour les alertes
   const { showAlert } = useNativeAlert();
 
-  // Default IR codes - CODES INTÉGRÉS DEPUIS L'IMAGE FOURNIE
+  // Default IR codes - CODES INTÉGRÉS DEPUIS L'IMAGE FOURNIE + CODES EXISTANTS
   const defaultIRCodes = {
     // Basic functions - CODES INTÉGRÉS DEPUIS L'IMAGE
     '3D': 'ED124040',
@@ -481,34 +481,34 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
     'Digit8': 'F7084040',
     'Digit9': 'F6094040',
     
-    // Functions - CODES EXISTANTS CONSERVÉS
-    'Dimmer': 'AA554040',
-    'Explorer': 'A1144040',
-    'FormatScroll': 'A0154040',
+    // Functions - CODES INTÉGRÉS DEPUIS L'IMAGE (nouveaux codes uniquement si le bouton n'existait pas)
+    'Dimmer': 'A45B4040',
+    'Explorer': 'EA164040',
+    'FormatScroll': 'EB144040',
     'FunctionGreen': 'F50A4040',
-    'FunctionYellow': 'F41B4040',
+    'FunctionYellow': 'BE414040',
     'FunctionRed': 'A68E4040',
-    'FunctionBlue': 'A5544040',
-    'Home': 'E5144040',
-    'Info': 'BA454040',
+    'FunctionBlue': 'AB544040',
+    'Home': 'E51A4040',
+    'Info': 'BB444040',
     'Menu': 'BA454040',
-    'Mouse': 'B8474040',
+    'Mouse': 'B98F4040',
     'Mute': 'BC434040',
-    'PageDown': 'B9204040',
+    'PageDown': 'DB204040',
     'PageUp': 'BF404040',
-    'PlayPause': 'A5554040',
-    'PowerToggle': 'B2404040',
-    'PowerOff': 'A4554040',
-    'PowerOn': 'A5554040',
-    'Repeat': 'B0424040',
-    'Return': 'B9464040',
+    'PlayPause': 'AC534040',
+    'PowerToggle': 'B24D4040',
+    'PowerOff': '4AB54040',
+    'PowerOn': '4CB34040',
+    'Repeat': 'B9464040',
+    'Return': 'BD424040',
     'RVideo': 'EC134040',
     'Subtitle': 'E41B4040',
     'VolumeDown': 'E8174040',
     'VolumeUp': 'E7184040',
-    'Zoom': 'E2104040',
+    'Zoom': 'E21D4040',
     
-    // New requested buttons
+    // New requested buttons (codes existants conservés)
     'Stop': 'BD424040',
     'Skip60Forward': 'EE114040',
     'Skip60Rewind': 'EF104040',
