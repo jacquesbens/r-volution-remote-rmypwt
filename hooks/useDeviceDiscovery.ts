@@ -68,7 +68,7 @@ export const useDeviceDiscovery = () => {
     }
   }, []);
 
-  // Load saved devices from storage
+  // AMÉLIORATION: Load saved devices from storage avec meilleure gestion d'erreurs
   const loadSavedDevices = useCallback(async () => {
     if (devicesLoadedRef.current || initializingRef.current) {
       console.log('📱 Devices already loaded or loading, skipping...');
@@ -78,7 +78,7 @@ export const useDeviceDiscovery = () => {
     initializingRef.current = true;
     
     try {
-      console.log('📱 Loading saved devices from storage...');
+      console.log(`📱 Loading saved devices from storage (Platform: ${Platform.OS})...`);
       const savedDevices = await AsyncStorage.getItem(STORAGE_KEY);
       if (savedDevices) {
         const parsedDevices = JSON.parse(savedDevices);
@@ -111,14 +111,48 @@ export const useDeviceDiscovery = () => {
     }
   }, [devices]);
 
-  // Save devices to storage
-  const saveDevices = useCallback(async (devicesToSave: RVolutionDevice[]) => {
+  // AMÉLIORATION: Save devices to storage avec retry et meilleure gestion d'erreurs
+  const saveDevices = useCallback(async (devicesToSave: RVolutionDevice[], retryCount = 0) => {
+    const maxRetries = 3;
+    
     try {
-      console.log('💾 Saving devices to storage:', devicesToSave.length);
-      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(devicesToSave));
+      console.log(`💾 Saving devices to storage (Platform: ${Platform.OS}):`, devicesToSave.length);
+      
+      // AMÉLIORATION: Validation des données avant sauvegarde
+      const validDevices = devicesToSave.filter(device => 
+        device && 
+        device.id && 
+        device.name && 
+        device.ip && 
+        typeof device.port === 'number'
+      );
+      
+      if (validDevices.length !== devicesToSave.length) {
+        console.log(`⚠️ Filtered out ${devicesToSave.length - validDevices.length} invalid devices`);
+      }
+      
+      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(validDevices));
       console.log('💾 Devices saved to storage successfully');
+      
+      // AMÉLIORATION: Vérification de la sauvegarde
+      if (Platform.OS === 'web') {
+        // Sur web/Preview, vérifier que la sauvegarde a bien fonctionné
+        const verification = await AsyncStorage.getItem(STORAGE_KEY);
+        if (!verification) {
+          throw new Error('Storage verification failed');
+        }
+      }
+      
     } catch (error) {
-      console.log('❌ Error saving devices:', error);
+      console.log(`❌ Error saving devices (attempt ${retryCount + 1}/${maxRetries}):`, error);
+      
+      // AMÉLIORATION: Retry logic pour les environnements instables
+      if (retryCount < maxRetries - 1) {
+        console.log(`🔄 Retrying save in ${(retryCount + 1) * 1000}ms...`);
+        await new Promise(resolve => setTimeout(resolve, (retryCount + 1) * 1000));
+        return saveDevices(devicesToSave, retryCount + 1);
+      }
+      
       throw error;
     }
   }, []);
@@ -518,6 +552,7 @@ export const useDeviceDiscovery = () => {
     console.log(`   Port: ${HTTP_PORT} (HTTP protocol enforced)`);
     console.log(`   Fast endpoint: ${CGI_ENDPOINT}`);
     console.log(`   Custom Name: ${customName || 'None'}`);
+    console.log(`   Platform: ${Platform.OS}`);
     
     try {
       // Validate IP format
@@ -610,14 +645,66 @@ export const useDeviceDiscovery = () => {
     }
   }, [devices, saveDevices, checkDeviceReachability, verifyRVolutionDevice]);
 
-  // Remove device
-  const removeDevice = useCallback(async (deviceId: string) => {
-    console.log('🗑️  Removing device:', deviceId);
-    const updatedDevices = devices.filter(d => d.id !== deviceId);
-    setDevices(updatedDevices);
-    await saveDevices(updatedDevices);
-    console.log('✅ Device removed successfully');
-  }, [devices, saveDevices]);
+  // AMÉLIORATION: Remove device avec meilleure gestion d'erreurs et retry
+  const removeDevice = useCallback(async (deviceId: string, retryCount = 0) => {
+    const maxRetries = 3;
+    
+    try {
+      console.log(`🗑️  Removing device: ${deviceId} (Platform: ${Platform.OS}, attempt: ${retryCount + 1})`);
+      
+      // AMÉLIORATION: Vérifier que l'appareil existe avant de le supprimer
+      const deviceToRemove = devices.find(d => d.id === deviceId);
+      if (!deviceToRemove) {
+        console.log('❌ Device not found in current list:', deviceId);
+        throw new Error('Appareil non trouvé dans la liste');
+      }
+      
+      console.log(`🗑️  Removing device: ${deviceToRemove.name} (${deviceToRemove.ip})`);
+      
+      const updatedDevices = devices.filter(d => d.id !== deviceId);
+      
+      // AMÉLIORATION: Mettre à jour l'état immédiatement pour un feedback visuel
+      setDevices(updatedDevices);
+      
+      // AMÉLIORATION: Sauvegarder avec retry
+      await saveDevices(updatedDevices);
+      
+      console.log('✅ Device removed successfully');
+      
+      // AMÉLIORATION: Vérification post-suppression
+      if (Platform.OS === 'web') {
+        // Sur web/Preview, vérifier que la suppression a bien fonctionné
+        const verification = await AsyncStorage.getItem(STORAGE_KEY);
+        if (verification) {
+          const verificationDevices = JSON.parse(verification);
+          const stillExists = verificationDevices.find((d: any) => d.id === deviceId);
+          if (stillExists) {
+            throw new Error('Device removal verification failed');
+          }
+        }
+      }
+      
+    } catch (error) {
+      console.log(`❌ Error removing device (attempt ${retryCount + 1}/${maxRetries}):`, error);
+      
+      // AMÉLIORATION: Retry logic pour les environnements instables
+      if (retryCount < maxRetries - 1) {
+        console.log(`🔄 Retrying device removal in ${(retryCount + 1) * 1000}ms...`);
+        
+        // Restaurer l'état précédent en cas d'échec
+        await loadSavedDevices();
+        
+        await new Promise(resolve => setTimeout(resolve, (retryCount + 1) * 1000));
+        return removeDevice(deviceId, retryCount + 1);
+      }
+      
+      // Si tous les retries échouent, restaurer l'état précédent
+      console.log('❌ All retry attempts failed, restoring previous state');
+      await loadSavedDevices();
+      
+      throw error;
+    }
+  }, [devices, saveDevices, loadSavedDevices]);
 
   // Rename device
   const renameDevice = useCallback(async (deviceId: string, newName: string) => {
@@ -860,6 +947,7 @@ export const useDeviceDiscovery = () => {
       console.log(`🚀 Using fast CGI endpoint: ${CGI_ENDPOINT}`);
       console.log(`⏱️  Fast timeout: ${FAST_SCAN_TIMEOUT}ms`);
       console.log(`🔄 High concurrency: ${CONCURRENT_REQUESTS} requests`);
+      console.log(`🌐 Platform: ${Platform.OS}`);
       loadSavedDevices();
     }
   }, [loadSavedDevices]);

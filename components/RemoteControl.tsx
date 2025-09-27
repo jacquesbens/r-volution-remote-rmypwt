@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Alert, ScrollView, TouchableOpacity, Image } from 'react-native';
+import { View, Text, StyleSheet, Alert, ScrollView, TouchableOpacity, Image, Platform } from 'react-native';
 import { useDeviceControl } from '../hooks/useDeviceControl';
 import { useCustomIRCodes } from '../hooks/useCustomIRCodes';
 import { RVolutionDevice } from '../types/Device';
@@ -530,7 +530,10 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
     }
   };
 
+  // AMÉLIORATION: Fonction handleLongPress plus robuste pour tous les environnements
   const handleLongPress = (buttonName: string, buttonKey: string) => {
+    console.log(`📋 Long press detected for ${buttonName} (${buttonKey}) - Environment: ${Platform.OS}`);
+    
     // L'appui long affiche seulement le code IR enregistré
     const irCode = defaultIRCodes[buttonKey as keyof typeof defaultIRCodes];
     if (!irCode) {
@@ -540,11 +543,23 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
     }
     
     console.log(`📋 Displaying IR code for ${buttonName} (${buttonKey}): ${irCode}`);
-    Alert.alert(
-      `Code IR - ${buttonName}`,
-      `Code enregistré: ${irCode}`,
-      [{ text: 'OK' }]
-    );
+    
+    // AMÉLIORATION: Utilisation d'une approche plus robuste pour l'affichage
+    try {
+      Alert.alert(
+        `Code IR - ${buttonName}`,
+        `Code enregistré: ${irCode}`,
+        [{ text: 'OK', style: 'default' }],
+        { 
+          cancelable: true,
+          userInterfaceStyle: 'light' // Force le style clair pour une meilleure compatibilité
+        }
+      );
+    } catch (alertError) {
+      console.log(`❌ Alert failed, using fallback:`, alertError);
+      // Fallback: log dans la console si Alert échoue
+      console.log(`📋 IR Code for ${buttonName}: ${irCode}`);
+    }
   };
 
   const handlePlayPause = () => {
@@ -571,6 +586,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
     </View>
   );
 
+  // AMÉLIORATION: CustomButton plus robuste avec meilleure gestion des événements
   const CustomButton: React.FC<{
     onPress: () => void;
     onLongPress: () => void;
@@ -581,19 +597,49 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
   }> = ({ onPress, onLongPress, children, style, textStyle, buttonKey }) => {
     const [pressed, setPressed] = useState(false);
     
+    // AMÉLIORATION: Gestion plus robuste des événements tactiles
+    const handlePressIn = () => {
+      console.log(`🔘 Press in: ${buttonKey}`);
+      setPressed(true);
+    };
+    
+    const handlePressOut = () => {
+      console.log(`🔘 Press out: ${buttonKey}`);
+      setPressed(false);
+    };
+    
+    const handlePress = () => {
+      console.log(`🔘 Press: ${buttonKey}`);
+      try {
+        onPress();
+      } catch (error) {
+        console.log(`❌ Press handler failed for ${buttonKey}:`, error);
+      }
+    };
+    
+    const handleLongPressEvent = () => {
+      console.log(`🔘 Long press: ${buttonKey} - Environment: ${Platform.OS}`);
+      try {
+        onLongPress();
+      } catch (error) {
+        console.log(`❌ Long press handler failed for ${buttonKey}:`, error);
+      }
+    };
+    
     return (
       <TouchableOpacity
-        onPress={onPress}
-        onLongPress={onLongPress}
-        onPressIn={() => setPressed(true)}
-        onPressOut={() => setPressed(false)}
+        onPress={handlePress}
+        onLongPress={handleLongPressEvent}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
         style={[
           styles.modernButton,
           pressed && styles.modernButtonPressed,
           style,
         ]}
         activeOpacity={0.8}
-        delayLongPress={800}
+        delayLongPress={Platform.OS === 'web' ? 1000 : 800} // AMÉLIORATION: Délai adapté selon la plateforme
+        disabled={isLoading} // AMÉLIORATION: Désactiver pendant le chargement
       >
         {typeof children === 'string' ? (
           <Text style={[

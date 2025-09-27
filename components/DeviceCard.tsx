@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, Platform } from 'react-native';
 import { RVolutionDevice } from '../types/Device';
 import { colors, commonStyles } from '../styles/commonStyles';
 import Icon from './Icon';
@@ -23,7 +23,7 @@ const DeviceCard: React.FC<DeviceCardProps> = ({ device, onPress, onRemove, onEd
   const handleTestConnection = async () => {
     if (!onTest || isTesting) return;
     
-    console.log(`🧪 Testing device: ${device.name} (${device.ip}:${device.port})`);
+    console.log(`🧪 Testing device: ${device.name} (${device.ip}:${device.port}) - Platform: ${Platform.OS}`);
     setIsTesting(true);
     
     try {
@@ -81,11 +81,98 @@ const DeviceCard: React.FC<DeviceCardProps> = ({ device, onPress, onRemove, onEd
     return false;
   };
 
+  // AMÉLIORATION: Fonction de suppression plus robuste pour tous les environnements
+  const handleRemoveDevice = () => {
+    console.log(`🗑️  Remove device requested: ${device.name} (Platform: ${Platform.OS})`);
+    
+    try {
+      Alert.alert(
+        'Supprimer l\'appareil',
+        `Êtes-vous sûr de vouloir supprimer "${device.name}" ?`,
+        [
+          { 
+            text: 'Annuler', 
+            style: 'cancel',
+            onPress: () => console.log('❌ Device removal cancelled')
+          },
+          { 
+            text: 'Supprimer', 
+            style: 'destructive', 
+            onPress: () => {
+              console.log(`🗑️  Confirming removal of device: ${device.name}`);
+              try {
+                onRemove();
+              } catch (error) {
+                console.log(`❌ Error in onRemove callback:`, error);
+                // Fallback: show error to user
+                Alert.alert(
+                  'Erreur',
+                  'Impossible de supprimer l\'appareil. Veuillez réessayer.',
+                  [{ text: 'OK' }]
+                );
+              }
+            }
+          },
+        ],
+        { 
+          cancelable: true,
+          userInterfaceStyle: 'light' // Force le style clair pour une meilleure compatibilité
+        }
+      );
+    } catch (alertError) {
+      console.log(`❌ Alert failed for device removal:`, alertError);
+      // Fallback: direct removal without confirmation
+      console.log(`🗑️  Fallback: Direct removal of device: ${device.name}`);
+      try {
+        onRemove();
+      } catch (error) {
+        console.log(`❌ Fallback removal also failed:`, error);
+      }
+    }
+  };
+
+  // AMÉLIORATION: Fonction d'information plus robuste
+  const handleShowInfo = () => {
+    console.log(`ℹ️  Show info requested: ${device.name} (Platform: ${Platform.OS})`);
+    
+    const lastSeenText = isValidLastSeen(device.lastSeen) 
+      ? formatLastSeen(device.lastSeen instanceof Date ? device.lastSeen : new Date(device.lastSeen))
+      : 'Jamais';
+      
+    const infoMessage = `Nom: ${device.name}\n` +
+      `Adresse: ${device.ip}:${device.port}\n` +
+      `Type: ${device.isManuallyAdded ? 'Ajout manuel' : 'Découverte automatique'}\n` +
+      `Dernière connexion: ${lastSeenText}`;
+    
+    try {
+      Alert.alert(
+        'Informations de l\'appareil',
+        infoMessage,
+        [{ text: 'OK', style: 'default' }],
+        { 
+          cancelable: true,
+          userInterfaceStyle: 'light'
+        }
+      );
+    } catch (alertError) {
+      console.log(`❌ Info alert failed:`, alertError);
+      // Fallback: log info to console
+      console.log(`ℹ️  Device Info for ${device.name}:`, infoMessage);
+    }
+  };
+
   return (
     <View style={styles.card}>
       <TouchableOpacity
         style={styles.cardContent}
-        onPress={onPress}
+        onPress={() => {
+          console.log(`📱 Device card pressed: ${device.name}`);
+          try {
+            onPress();
+          } catch (error) {
+            console.log(`❌ Error in onPress callback:`, error);
+          }
+        }}
         activeOpacity={0.7}
       >
         <View style={styles.header}>
@@ -125,20 +212,7 @@ const DeviceCard: React.FC<DeviceCardProps> = ({ device, onPress, onRemove, onEd
       <View style={styles.actions}>
         <TouchableOpacity
           style={styles.actionButton}
-          onPress={() => {
-            const lastSeenText = isValidLastSeen(device.lastSeen) 
-              ? formatLastSeen(device.lastSeen instanceof Date ? device.lastSeen : new Date(device.lastSeen))
-              : 'Jamais';
-              
-            Alert.alert(
-              'Informations de l\'appareil',
-              `Nom: ${device.name}\n` +
-              `Adresse: ${device.ip}:${device.port}\n` +
-              `Type: ${device.isManuallyAdded ? 'Ajout manuel' : 'Découverte automatique'}\n` +
-              `Dernière connexion: ${lastSeenText}`,
-              [{ text: 'OK' }]
-            );
-          }}
+          onPress={handleShowInfo}
         >
           <Icon name="information-circle" size={16} color={colors.grey} />
         </TouchableOpacity>
@@ -146,7 +220,14 @@ const DeviceCard: React.FC<DeviceCardProps> = ({ device, onPress, onRemove, onEd
         {onEdit && (
           <TouchableOpacity
             style={[styles.actionButton, styles.editButton]}
-            onPress={onEdit}
+            onPress={() => {
+              console.log(`✏️  Edit device pressed: ${device.name}`);
+              try {
+                onEdit();
+              } catch (error) {
+                console.log(`❌ Error in onEdit callback:`, error);
+              }
+            }}
           >
             <Icon name="create-outline" size={16} color="#FFFFFF" />
           </TouchableOpacity>
@@ -154,16 +235,7 @@ const DeviceCard: React.FC<DeviceCardProps> = ({ device, onPress, onRemove, onEd
 
         <TouchableOpacity
           style={[styles.actionButton, styles.removeButton]}
-          onPress={() => {
-            Alert.alert(
-              'Supprimer l\'appareil',
-              `Êtes-vous sûr de vouloir supprimer "${device.name}" ?`,
-              [
-                { text: 'Annuler', style: 'cancel' },
-                { text: 'Supprimer', style: 'destructive', onPress: onRemove },
-              ]
-            );
-          }}
+          onPress={handleRemoveDevice}
         >
           <Icon name="trash" size={16} color="#F44336" />
         </TouchableOpacity>
