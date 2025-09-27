@@ -467,7 +467,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
   // Check if running on emulator - Constants.isDevice is false on emulator/simulator
   const isEmulator = !Constants.isDevice;
 
-  // Default IR codes
+  // Default IR codes - CODES CORRIGÉS ET COHÉRENTS
   const defaultIRCodes = {
     // Basic functions
     '3D': 'ED124040',
@@ -533,10 +533,16 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
   const handleCommand = async (commandName: string, buttonKey: string) => {
     try {
       const defaultCode = defaultIRCodes[buttonKey as keyof typeof defaultIRCodes];
+      if (!defaultCode) {
+        console.log(`❌ No default code found for button: ${buttonKey}`);
+        Alert.alert('Erreur', `Code IR non trouvé pour le bouton ${buttonKey}`);
+        return;
+      }
+      
       const irCode = getIRCode(buttonKey, defaultCode);
       
       setLastCommand(commandName);
-      console.log(`🎮 Executing ${commandName} command on ${device.name} with code: ${irCode}`);
+      console.log(`🎮 Executing ${commandName} command on ${device.name} with code: ${irCode} (button: ${buttonKey})`);
       await sendIRCommand(device, irCode);
       console.log(`✅ ${commandName} command executed successfully`);
     } catch (error) {
@@ -562,6 +568,12 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
     }
 
     const defaultCode = defaultIRCodes[buttonKey as keyof typeof defaultIRCodes];
+    if (!defaultCode) {
+      console.log(`❌ No default code found for button: ${buttonKey}`);
+      Alert.alert('Erreur', `Code IR par défaut non trouvé pour le bouton ${buttonKey}`);
+      return;
+    }
+    
     const currentCode = getIRCode(buttonKey, defaultCode);
     
     console.log(`🔧 Opening IR code editor for ${buttonName} (${buttonKey})`);
@@ -579,6 +591,9 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
       // CORRECTION: Utiliser la clé du bouton au lieu du nom
       await updateIRCode(editingButton.key, newCode);
       console.log(`💾 Updated IR code for ${editingButton.name} (${editingButton.key}): ${newCode}`);
+      
+      // Update the editing button state to reflect the new code
+      setEditingButton(prev => prev ? { ...prev, currentCode: newCode } : null);
     }
   };
 
@@ -587,6 +602,9 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
       // CORRECTION: Utiliser la clé du bouton au lieu du nom
       await removeCustomCode(editingButton.key);
       console.log(`🔄 Reset IR code for ${editingButton.name} (${editingButton.key}) to default`);
+      
+      // Update the editing button state to reflect the default code
+      setEditingButton(prev => prev ? { ...prev, currentCode: prev.defaultCode } : null);
     }
   };
 
