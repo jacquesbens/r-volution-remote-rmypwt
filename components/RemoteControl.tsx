@@ -5,7 +5,6 @@ import { useDeviceControl } from '../hooks/useDeviceControl';
 import { useCustomIRCodes } from '../hooks/useCustomIRCodes';
 import { RVolutionDevice } from '../types/Device';
 import Icon from './Icon';
-import IRCodeEditModal from './IRCodeEditModal';
 import { colors } from '../styles/commonStyles';
 import Constants from 'expo-constants';
 
@@ -76,17 +75,6 @@ const styles = StyleSheet.create({
   
   modernButtonTextPressed: {
     color: '#fff',
-  },
-
-  // Custom code indicator
-  customIndicator: {
-    position: 'absolute',
-    top: 2,
-    right: 2,
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: colors.primary,
   },
   
   // STANDARD BUTTON DIMENSIONS - TOUS LES BOUTONS PRINCIPAUX UTILISENT CES DIMENSIONS (HAUTEUR DE RÉFÉRENCE: 50px)
@@ -453,21 +441,10 @@ const styles = StyleSheet.create({
 
 const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
   const { isLoading, sendIRCommand } = useDeviceControl();
-  const { getIRCode, updateIRCode, hasCustomCode, removeCustomCode } = useCustomIRCodes(device.id);
   const [lastCommand, setLastCommand] = useState<string>('');
   const [isPlaying, setIsPlaying] = useState(false);
-  const [editModalVisible, setEditModalVisible] = useState(false);
-  const [editingButton, setEditingButton] = useState<{
-    name: string;
-    key: string;
-    currentCode: string;
-    defaultCode: string;
-  } | null>(null);
 
-  // Check if running on emulator - Constants.isDevice is false on emulator/simulator
-  const isEmulator = !Constants.isDevice;
-
-  // Default IR codes - CODES CORRIGÉS ET COHÉRENTS
+  // Default IR codes - CODES DÉFINIS DIRECTEMENT DANS LE CODE
   const defaultIRCodes = {
     // Basic functions
     '3D': 'ED124040',
@@ -532,14 +509,12 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
 
   const handleCommand = async (commandName: string, buttonKey: string) => {
     try {
-      const defaultCode = defaultIRCodes[buttonKey as keyof typeof defaultIRCodes];
-      if (!defaultCode) {
-        console.log(`❌ No default code found for button: ${buttonKey}`);
+      const irCode = defaultIRCodes[buttonKey as keyof typeof defaultIRCodes];
+      if (!irCode) {
+        console.log(`❌ No IR code found for button: ${buttonKey}`);
         Alert.alert('Erreur', `Code IR non trouvé pour le bouton ${buttonKey}`);
         return;
       }
-      
-      const irCode = getIRCode(buttonKey, defaultCode);
       
       setLastCommand(commandName);
       console.log(`🎮 Executing ${commandName} command on ${device.name} with code: ${irCode} (button: ${buttonKey})`);
@@ -556,56 +531,20 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
   };
 
   const handleLongPress = (buttonName: string, buttonKey: string) => {
-    // Only allow IR code editing on emulator
-    if (!isEmulator) {
-      console.log('🚫 IR code editing is only available on emulator');
-      Alert.alert(
-        'Fonction non disponible',
-        'La modification des codes IR n\'est disponible que sur l\'émulateur pour des raisons de sécurité.',
-        [{ text: 'OK' }]
-      );
-      return;
-    }
-
-    const defaultCode = defaultIRCodes[buttonKey as keyof typeof defaultIRCodes];
-    if (!defaultCode) {
-      console.log(`❌ No default code found for button: ${buttonKey}`);
-      Alert.alert('Erreur', `Code IR par défaut non trouvé pour le bouton ${buttonKey}`);
+    // L'appui long affiche seulement le code IR enregistré
+    const irCode = defaultIRCodes[buttonKey as keyof typeof defaultIRCodes];
+    if (!irCode) {
+      console.log(`❌ No IR code found for button: ${buttonKey}`);
+      Alert.alert('Erreur', `Code IR non trouvé pour le bouton ${buttonKey}`);
       return;
     }
     
-    const currentCode = getIRCode(buttonKey, defaultCode);
-    
-    console.log(`🔧 Opening IR code editor for ${buttonName} (${buttonKey})`);
-    setEditingButton({
-      name: buttonName,
-      key: buttonKey, // CORRECTION: Stocker la clé du bouton
-      currentCode,
-      defaultCode,
-    });
-    setEditModalVisible(true);
-  };
-
-  const handleSaveIRCode = async (newCode: string) => {
-    if (editingButton) {
-      // CORRECTION: Utiliser la clé du bouton au lieu du nom
-      await updateIRCode(editingButton.key, newCode);
-      console.log(`💾 Updated IR code for ${editingButton.name} (${editingButton.key}): ${newCode}`);
-      
-      // Update the editing button state to reflect the new code
-      setEditingButton(prev => prev ? { ...prev, currentCode: newCode } : null);
-    }
-  };
-
-  const handleResetToDefault = async () => {
-    if (editingButton) {
-      // CORRECTION: Utiliser la clé du bouton au lieu du nom
-      await removeCustomCode(editingButton.key);
-      console.log(`🔄 Reset IR code for ${editingButton.name} (${editingButton.key}) to default`);
-      
-      // Update the editing button state to reflect the default code
-      setEditingButton(prev => prev ? { ...prev, currentCode: prev.defaultCode } : null);
-    }
+    console.log(`📋 Displaying IR code for ${buttonName} (${buttonKey}): ${irCode}`);
+    Alert.alert(
+      `Code IR - ${buttonName}`,
+      `Code enregistré: ${irCode}`,
+      [{ text: 'OK' }]
+    );
   };
 
   const handlePlayPause = () => {
@@ -641,12 +580,11 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
     buttonKey: string;
   }> = ({ onPress, onLongPress, children, style, textStyle, buttonKey }) => {
     const [pressed, setPressed] = useState(false);
-    const isCustom = hasCustomCode(buttonKey);
     
     return (
       <TouchableOpacity
         onPress={onPress}
-        onLongPress={isEmulator ? onLongPress : undefined} // Only enable long press on emulator
+        onLongPress={onLongPress}
         onPressIn={() => setPressed(true)}
         onPressOut={() => setPressed(false)}
         style={[
@@ -657,7 +595,6 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
         activeOpacity={0.8}
         delayLongPress={800}
       >
-        {isCustom && isEmulator && <View style={styles.customIndicator} />}
         {typeof children === 'string' ? (
           <Text style={[
             styles.modernButtonText,
@@ -1203,22 +1140,6 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
           </View>
         )}
       </ScrollView>
-
-      {/* IR Code Edit Modal - Only show on emulator */}
-      {isEmulator && (
-        <IRCodeEditModal
-          visible={editModalVisible}
-          buttonName={editingButton?.name || ''}
-          currentCode={editingButton?.currentCode || ''}
-          onClose={() => {
-            setEditModalVisible(false);
-            setEditingButton(null);
-          }}
-          onSave={handleSaveIRCode}
-          onResetToDefault={editingButton?.currentCode !== editingButton?.defaultCode ? handleResetToDefault : undefined}
-          hasCustomCode={editingButton ? hasCustomCode(editingButton.key) : false}
-        />
-      )}
     </View>
   );
 };
