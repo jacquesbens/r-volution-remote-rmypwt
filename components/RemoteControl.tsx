@@ -25,33 +25,6 @@ const styles = StyleSheet.create({
     paddingBottom: 10,
   },
   
-  // Device name header
-  deviceHeader: {
-    alignItems: 'center',
-    marginBottom: 20,
-    paddingVertical: 12,
-    backgroundColor: colors.surface,
-    borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  
-  deviceName: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: colors.text,
-    textAlign: 'center',
-  },
-  
-  deviceInfo: {
-    fontSize: 12,
-    color: colors.textSecondary,
-    marginTop: 4,
-  },
-  
   // Section headers
   sectionHeader: {
     color: colors.textSecondary,
@@ -626,15 +599,6 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
   return (
     <View style={styles.container}>
       <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
-        {/* Device Name Header */}
-        <View style={styles.deviceHeader}>
-          <Text style={styles.deviceName}>{device.name}</Text>
-          <Text style={styles.deviceInfo}>
-            {device.ip}:{device.port} • {device.isOnline ? 'En ligne' : 'Hors ligne'}
-            {isEmulator && ' • Mode émulateur'}
-          </Text>
-        </View>
-
         {/* Power Controls - UTILISE standardButton */}
         <View style={styles.powerSection}>
           <CustomButton
