@@ -22,7 +22,7 @@ const DeviceCard: React.FC<DeviceCardProps> = ({ device, onPress, onRemove, onEd
     timestamp: Date;
   } | null>(null);
 
-  // Utiliser les hooks personnalisés pour les alertes et confirmations
+  // CORRECTION: Utiliser correctement les hooks personnalisés
   const { showAlert } = useNativeAlert();
   const { showConfirm } = useNativeConfirm();
 
@@ -87,7 +87,7 @@ const DeviceCard: React.FC<DeviceCardProps> = ({ device, onPress, onRemove, onEd
     return false;
   };
 
-  // CORRECTION: Fonction de suppression utilisant le hook personnalisé
+  // CORRECTION: Fonction de suppression utilisant correctement le hook personnalisé
   const handleRemoveDevice = React.useCallback(() => {
     console.log(`🗑️  Remove device requested: ${device.name} (Platform: ${Platform.OS})`);
     
@@ -110,7 +110,7 @@ const DeviceCard: React.FC<DeviceCardProps> = ({ device, onPress, onRemove, onEd
       }
     };
 
-    // Utiliser le hook personnalisé pour la confirmation
+    // CORRECTION: Utiliser correctement le hook personnalisé pour la confirmation
     showConfirm(
       'Supprimer l\'appareil',
       `Êtes-vous sûr de vouloir supprimer "${device.name}" ?`,
@@ -121,7 +121,7 @@ const DeviceCard: React.FC<DeviceCardProps> = ({ device, onPress, onRemove, onEd
     );
   }, [device.name, onRemove, showConfirm]);
 
-  // CORRECTION: Fonction d'information utilisant le hook personnalisé
+  // CORRECTION: Fonction d'information utilisant correctement le hook personnalisé
   const handleShowInfo = React.useCallback(() => {
     console.log(`ℹ️  Show info requested: ${device.name} (Platform: ${Platform.OS})`);
     
@@ -134,7 +134,7 @@ const DeviceCard: React.FC<DeviceCardProps> = ({ device, onPress, onRemove, onEd
       `Type: ${device.isManuallyAdded ? 'Ajout manuel' : 'Découverte automatique'}\n` +
       `Dernière connexion: ${lastSeenText}`;
     
-    // Utiliser le hook personnalisé pour l'alerte
+    // CORRECTION: Utiliser correctement le hook personnalisé pour l'alerte
     showAlert('Informations de l\'appareil', infoMessage);
   }, [device.name, device.ip, device.port, device.isManuallyAdded, device.lastSeen, showAlert]);
 

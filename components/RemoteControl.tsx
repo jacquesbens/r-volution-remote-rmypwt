@@ -445,22 +445,22 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
   const [lastCommand, setLastCommand] = useState<string>('');
   const [isPlaying, setIsPlaying] = useState(false);
 
-  // Utiliser le hook personnalisé pour les alertes
+  // CORRECTION: Utiliser correctement le hook personnalisé pour les alertes
   const { showAlert } = useNativeAlert();
 
-  // Default IR codes - CODES DÉFINIS DIRECTEMENT DANS LE CODE
+  // Default IR codes - CODES INTÉGRÉS DEPUIS L'IMAGE FOURNIE
   const defaultIRCodes = {
-    // Basic functions
+    // Basic functions - CODES INTÉGRÉS DEPUIS L'IMAGE
     '3D': 'ED124040',
     'Audio': 'E6194040',
-    'CursorDown': 'F6094040',
-    'CursorEnter': 'F2004040',
-    'CursorLeft': 'F5084040',
-    'CursorRight': 'F4084040',
-    'CursorUp': 'F7084040',
-    'Delete': 'F3064040',
+    'CursorDown': 'F10E4040',
+    'CursorEnter': 'F20D4040',
+    'CursorLeft': 'EF104040',
+    'CursorRight': 'EE114040',
+    'CursorUp': 'F40B4040',
+    'Delete': 'F30C4040',
     
-    // Digits
+    // Digits - CODES INTÉGRÉS DEPUIS L'IMAGE
     'Digit0': 'FF004040',
     'Digit1': 'FE014040',
     'Digit2': 'FD024040',
@@ -472,7 +472,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
     'Digit8': 'F7084040',
     'Digit9': 'F6094040',
     
-    // Functions
+    // Functions - CODES EXISTANTS CONSERVÉS
     'Dimmer': 'AA554040',
     'Explorer': 'A1144040',
     'FormatScroll': 'A0154040',
@@ -533,7 +533,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
     }
   };
 
-  // CORRECTION: Fonction handleLongPress utilisant le hook personnalisé
+  // CORRECTION: Fonction handleLongPress utilisant correctement le hook personnalisé
   const handleLongPress = React.useCallback((buttonName: string, buttonKey: string) => {
     console.log(`📋 Long press detected for ${buttonName} (${buttonKey}) - Environment: ${Platform.OS}`);
     
@@ -547,7 +547,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
     
     console.log(`📋 Displaying IR code for ${buttonName} (${buttonKey}): ${irCode}`);
     
-    // Utiliser le hook personnalisé pour afficher le code IR
+    // CORRECTION: Utiliser correctement le hook personnalisé pour afficher le code IR
     showAlert(`Code IR - ${buttonName}`, `Code enregistré: ${irCode}`);
   }, [showAlert]);
 
