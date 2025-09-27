@@ -349,8 +349,8 @@ const styles = StyleSheet.create({
   },
   
   navigationContainer: {
-    width: 240,  // Increased from 180
-    height: 240, // Increased from 180
+    width: 300,  // Increased from 240 to 300
+    height: 300, // Increased from 240 to 300
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
@@ -361,8 +361,8 @@ const styles = StyleSheet.create({
     position: 'absolute',
     backgroundColor: colors.primary,  // Changed from colors.surface to colors.primary
     borderRadius: 10,                 // Changed from 20 to 10 to match Explorer button
-    width: 64,                        // Increased from 48
-    height: 64,                       // Increased from 48
+    width: 80,                        // Increased from 64 to 80
+    height: 80,                       // Increased from 64 to 80
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
@@ -381,9 +381,9 @@ const styles = StyleSheet.create({
   
   okButton: {
     backgroundColor: colors.primary,
-    borderRadius: 28,  // Increased from 20
-    width: 96,         // Increased from 72
-    height: 96,        // Increased from 72
+    borderRadius: 35,  // Increased from 28 to 35
+    width: 120,        // Increased from 96 to 120
+    height: 120,       // Increased from 96 to 120
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
@@ -395,7 +395,7 @@ const styles = StyleSheet.create({
   
   okText: {
     color: '#fff',
-    fontSize: 20,      // Increased from 16
+    fontSize: 24,      // Increased from 20 to 24
     fontWeight: '700',
   },
 
@@ -441,15 +441,15 @@ const styles = StyleSheet.create({
   numberRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 12,
+    marginBottom: 16, // Increased from 12 to 16 for better spacing
     paddingHorizontal: 12, // Adjusted for inner alignment
   },
   
   numberButton: {
     backgroundColor: colors.primary,
-    borderRadius: 10,
-    width: 64,
-    height: 56,
+    borderRadius: 12, // Increased from 10 to 12
+    width: 80,        // Increased from 64 to 80
+    height: 72,       // Increased from 56 to 72
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
@@ -463,7 +463,7 @@ const styles = StyleSheet.create({
   
   numberText: {
     color: '#fff',
-    fontSize: 18,
+    fontSize: 22,     // Increased from 18 to 22
     fontWeight: '700',
   },
 
@@ -962,14 +962,14 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
               onPress={() => handleCommand('Cursor Up', irCodes.CursorUp)}
               style={[styles.navButton, styles.navButtonUp]}
             >
-              <Icon name="chevron-up" size={24} color="#fff" />
+              <Icon name="chevron-up" size={28} color="#fff" />
             </ModernButton>
             
             <ModernButton
               onPress={() => handleCommand('Cursor Left', irCodes.CursorLeft)}
               style={[styles.navButton, styles.navButtonLeft]}
             >
-              <Icon name="chevron-back" size={24} color="#fff" />
+              <Icon name="chevron-back" size={28} color="#fff" />
             </ModernButton>
             
             <ModernButton
@@ -983,14 +983,14 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
               onPress={() => handleCommand('Cursor Right', irCodes.CursorRight)}
               style={[styles.navButton, styles.navButtonRight]}
             >
-              <Icon name="chevron-forward" size={24} color="#fff" />
+              <Icon name="chevron-forward" size={28} color="#fff" />
             </ModernButton>
             
             <ModernButton
               onPress={() => handleCommand('Cursor Down', irCodes.CursorDown)}
               style={[styles.navButton, styles.navButtonDown]}
             >
-              <Icon name="chevron-down" size={24} color="#fff" />
+              <Icon name="chevron-down" size={28} color="#fff" />
             </ModernButton>
           </View>
         </View>
@@ -1065,7 +1065,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
               onPress={() => handleCommand('Delete', irCodes.Delete)}
               style={styles.numberButton}
             >
-              <Icon name="backspace" size={18} color="#fff" />
+              <Icon name="backspace" size={22} color="#fff" />
             </ModernButton>
             <ModernButton
               onPress={() => handleNumber(0)}
@@ -1077,7 +1077,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
               onPress={() => handleCommand('Format Scroll', irCodes.FormatScroll)}
               style={styles.numberButton}
             >
-              <Icon name="refresh" size={18} color="#fff" />
+              <Icon name="refresh" size={22} color="#fff" />
             </ModernButton>
           </View>
         </View>
