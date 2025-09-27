@@ -88,7 +88,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
   },
   
-  // STANDARD BUTTON DIMENSIONS - TOUS LES BOUTONS PRINCIPAUX UTILISENT CES DIMENSIONS
+  // STANDARD BUTTON DIMENSIONS - TOUS LES BOUTONS PRINCIPAUX UTILISENT CES DIMENSIONS (HAUTEUR DE RÉFÉRENCE: 50px)
   standardButton: {
     backgroundColor: colors.primary,
     borderRadius: 10,
@@ -116,11 +116,11 @@ const styles = StyleSheet.create({
     marginTop: 3,
   },
 
-  // SMALL BUTTON DIMENSIONS - POUR LES BOUTONS DE COULEUR ET CONTRÔLES MEDIA
+  // SMALL BUTTON DIMENSIONS - MAINTENANT AVEC LA MÊME HAUTEUR QUE LE BOUTON ON (50px)
   smallButton: {
     backgroundColor: colors.primary,
     borderRadius: 10,
-    paddingVertical: 8,
+    paddingVertical: 12,
     paddingHorizontal: 10,
     alignItems: 'center',
     justifyContent: 'center',
@@ -133,8 +133,8 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     flex: 0.24,
     position: 'relative',
-    minHeight: 44,
-    maxHeight: 44,
+    minHeight: 50,
+    maxHeight: 50,
   },
 
   smallButtonText: {
@@ -172,7 +172,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
 
-  // Media control buttons - TOUS UTILISENT smallButton
+  // Media control buttons - TOUS UTILISENT smallButton AVEC HAUTEUR 50px
   mediaControlsExtended: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -301,7 +301,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
 
-  // Special buttons section
+  // Special buttons section - MAINTENANT AVEC LA MÊME HAUTEUR QUE LE BOUTON ON (50px)
   specialButtonsSection: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -327,6 +327,7 @@ const styles = StyleSheet.create({
     flex: 0.48,
     position: 'relative',
     minHeight: 50,
+    maxHeight: 50,
   },
   
   specialButtonText: {
@@ -336,7 +337,7 @@ const styles = StyleSheet.create({
     marginTop: 3,
   },
   
-  // Color function buttons - TOUS UTILISENT smallButton avec couleurs spéciales
+  // Color function buttons - TOUS UTILISENT smallButton AVEC HAUTEUR 50px avec couleurs spéciales
   redButton: { backgroundColor: '#e53e3e' },
   greenButton: { backgroundColor: '#38a169' },
   yellowButton: { backgroundColor: '#d69e2e' },
@@ -691,7 +692,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
           </CustomButton>
         </View>
 
-        {/* Media Control Buttons - UTILISE smallButton */}
+        {/* Media Control Buttons - UTILISE smallButton AVEC HAUTEUR 50px */}
         <View style={styles.mediaControlsExtended}>
           <CustomButton
             onPress={() => handleCommand('60s Rewind', 'Skip60Rewind')}
@@ -969,7 +970,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
           </View>
         </View>
 
-        {/* Air Video and Explorer Buttons */}
+        {/* Air Video and Explorer Buttons - MAINTENANT AVEC HAUTEUR 50px */}
         <View style={styles.specialButtonsSection}>
           <CustomButton
             onPress={() => handleCommand('Air Video', 'RVideo')}
@@ -1032,7 +1033,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
           </CustomButton>
         </View>
 
-        {/* Color Function Buttons - UTILISE smallButton avec couleurs */}
+        {/* Color Function Buttons - UTILISE smallButton AVEC HAUTEUR 50px avec couleurs */}
         <View style={styles.colorButtonsSection}>
           <CustomButton
             onPress={() => handleCommand('Function Red', 'FunctionRed')}
