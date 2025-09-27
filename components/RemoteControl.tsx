@@ -459,6 +459,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [editingButton, setEditingButton] = useState<{
     name: string;
+    key: string;
     currentCode: string;
     defaultCode: string;
   } | null>(null);
@@ -566,6 +567,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
     console.log(`🔧 Opening IR code editor for ${buttonName} (${buttonKey})`);
     setEditingButton({
       name: buttonName,
+      key: buttonKey, // CORRECTION: Stocker la clé du bouton
       currentCode,
       defaultCode,
     });
@@ -574,15 +576,17 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
 
   const handleSaveIRCode = async (newCode: string) => {
     if (editingButton) {
-      await updateIRCode(editingButton.name, newCode);
-      console.log(`💾 Updated IR code for ${editingButton.name}: ${newCode}`);
+      // CORRECTION: Utiliser la clé du bouton au lieu du nom
+      await updateIRCode(editingButton.key, newCode);
+      console.log(`💾 Updated IR code for ${editingButton.name} (${editingButton.key}): ${newCode}`);
     }
   };
 
   const handleResetToDefault = async () => {
     if (editingButton) {
-      await removeCustomCode(editingButton.name);
-      console.log(`🔄 Reset IR code for ${editingButton.name} to default`);
+      // CORRECTION: Utiliser la clé du bouton au lieu du nom
+      await removeCustomCode(editingButton.key);
+      console.log(`🔄 Reset IR code for ${editingButton.name} (${editingButton.key}) to default`);
     }
   };
 
@@ -1194,7 +1198,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
           }}
           onSave={handleSaveIRCode}
           onResetToDefault={editingButton?.currentCode !== editingButton?.defaultCode ? handleResetToDefault : undefined}
-          hasCustomCode={editingButton ? hasCustomCode(editingButton.name) : false}
+          hasCustomCode={editingButton ? hasCustomCode(editingButton.key) : false}
         />
       )}
     </View>
