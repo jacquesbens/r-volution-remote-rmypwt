@@ -88,7 +88,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
   },
   
-  // Power and main controls - ADJUSTED TO MATCH REPEAT BUTTON
+  // Power and main controls - MATCHED TO REPEAT BUTTON DIMENSIONS
   powerSection: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -100,7 +100,7 @@ const styles = StyleSheet.create({
   powerButton: {
     backgroundColor: colors.primary,
     borderRadius: 10,
-    paddingVertical: 10,
+    paddingVertical: 12,
     paddingHorizontal: 14,
     alignItems: 'center',
     justifyContent: 'center',
@@ -113,6 +113,7 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     flex: 0.32,
     position: 'relative',
+    minHeight: 50,
   },
   
   powerButtonText: {
@@ -125,7 +126,7 @@ const styles = StyleSheet.create({
   offButton: {
     backgroundColor: colors.primary,
     borderRadius: 10,
-    paddingVertical: 10,
+    paddingVertical: 12,
     paddingHorizontal: 14,
     alignItems: 'center',
     justifyContent: 'center',
@@ -138,6 +139,7 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     flex: 0.32,
     position: 'relative',
+    minHeight: 50,
   },
 
   offButtonText: {
@@ -147,7 +149,7 @@ const styles = StyleSheet.create({
     marginTop: 3,
   },
   
-  // Media controls - ADJUSTED TO MATCH REPEAT BUTTON
+  // Media controls - MATCHED TO REPEAT BUTTON DIMENSIONS
   mediaControls: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -159,7 +161,7 @@ const styles = StyleSheet.create({
   channelButton: {
     backgroundColor: colors.primary,
     borderRadius: 10,
-    paddingVertical: 10,
+    paddingVertical: 12,
     paddingHorizontal: 14,
     alignItems: 'center',
     justifyContent: 'center',
@@ -172,6 +174,7 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     flex: 0.32,
     position: 'relative',
+    minHeight: 50,
   },
   
   channelButtonText: {
@@ -181,11 +184,11 @@ const styles = StyleSheet.create({
     marginTop: 3,
   },
   
-  // CORRECTION: Le bouton Play doit avoir les mêmes dimensions que le bouton Stop
+  // FIXED: Play button now matches CH- button height
   playButton: {
     backgroundColor: colors.primary,
     borderRadius: 10,
-    paddingVertical: 10,
+    paddingVertical: 12,
     paddingHorizontal: 14,
     alignItems: 'center',
     justifyContent: 'center',
@@ -198,9 +201,10 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     flex: 0.32,
     position: 'relative',
+    minHeight: 50,
   },
 
-  // Page buttons section - ADJUSTED TO MATCH REPEAT BUTTON
+  // Page buttons section - MATCHED TO REPEAT BUTTON DIMENSIONS
   pageButtonsSection: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -212,7 +216,7 @@ const styles = StyleSheet.create({
   pageButton: {
     backgroundColor: colors.primary,
     borderRadius: 10,
-    paddingVertical: 10,
+    paddingVertical: 12,
     paddingHorizontal: 14,
     alignItems: 'center',
     justifyContent: 'center',
@@ -225,6 +229,7 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     flex: 0.32,
     position: 'relative',
+    minHeight: 50,
   },
 
   pageButtonText: {
@@ -237,7 +242,7 @@ const styles = StyleSheet.create({
   stopButton: {
     backgroundColor: colors.primary,
     borderRadius: 10,
-    paddingVertical: 10,
+    paddingVertical: 12,
     paddingHorizontal: 14,
     alignItems: 'center',
     justifyContent: 'center',
@@ -250,6 +255,7 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     flex: 0.32,
     position: 'relative',
+    minHeight: 50,
   },
 
   stopButtonText: {
@@ -294,7 +300,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 
-  // Subtitle and Audio buttons section
+  // Subtitle and Audio buttons section - REFERENCE DIMENSIONS
   subtitleAudioSection: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -306,7 +312,7 @@ const styles = StyleSheet.create({
   subtitleAudioButton: {
     backgroundColor: colors.primary,
     borderRadius: 10,
-    paddingVertical: 10,
+    paddingVertical: 12,
     paddingHorizontal: 14,
     alignItems: 'center',
     justifyContent: 'center',
@@ -319,6 +325,7 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     flex: 0.32,
     position: 'relative',
+    minHeight: 50,
   },
 
   subtitleAudioButtonText: {
@@ -328,10 +335,10 @@ const styles = StyleSheet.create({
     marginTop: 3,
   },
 
-  // CORRECTION: Info, 3D, Zoom buttons section - Le bouton 3D est maintenant correctement centré
+  // FIXED: Info, 3D, Zoom buttons now match Repeat, Subtitle, Audio dimensions
   infoButtonsSection: {
     flexDirection: 'row',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 8,
     marginBottom: 20,
@@ -340,7 +347,7 @@ const styles = StyleSheet.create({
   infoButton: {
     backgroundColor: colors.primary,
     borderRadius: 10,
-    paddingVertical: 10,
+    paddingVertical: 12,
     paddingHorizontal: 14,
     alignItems: 'center',
     justifyContent: 'center',
@@ -353,7 +360,7 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     flex: 0.32,
     position: 'relative',
-    marginHorizontal: 4,
+    minHeight: 50,
   },
 
   infoButtonText: {
@@ -436,7 +443,7 @@ const styles = StyleSheet.create({
   navigationControlButton: {
     backgroundColor: colors.primary,
     borderRadius: 10,
-    paddingVertical: 10,
+    paddingVertical: 12,
     paddingHorizontal: 14,
     alignItems: 'center',
     justifyContent: 'center',
@@ -449,6 +456,7 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     flex: 0.32,
     position: 'relative',
+    minHeight: 50,
   },
 
   navigationControlButtonText: {
@@ -506,7 +514,7 @@ const styles = StyleSheet.create({
   specialButton: {
     backgroundColor: colors.primary,
     borderRadius: 10,
-    paddingVertical: 10,
+    paddingVertical: 12,
     paddingHorizontal: 14,
     alignItems: 'center',
     justifyContent: 'center',
@@ -519,6 +527,7 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     flex: 0.48,
     position: 'relative',
+    minHeight: 50,
   },
   
   specialButtonText: {
@@ -567,7 +576,7 @@ const styles = StyleSheet.create({
   volumeButton: {
     backgroundColor: colors.primary,
     borderRadius: 10,
-    paddingVertical: 10,
+    paddingVertical: 12,
     paddingHorizontal: 14,
     alignItems: 'center',
     justifyContent: 'center',
@@ -580,6 +589,7 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     minWidth: 80,
     position: 'relative',
+    minHeight: 50,
   },
   
   muteButton: {
@@ -995,7 +1005,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
 
         <View style={styles.separator} />
 
-        {/* Info, 3D, Zoom buttons - CORRECTION: Le bouton 3D est maintenant correctement centré */}
+        {/* Info, 3D, Zoom buttons - NOW MATCHING REPEAT BUTTON DIMENSIONS */}
         <View style={styles.infoButtonsSection}>
           <CustomButton
             onPress={() => handleCommand('Info', 'Info')}
