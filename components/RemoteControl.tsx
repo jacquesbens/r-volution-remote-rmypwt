@@ -664,53 +664,6 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
           </CustomButton>
         </View>
 
-        {/* NOUVELLE SECTION: Quatre boutons sur une ligne (Page-, Air Video, Explorer, Page+) */}
-        <View style={styles.fourButtonsSection}>
-          <CustomButton
-            onPress={() => handleCommand('Page Down', 'PageDown')}
-            onLongPress={() => handleLongPress('Page Down', 'PageDown')}
-            style={styles.fourButtonsButton}
-            textStyle={styles.fourButtonsButtonText}
-            buttonKey="PageDown"
-          >
-            <Icon name="arrow-down" size={14} color="#fff" />
-            <Text style={styles.fourButtonsButtonText}>Page -</Text>
-          </CustomButton>
-          
-          <CustomButton
-            onPress={() => handleCommand('Air Video', 'RVideo')}
-            onLongPress={() => handleLongPress('Air Video', 'RVideo')}
-            style={styles.fourButtonsButton}
-            textStyle={styles.fourButtonsButtonText}
-            buttonKey="RVideo"
-          >
-            <Icon name="videocam" size={14} color="#fff" />
-            <Text style={styles.fourButtonsButtonText}>Air Video</Text>
-          </CustomButton>
-          
-          <CustomButton
-            onPress={() => handleCommand('Explorer', 'Explorer')}
-            onLongPress={() => handleLongPress('Explorer', 'Explorer')}
-            style={styles.fourButtonsButton}
-            textStyle={styles.fourButtonsButtonText}
-            buttonKey="Explorer"
-          >
-            <Icon name="folder" size={14} color="#fff" />
-            <Text style={styles.fourButtonsButtonText}>Explorer</Text>
-          </CustomButton>
-          
-          <CustomButton
-            onPress={() => handleCommand('Page Up', 'PageUp')}
-            onLongPress={() => handleLongPress('Page Up', 'PageUp')}
-            style={styles.fourButtonsButton}
-            textStyle={styles.fourButtonsButtonText}
-            buttonKey="PageUp"
-          >
-            <Icon name="arrow-up" size={14} color="#fff" />
-            <Text style={styles.fourButtonsButtonText}>Page +</Text>
-          </CustomButton>
-        </View>
-
         {/* Stop Button - Maintenant seul sur sa ligne */}
         <View style={styles.mediaControls}>
           <View style={{ flex: 0.32 }} />
@@ -1006,6 +959,53 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
         </View>
 
         <View style={styles.separator} />
+
+        {/* NOUVELLE SECTION: Quatre boutons sur une ligne (Page-, Air Video, Explorer, Page+) - MAINTENANT AU-DESSUS DES BOUTONS DE VOLUME */}
+        <View style={styles.fourButtonsSection}>
+          <CustomButton
+            onPress={() => handleCommand('Page Down', 'PageDown')}
+            onLongPress={() => handleLongPress('Page Down', 'PageDown')}
+            style={styles.fourButtonsButton}
+            textStyle={styles.fourButtonsButtonText}
+            buttonKey="PageDown"
+          >
+            <Icon name="arrow-down" size={14} color="#fff" />
+            <Text style={styles.fourButtonsButtonText}>Page -</Text>
+          </CustomButton>
+          
+          <CustomButton
+            onPress={() => handleCommand('Air Video', 'RVideo')}
+            onLongPress={() => handleLongPress('Air Video', 'RVideo')}
+            style={styles.fourButtonsButton}
+            textStyle={styles.fourButtonsButtonText}
+            buttonKey="RVideo"
+          >
+            <Icon name="videocam" size={14} color="#fff" />
+            <Text style={styles.fourButtonsButtonText}>Air Video</Text>
+          </CustomButton>
+          
+          <CustomButton
+            onPress={() => handleCommand('Explorer', 'Explorer')}
+            onLongPress={() => handleLongPress('Explorer', 'Explorer')}
+            style={styles.fourButtonsButton}
+            textStyle={styles.fourButtonsButtonText}
+            buttonKey="Explorer"
+          >
+            <Icon name="folder" size={14} color="#fff" />
+            <Text style={styles.fourButtonsButtonText}>Explorer</Text>
+          </CustomButton>
+          
+          <CustomButton
+            onPress={() => handleCommand('Page Up', 'PageUp')}
+            onLongPress={() => handleLongPress('Page Up', 'PageUp')}
+            style={styles.fourButtonsButton}
+            textStyle={styles.fourButtonsButtonText}
+            buttonKey="PageUp"
+          >
+            <Icon name="arrow-up" size={14} color="#fff" />
+            <Text style={styles.fourButtonsButtonText}>Page +</Text>
+          </CustomButton>
+        </View>
 
         {/* Volume Controls - UTILISE standardButton */}
         <View style={styles.volumeSection}>
