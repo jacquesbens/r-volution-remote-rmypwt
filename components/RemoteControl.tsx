@@ -13,6 +13,15 @@ interface RemoteControlProps {
   device: RVolutionDevice;
 }
 
+interface CustomButtonProps {
+  onPress: () => void;
+  onLongPress: () => void;
+  children: React.ReactNode;
+  style?: any;
+  textStyle?: any;
+  buttonKey: string;
+}
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -533,7 +542,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
     }
   };
 
-  // CORRECTION: Fonction handleLongPress utilisant correctement le hook personnalisé
+  // CORRECTION: Fonction handleLongPress utilisant correctement le hook personnalisé et incluant defaultIRCodes dans les dépendances
   const handleLongPress = React.useCallback((buttonName: string, buttonKey: string) => {
     console.log(`📋 Long press detected for ${buttonName} (${buttonKey}) - Environment: ${Platform.OS}`);
     
@@ -549,7 +558,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
     
     // CORRECTION: Utiliser correctement le hook personnalisé pour afficher le code IR
     showAlert(`Code IR - ${buttonName}`, `Code enregistré: ${irCode}`);
-  }, [showAlert]);
+  }, [showAlert, defaultIRCodes]);
 
   const handlePlayPause = () => {
     handleCommand('Play/Pause', 'PlayPause');
@@ -575,15 +584,8 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
     </View>
   );
 
-  // CORRECTION: CustomButton corrigé avec meilleure gestion des erreurs
-  const CustomButton: React.FC<{
-    onPress: () => void;
-    onLongPress: () => void;
-    children: React.ReactNode;
-    style?: any;
-    textStyle?: any;
-    buttonKey: string;
-  }> = React.memo(({ onPress, onLongPress, children, style, textStyle, buttonKey }) => {
+  // CORRECTION: CustomButton corrigé avec display name et prop types
+  const CustomButton: React.FC<CustomButtonProps> = React.memo(({ onPress, onLongPress, children, style, textStyle, buttonKey }) => {
     const [pressed, setPressed] = useState(false);
     
     // Gestion ultra-robuste des événements tactiles
@@ -654,6 +656,9 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
       </TouchableOpacity>
     );
   });
+
+  // Add display name for CustomButton
+  CustomButton.displayName = 'CustomButton';
 
   return (
     <View style={styles.container}>
@@ -1188,5 +1193,8 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
     </View>
   );
 };
+
+// Add display name for RemoteControl
+RemoteControl.displayName = 'RemoteControl';
 
 export default RemoteControl;

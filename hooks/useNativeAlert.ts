@@ -5,7 +5,7 @@ import { Alert, Platform } from 'react-native';
 export const useNativeAlert = () => {
   const [isShowing, setIsShowing] = useState(false);
 
-  const showAlert = useCallback((title: string, message?: string, buttons?: Array<{text: string, onPress?: () => void, style?: 'default' | 'cancel' | 'destructive'}>) => {
+  const showAlert = useCallback((title: string, message?: string, buttons?: {text: string, onPress?: () => void, style?: 'default' | 'cancel' | 'destructive'}[]) => {
     console.log(`🚨 Alert requested: ${title} - ${message} (Platform: ${Platform.OS})`);
     
     if (isShowing) {
