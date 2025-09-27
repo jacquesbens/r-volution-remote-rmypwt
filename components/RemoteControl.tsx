@@ -306,11 +306,11 @@ const styles = StyleSheet.create({
   },
 
   // Info, 3D, Zoom buttons section - positioned above directional pad
+  // Updated to align Info left like Repeat and Zoom right like Audio
   infoButtonsSection: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: 10,
     marginBottom: 20,
   },
 
@@ -328,7 +328,7 @@ const styles = StyleSheet.create({
     elevation: 2,
     borderWidth: 1,
     borderColor: colors.border,
-    flex: 0.3,
+    flex: 0.32,
   },
 
   infoButtonText: {
@@ -336,6 +336,11 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '600',
     marginTop: 3,
+  },
+
+  // Spacer to push Zoom button to the right
+  infoSpacer: {
+    flex: 0.36,
   },
   
   // Navigation - INCREASED SIZE
@@ -921,7 +926,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
         {/* Separator after repeat, subtitle and audio buttons - IDENTICAL TO REDUCED SEPARATOR */}
         <View style={styles.separator} />
 
-        {/* Info, 3D, Zoom buttons - positioned above directional pad */}
+        {/* Info, 3D, Zoom buttons - positioned above directional pad with proper alignment */}
         <View style={styles.infoButtonsSection}>
           <ModernButton
             onPress={() => handleCommand('Info', irCodes.Info)}
@@ -938,6 +943,8 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
             <Icon name="cube" size={16} color="#fff" />
             <Text style={styles.infoButtonText}>3D</Text>
           </ModernButton>
+          
+          <View style={styles.infoSpacer} />
           
           <ModernButton
             onPress={() => handleCommand('Zoom', irCodes.Zoom)}
