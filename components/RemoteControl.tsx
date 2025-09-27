@@ -184,7 +184,7 @@ const styles = StyleSheet.create({
     marginTop: 3,
   },
   
-  // FIXED: Play button now matches CH- button height
+  // FIXED: Play button now matches Stop button dimensions exactly
   playButton: {
     backgroundColor: colors.primary,
     borderRadius: 10,
@@ -239,6 +239,7 @@ const styles = StyleSheet.create({
     marginTop: 3,
   },
 
+  // FIXED: Stop button matches Play button dimensions exactly
   stopButton: {
     backgroundColor: colors.primary,
     borderRadius: 10,
@@ -265,7 +266,7 @@ const styles = StyleSheet.create({
     marginTop: 3,
   },
 
-  // Media control buttons section
+  // FIXED: Media control buttons (-60, -10, +10, +60) - Reference dimensions for color buttons
   mediaControlsExtended: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -290,6 +291,7 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     flex: 0.24,
     position: 'relative',
+    minHeight: 44,
   },
 
   mediaControlButtonText: {
@@ -431,7 +433,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
 
-  // Home, Menu, Back buttons section
+  // Home, Menu, Back buttons section - REFERENCE DIMENSIONS for volume buttons
   navigationControlsSection: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -537,20 +539,21 @@ const styles = StyleSheet.create({
     marginTop: 3,
   },
   
-  // Color function buttons
+  // FIXED: Color function buttons now match -60 -10 +10 +60 button dimensions
   colorButton: {
-    borderRadius: 8,
+    borderRadius: 10,
     paddingVertical: 8,
-    paddingHorizontal: 16,
+    paddingHorizontal: 10,
     alignItems: 'center',
     justifyContent: 'center',
-    minWidth: 60,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
     elevation: 2,
     position: 'relative',
+    flex: 0.24,
+    minHeight: 44,
   },
   
   redButton: { backgroundColor: '#e53e3e' },
@@ -560,11 +563,13 @@ const styles = StyleSheet.create({
   
   colorButtonText: {
     color: '#fff',
-    fontSize: 10,
-    fontWeight: '700',
+    fontSize: 9,
+    fontWeight: '600',
+    marginTop: 2,
+    textAlign: 'center',
   },
   
-  // Volume controls
+  // FIXED: Volume controls now match Home, Menu, Back button dimensions
   volumeSection: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -587,16 +592,16 @@ const styles = StyleSheet.create({
     elevation: 2,
     borderWidth: 1,
     borderColor: colors.border,
-    minWidth: 80,
+    flex: 0.32,
     position: 'relative',
     minHeight: 50,
   },
   
   muteButton: {
     backgroundColor: '#f56565',
-    borderRadius: 16,
+    borderRadius: 10,
     paddingVertical: 12,
-    paddingHorizontal: 16,
+    paddingHorizontal: 14,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
@@ -604,7 +609,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 4,
     elevation: 3,
+    flex: 0.32,
     position: 'relative',
+    minHeight: 50,
   },
   
   volumeText: {
@@ -1217,7 +1224,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
 
         <View style={styles.separator} />
 
-        {/* Volume Controls */}
+        {/* Volume Controls - NOW MATCHING HOME, MENU, BACK BUTTON DIMENSIONS */}
         <View style={styles.volumeSection}>
           <CustomButton
             onPress={() => handleCommand('Volume Down', 'VolumeDown')}
@@ -1235,7 +1242,8 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
             style={styles.muteButton}
             buttonKey="Mute"
           >
-            <Icon name="volume-mute" size={20} color="#fff" />
+            <Icon name="volume-mute" size={16} color="#fff" />
+            <Text style={styles.volumeText}>Mute</Text>
           </CustomButton>
           
           <CustomButton
@@ -1249,7 +1257,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
           </CustomButton>
         </View>
 
-        {/* Color Function Buttons */}
+        {/* Color Function Buttons - NOW MATCHING -60 -10 +10 +60 BUTTON DIMENSIONS */}
         <View style={styles.colorButtonsSection}>
           <CustomButton
             onPress={() => handleCommand('Function Red', 'FunctionRed')}
