@@ -309,6 +309,7 @@ const styles = StyleSheet.create({
   // Updated to match the exact same size as the Repeat button (subtitleAudioButton)
   infoButtonsSection: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 10,
     marginBottom: 20,
@@ -338,9 +339,9 @@ const styles = StyleSheet.create({
     marginTop: 3,
   },
 
-  // Spacer to push Zoom button to the right
+  // Spacer to push Zoom button to the right - same as in subtitleAudioSection
   infoSpacer: {
-    flex: 0.36,
+    flex: 0.04,
   },
   
   // Navigation - INCREASED SIZE
