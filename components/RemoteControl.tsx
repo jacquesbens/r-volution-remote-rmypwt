@@ -74,7 +74,7 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   
-  // Power and main controls - updated to align On left and Dimmer right like CH buttons
+  // Power and main controls - reference for left/right alignment
   powerSection: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -130,13 +130,13 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   
-  // Media controls - NEW LAYOUT: CH- | Play | CH+
+  // Media controls - aligned with power buttons
   mediaControls: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 20,
-    paddingHorizontal: 8,
+    paddingHorizontal: 8, // Same as powerSection
   },
   
   // Channel buttons (CH- and CH+) - same design as Explorer button
@@ -180,12 +180,12 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
   },
 
-  // Page buttons section - positioned below CH buttons with Stop button on same line as Page-
+  // Page buttons section - aligned with power buttons
   pageButtonsSection: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 8,
+    paddingHorizontal: 8, // Same as powerSection
     marginBottom: 20,
   },
 
@@ -237,12 +237,12 @@ const styles = StyleSheet.create({
     marginTop: 3,
   },
 
-  // New media control buttons section - reordered: -60, -10, +10, +60
+  // New media control buttons section - aligned with power buttons
   mediaControlsExtended: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 10,
+    paddingHorizontal: 8, // Same as powerSection
     marginBottom: 20,
   },
 
@@ -271,13 +271,12 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 
-  // NEW: Subtitle and Audio buttons section - positioned below media controls extended
-  // Updated to include Repeat button on the left of Subtitle
+  // Subtitle and Audio buttons section - aligned with power buttons
   subtitleAudioSection: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 10,
+    paddingHorizontal: 8, // Same as powerSection
     marginBottom: 20,
   },
 
@@ -305,13 +304,12 @@ const styles = StyleSheet.create({
     marginTop: 3,
   },
 
-  // Info, 3D, Zoom buttons section - positioned above directional pad
-  // Updated to match the exact same size as the Repeat button (subtitleAudioButton)
+  // Info, 3D, Zoom buttons section - aligned with power buttons
   infoButtonsSection: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 10,
+    paddingHorizontal: 8, // Same as powerSection
     marginBottom: 20,
   },
 
@@ -344,7 +342,7 @@ const styles = StyleSheet.create({
     flex: 0.04,
   },
   
-  // Navigation - INCREASED SIZE
+  // Navigation - RESTE CENTRÉ (pas d'alignement avec les boutons power)
   navigationSection: {
     alignItems: 'center',
     marginBottom: 20,
@@ -401,13 +399,12 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
 
-  // Home, Menu, Back buttons section - positioned below navigation
-  // Updated to use the same size as the Repeat button (subtitleAudioButton style)
+  // Home, Menu, Back buttons section - aligned with power buttons
   navigationControlsSection: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 10,
+    paddingHorizontal: 8, // Same as powerSection
     marginBottom: 20,
   },
 
@@ -435,16 +432,17 @@ const styles = StyleSheet.create({
     marginTop: 3,
   },
   
-  // Number pad - Updated to use same design as Explorer button
+  // Number pad - aligned with power buttons
   numberPad: {
     marginBottom: 20,
+    paddingHorizontal: 8, // Same as powerSection for alignment
   },
   
   numberRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: 12,
-    paddingHorizontal: 20,
+    paddingHorizontal: 12, // Adjusted for inner alignment
   },
   
   numberButton: {
@@ -469,12 +467,12 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
 
-  // Air Video and Explorer buttons section - NOW POSITIONED BELOW NUMERIC KEYPAD
+  // Air Video and Explorer buttons section - aligned with power buttons
   specialButtonsSection: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: 8, // Same as powerSection
     marginBottom: 20,
   },
   
@@ -528,12 +526,12 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   
-  // Volume controls - moved above special buttons and updated to use Explorer button design
+  // Volume controls - aligned with power buttons
   volumeSection: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: 8, // Same as powerSection
     marginBottom: 20,
   },
   
@@ -575,20 +573,20 @@ const styles = StyleSheet.create({
     marginTop: 3,
   },
 
-  // Color buttons section - positioned below special buttons
+  // Color buttons section - aligned with power buttons
   colorButtonsSection: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: 8, // Same as powerSection
     marginBottom: 10, // Reduced from 20 to 10 - reduces space between color buttons and logo
   },
 
-  // Logo section - positioned below color buttons
+  // Logo section - aligned with power buttons
   logoSection: {
     alignItems: 'center',
     marginBottom: 10, // Reduced from 20 to 10 - reduces space between logo and end of page
-    paddingHorizontal: 20,
+    paddingHorizontal: 8, // Same as powerSection
   },
 
   logo: {
@@ -602,7 +600,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: 8, // Same as powerSection
     marginBottom: 20,
     marginTop: 10,
   },
@@ -780,7 +778,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
   return (
     <View style={styles.container}>
       <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
-        {/* Power Controls - Updated to align On left and Dimmer right like CH buttons */}
+        {/* Power Controls - Reference for left/right alignment */}
         <View style={styles.powerSection}>
           <ModernButton
             onPress={() => handleCommand('Power On', irCodes.PowerOn)}
@@ -810,7 +808,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
         {/* Separator between power section and next section - REDUCED BY HALF */}
         <View style={styles.separator} />
 
-        {/* Media Controls - NEW LAYOUT: CH- | Play | CH+ */}
+        {/* Media Controls - Aligned with power buttons */}
         <View style={styles.mediaControls}>
           <ModernButton
             onPress={() => handleCommand('Channel Down', irCodes.PageDown)}
@@ -836,7 +834,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
           </ModernButton>
         </View>
 
-        {/* Page Buttons Section - positioned below CH buttons with Stop button on same line as Page- */}
+        {/* Page Buttons Section - Aligned with power buttons */}
         <View style={styles.pageButtonsSection}>
           <ModernButton
             onPress={() => handleCommand('Page Down', irCodes.PageDown)}
@@ -863,7 +861,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
           </ModernButton>
         </View>
 
-        {/* New Media Control Buttons - Reordered: -60, -10, +10, +60 */}
+        {/* New Media Control Buttons - Aligned with power buttons */}
         <View style={styles.mediaControlsExtended}>
           <ModernButton
             onPress={() => handleCommand('60s Rewind', irCodes.Skip60Rewind)}
@@ -898,7 +896,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
           </ModernButton>
         </View>
 
-        {/* NEW: Repeat, Subtitle and Audio Buttons Section - Repeat moved to left of Subtitle */}
+        {/* Repeat, Subtitle and Audio Buttons Section - Aligned with power buttons */}
         <View style={styles.subtitleAudioSection}>
           <ModernButton
             onPress={() => handleCommand('Repeat', irCodes.Repeat)}
@@ -928,7 +926,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
         {/* Separator after repeat, subtitle and audio buttons - IDENTICAL TO REDUCED SEPARATOR */}
         <View style={styles.separator} />
 
-        {/* Info, 3D, Zoom buttons - positioned above directional pad with proper alignment */}
+        {/* Info, 3D, Zoom buttons - Aligned with power buttons */}
         <View style={styles.infoButtonsSection}>
           <ModernButton
             onPress={() => handleCommand('Info', irCodes.Info)}
@@ -957,7 +955,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
           </ModernButton>
         </View>
 
-        {/* Navigation */}
+        {/* Navigation - RESTE CENTRÉ (exception au règle d'alignement) */}
         <View style={styles.navigationSection}>
           <View style={styles.navigationContainer}>
             <ModernButton
@@ -997,7 +995,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
           </View>
         </View>
 
-        {/* Home, Menu, Back buttons - positioned below navigation with same size as Repeat button */}
+        {/* Home, Menu, Back buttons - Aligned with power buttons */}
         <View style={styles.navigationControlsSection}>
           <ModernButton
             onPress={() => handleCommand('Home', irCodes.Home)}
@@ -1027,7 +1025,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
         {/* Separator before numeric keypad - IDENTICAL TO REDUCED SEPARATOR */}
         <View style={styles.separator} />
 
-        {/* Number Pad - NOW POSITIONED BELOW HOME, MENU, BACK BUTTONS */}
+        {/* Number Pad - Aligned with power buttons */}
         <View style={styles.numberPad}>
           <View style={styles.numberRow}>
             {[1, 2, 3].map(num => (
@@ -1084,7 +1082,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
           </View>
         </View>
 
-        {/* Air Video and Explorer Buttons - NOW POSITIONED BELOW NUMERIC KEYPAD */}
+        {/* Air Video and Explorer Buttons - Aligned with power buttons */}
         <View style={styles.specialButtonsSection}>
           <ModernButton
             onPress={() => handleCommand('Air Video', irCodes.RVideo)}
@@ -1106,7 +1104,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
         {/* Separator after Air Video and Explorer buttons */}
         <View style={styles.separator} />
 
-        {/* Volume Controls - Now positioned above color buttons with Explorer button design */}
+        {/* Volume Controls - Aligned with power buttons */}
         <View style={styles.volumeSection}>
           <ModernButton
             onPress={() => handleCommand('Volume Down', irCodes.VolumeDown)}
@@ -1132,7 +1130,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
           </ModernButton>
         </View>
 
-        {/* Color Function Buttons - Positioned below Volume */}
+        {/* Color Function Buttons - Aligned with power buttons */}
         <View style={styles.colorButtonsSection}>
           <ModernButton
             onPress={() => handleCommand('Function Red', irCodes.FunctionRed)}
@@ -1163,7 +1161,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
           </ModernButton>
         </View>
 
-        {/* Logo Section - Positioned below color buttons */}
+        {/* Logo Section - Aligned with power buttons */}
         <View style={styles.logoSection}>
           <Image 
             source={require('../assets/images/490033b5-b48d-4f21-bd74-a10b28ac45b8.png')}
