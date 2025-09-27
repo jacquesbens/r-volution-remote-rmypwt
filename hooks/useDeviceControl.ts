@@ -1,6 +1,7 @@
 
 import { useState, useCallback } from 'react';
 import { RVolutionDevice, DeviceCommand } from '../types/Device';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const CGI_ENDPOINT = '/cgi-bin/do?';
 const COMMAND_TIMEOUT = 3000;

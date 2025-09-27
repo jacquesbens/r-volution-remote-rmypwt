@@ -2,8 +2,10 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Alert, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { useDeviceControl } from '../hooks/useDeviceControl';
+import { useCustomIRCodes } from '../hooks/useCustomIRCodes';
 import { RVolutionDevice } from '../types/Device';
 import Icon from './Icon';
+import IRCodeEditModal from './IRCodeEditModal';
 import { colors } from '../styles/commonStyles';
 
 interface RemoteControlProps {
@@ -19,7 +21,7 @@ const styles = StyleSheet.create({
   },
   scrollContainer: {
     flexGrow: 1,
-    paddingBottom: 10, // Reduced from 20 to 10 - reduces space between logo and end of page
+    paddingBottom: 10,
   },
   
   // Section headers
@@ -34,11 +36,11 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   
-  // Separator - reduced by half
+  // Separator
   separator: {
     height: 1,
     backgroundColor: colors.border,
-    marginVertical: 10, // Reduced from 20 to 10 (half)
+    marginVertical: 10,
     marginHorizontal: 20,
   },
   
@@ -57,6 +59,7 @@ const styles = StyleSheet.create({
     elevation: 2,
     borderWidth: 1,
     borderColor: colors.border,
+    position: 'relative',
   },
   
   modernButtonPressed: {
@@ -73,8 +76,19 @@ const styles = StyleSheet.create({
   modernButtonTextPressed: {
     color: '#fff',
   },
+
+  // Custom code indicator
+  customIndicator: {
+    position: 'absolute',
+    top: 2,
+    right: 2,
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: colors.primary,
+  },
   
-  // Power and main controls - reference for left/right alignment
+  // Power and main controls
   powerSection: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -98,6 +112,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     minWidth: 80,
+    position: 'relative',
   },
   
   powerButtonText: {
@@ -121,6 +136,7 @@ const styles = StyleSheet.create({
     elevation: 2,
     borderWidth: 1,
     borderColor: colors.border,
+    position: 'relative',
   },
 
   offButtonText: {
@@ -130,16 +146,15 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   
-  // Media controls - aligned with power buttons
+  // Media controls
   mediaControls: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 20,
-    paddingHorizontal: 8, // Same as powerSection
+    paddingHorizontal: 8,
   },
   
-  // Channel buttons (CH- and CH+) - same design as Explorer button
   channelButton: {
     backgroundColor: colors.primary,
     borderRadius: 10,
@@ -155,6 +170,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     minWidth: 80,
+    position: 'relative',
   },
   
   channelButtonText: {
@@ -178,14 +194,15 @@ const styles = StyleSheet.create({
     elevation: 2,
     borderWidth: 1,
     borderColor: colors.border,
+    position: 'relative',
   },
 
-  // Page buttons section - aligned with power buttons
+  // Page buttons section
   pageButtonsSection: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 8, // Same as powerSection
+    paddingHorizontal: 8,
     marginBottom: 20,
   },
 
@@ -204,6 +221,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     minWidth: 80,
+    position: 'relative',
   },
 
   pageButtonText: {
@@ -228,6 +246,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     minWidth: 80,
+    position: 'relative',
   },
 
   stopButtonText: {
@@ -237,12 +256,12 @@ const styles = StyleSheet.create({
     marginTop: 3,
   },
 
-  // New media control buttons section - aligned with power buttons
+  // Media control buttons section
   mediaControlsExtended: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 8, // Same as powerSection
+    paddingHorizontal: 8,
     marginBottom: 20,
   },
 
@@ -261,6 +280,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     flex: 0.24,
+    position: 'relative',
   },
 
   mediaControlButtonText: {
@@ -271,12 +291,12 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 
-  // Subtitle and Audio buttons section - aligned with power buttons
+  // Subtitle and Audio buttons section
   subtitleAudioSection: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 8, // Same as powerSection
+    paddingHorizontal: 8,
     marginBottom: 20,
   },
 
@@ -295,6 +315,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     flex: 0.32,
+    position: 'relative',
   },
 
   subtitleAudioButtonText: {
@@ -304,12 +325,12 @@ const styles = StyleSheet.create({
     marginTop: 3,
   },
 
-  // Info, 3D, Zoom buttons section - aligned with power buttons
+  // Info, 3D, Zoom buttons section
   infoButtonsSection: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 8, // Same as powerSection
+    paddingHorizontal: 8,
     marginBottom: 20,
   },
 
@@ -328,6 +349,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     flex: 0.32,
+    position: 'relative',
   },
 
   infoButtonText: {
@@ -337,32 +359,30 @@ const styles = StyleSheet.create({
     marginTop: 3,
   },
 
-  // Spacer to push Zoom button to the right - same as in subtitleAudioSection
   infoSpacer: {
     flex: 0.04,
   },
   
-  // Navigation - RESTE CENTRÉ (pas d'alignement avec les boutons power)
+  // Navigation - RESTE CENTRÉ
   navigationSection: {
     alignItems: 'center',
     marginBottom: 20,
   },
   
   navigationContainer: {
-    width: 300,  // Increased from 240 to 300
-    height: 300, // Increased from 240 to 300
+    width: 300,
+    height: 300,
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
   },
   
-  // Updated navigation buttons to use Explorer button design
   navButton: {
     position: 'absolute',
-    backgroundColor: colors.primary,  // Changed from colors.surface to colors.primary
-    borderRadius: 10,                 // Changed from 20 to 10 to match Explorer button
-    width: 80,                        // Increased from 64 to 80
-    height: 80,                       // Increased from 64 to 80
+    backgroundColor: colors.primary,
+    borderRadius: 10,
+    width: 80,
+    height: 80,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
@@ -381,9 +401,9 @@ const styles = StyleSheet.create({
   
   okButton: {
     backgroundColor: colors.primary,
-    borderRadius: 35,  // Increased from 28 to 35
-    width: 120,        // Increased from 96 to 120
-    height: 120,       // Increased from 96 to 120
+    borderRadius: 35,
+    width: 120,
+    height: 120,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
@@ -391,20 +411,21 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 6,
     elevation: 4,
+    position: 'relative',
   },
   
   okText: {
     color: '#fff',
-    fontSize: 24,      // Increased from 20 to 24
+    fontSize: 24,
     fontWeight: '700',
   },
 
-  // Home, Menu, Back buttons section - aligned with power buttons
+  // Home, Menu, Back buttons section
   navigationControlsSection: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 8, // Same as powerSection
+    paddingHorizontal: 8,
     marginBottom: 20,
   },
 
@@ -423,6 +444,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     flex: 0.32,
+    position: 'relative',
   },
 
   navigationControlButtonText: {
@@ -432,24 +454,24 @@ const styles = StyleSheet.create({
     marginTop: 3,
   },
   
-  // Number pad - aligned with power buttons
+  // Number pad
   numberPad: {
     marginBottom: 20,
-    paddingHorizontal: 8, // Same as powerSection for alignment
+    paddingHorizontal: 8,
   },
   
   numberRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 16, // Increased from 12 to 16 for better spacing
-    paddingHorizontal: 12, // Adjusted for inner alignment
+    marginBottom: 16,
+    paddingHorizontal: 12,
   },
   
   numberButton: {
     backgroundColor: colors.primary,
-    borderRadius: 12, // Increased from 10 to 12
-    width: 80,        // Increased from 64 to 80
-    height: 72,       // Increased from 56 to 72
+    borderRadius: 12,
+    width: 80,
+    height: 72,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
@@ -459,28 +481,29 @@ const styles = StyleSheet.create({
     elevation: 2,
     borderWidth: 1,
     borderColor: colors.border,
+    position: 'relative',
   },
   
   numberText: {
     color: '#fff',
-    fontSize: 22,     // Increased from 18 to 22
+    fontSize: 22,
     fontWeight: '700',
   },
 
-  // Air Video and Explorer buttons section - aligned with power buttons
+  // Special buttons section
   specialButtonsSection: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 8, // Same as powerSection
+    paddingHorizontal: 8,
     marginBottom: 20,
   },
   
   specialButton: {
     backgroundColor: colors.primary,
-    borderRadius: 10,        // Reduced from 12
-    paddingVertical: 10,     // Reduced from 16
-    paddingHorizontal: 14,   // Reduced from 20
+    borderRadius: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
@@ -491,13 +514,14 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     flex: 0.48,
+    position: 'relative',
   },
   
   specialButtonText: {
     color: '#fff',
-    fontSize: 11,            // Reduced from 12
+    fontSize: 11,
     fontWeight: '600',
-    marginTop: 3,            // Reduced from 4
+    marginTop: 3,
   },
   
   // Color function buttons
@@ -513,6 +537,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 4,
     elevation: 2,
+    position: 'relative',
   },
   
   redButton: { backgroundColor: '#e53e3e' },
@@ -526,12 +551,12 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   
-  // Volume controls - aligned with power buttons
+  // Volume controls
   volumeSection: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 8, // Same as powerSection
+    paddingHorizontal: 8,
     marginBottom: 20,
   },
   
@@ -550,6 +575,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     minWidth: 80,
+    position: 'relative',
   },
   
   muteButton: {
@@ -564,6 +590,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 4,
     elevation: 3,
+    position: 'relative',
   },
   
   volumeText: {
@@ -573,60 +600,26 @@ const styles = StyleSheet.create({
     marginTop: 3,
   },
 
-  // Color buttons section - aligned with power buttons
+  // Color buttons section
   colorButtonsSection: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 8, // Same as powerSection
-    marginBottom: 10, // Reduced from 20 to 10 - reduces space between color buttons and logo
+    paddingHorizontal: 8,
+    marginBottom: 10,
   },
 
-  // Logo section - aligned with power buttons
+  // Logo section
   logoSection: {
     alignItems: 'center',
-    marginBottom: 10, // Reduced from 20 to 10 - reduces space between logo and end of page
-    paddingHorizontal: 8, // Same as powerSection
+    marginBottom: 10,
+    paddingHorizontal: 8,
   },
 
   logo: {
     width: 120,
     height: 120,
     resizeMode: 'contain',
-  },
-
-  // Bottom buttons section - Removed since Repeat is now with Subtitle/Audio
-  bottomButtonsSection: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 8, // Same as powerSection
-    marginBottom: 20,
-    marginTop: 10,
-  },
-
-  bottomButton: {
-    backgroundColor: colors.primary,
-    borderRadius: 10,
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-    borderWidth: 1,
-    borderColor: colors.border,
-    flex: 0.48,
-  },
-
-  bottomButtonText: {
-    color: '#fff',
-    fontSize: 11,
-    fontWeight: '600',
-    marginTop: 3,
   },
   
   // Loading overlay
@@ -652,11 +645,18 @@ const styles = StyleSheet.create({
 
 const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
   const { isLoading, sendIRCommand } = useDeviceControl();
+  const { getIRCode, updateIRCode, hasCustomCode, removeCustomCode } = useCustomIRCodes(device.id);
   const [lastCommand, setLastCommand] = useState<string>('');
   const [isPlaying, setIsPlaying] = useState(false);
+  const [editModalVisible, setEditModalVisible] = useState(false);
+  const [editingButton, setEditingButton] = useState<{
+    name: string;
+    currentCode: string;
+    defaultCode: string;
+  } | null>(null);
 
-  // All IR codes from the document
-  const irCodes = {
+  // Default IR codes
+  const defaultIRCodes = {
     // Basic functions
     '3D': 'ED124040',
     'Audio': 'E6194040',
@@ -714,10 +714,13 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
     'Skip10Rewind': 'DF204040',
   };
 
-  const handleCommand = async (commandName: string, irCode: string) => {
+  const handleCommand = async (commandName: string, buttonKey: string) => {
     try {
+      const defaultCode = defaultIRCodes[buttonKey as keyof typeof defaultIRCodes];
+      const irCode = getIRCode(buttonKey, defaultCode);
+      
       setLastCommand(commandName);
-      console.log(`🎮 Executing ${commandName} command on ${device.name}`);
+      console.log(`🎮 Executing ${commandName} command on ${device.name} with code: ${irCode}`);
       await sendIRCommand(device, irCode);
       console.log(`✅ ${commandName} command executed successfully`);
     } catch (error) {
@@ -730,27 +733,57 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
     }
   };
 
+  const handleLongPress = (buttonName: string, buttonKey: string) => {
+    const defaultCode = defaultIRCodes[buttonKey as keyof typeof defaultIRCodes];
+    const currentCode = getIRCode(buttonKey, defaultCode);
+    
+    setEditingButton({
+      name: buttonName,
+      currentCode,
+      defaultCode,
+    });
+    setEditModalVisible(true);
+  };
+
+  const handleSaveIRCode = async (newCode: string) => {
+    if (editingButton) {
+      await updateIRCode(editingButton.name, newCode);
+      console.log(`💾 Updated IR code for ${editingButton.name}: ${newCode}`);
+    }
+  };
+
+  const handleResetToDefault = async () => {
+    if (editingButton) {
+      await removeCustomCode(editingButton.name);
+      console.log(`🔄 Reset IR code for ${editingButton.name} to default`);
+    }
+  };
+
   const handlePlayPause = () => {
-    handleCommand('Play/Pause', irCodes.PlayPause);
+    handleCommand('Play/Pause', 'PlayPause');
     setIsPlaying(!isPlaying);
   };
 
   const handleNumber = (num: number) => {
-    const digitKey = `Digit${num}` as keyof typeof irCodes;
-    handleCommand(`Chiffre ${num}`, irCodes[digitKey]);
+    const digitKey = `Digit${num}`;
+    handleCommand(`Chiffre ${num}`, digitKey);
   };
 
-  const ModernButton: React.FC<{
+  const CustomButton: React.FC<{
     onPress: () => void;
+    onLongPress: () => void;
     children: React.ReactNode;
     style?: any;
     textStyle?: any;
-  }> = ({ onPress, children, style, textStyle }) => {
+    buttonKey: string;
+  }> = ({ onPress, onLongPress, children, style, textStyle, buttonKey }) => {
     const [pressed, setPressed] = useState(false);
+    const isCustom = hasCustomCode(buttonKey);
     
     return (
       <TouchableOpacity
         onPress={onPress}
+        onLongPress={onLongPress}
         onPressIn={() => setPressed(true)}
         onPressOut={() => setPressed(false)}
         style={[
@@ -759,7 +792,9 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
           style,
         ]}
         activeOpacity={0.8}
+        delayLongPress={800}
       >
+        {isCustom && <View style={styles.customIndicator} />}
         {typeof children === 'string' ? (
           <Text style={[
             styles.modernButtonText,
@@ -778,390 +813,470 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
   return (
     <View style={styles.container}>
       <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
-        {/* Power Controls - Reference for left/right alignment */}
+        {/* Power Controls */}
         <View style={styles.powerSection}>
-          <ModernButton
-            onPress={() => handleCommand('Power On', irCodes.PowerOn)}
+          <CustomButton
+            onPress={() => handleCommand('Power On', 'PowerOn')}
+            onLongPress={() => handleLongPress('Power On', 'PowerOn')}
             style={styles.powerButton}
+            buttonKey="PowerOn"
           >
             <Icon name="power" size={16} color="#fff" />
             <Text style={styles.powerButtonText}>ON</Text>
-          </ModernButton>
+          </CustomButton>
           
-          <ModernButton
-            onPress={() => handleCommand('Power Off', irCodes.PowerOff)}
+          <CustomButton
+            onPress={() => handleCommand('Power Off', 'PowerOff')}
+            onLongPress={() => handleLongPress('Power Off', 'PowerOff')}
             style={styles.offButton}
+            buttonKey="PowerOff"
           >
             <Icon name="power" size={16} color="#fff" />
             <Text style={styles.offButtonText}>OFF</Text>
-          </ModernButton>
+          </CustomButton>
 
-          <ModernButton
-            onPress={() => handleCommand('Dimmer', irCodes.Dimmer)}
+          <CustomButton
+            onPress={() => handleCommand('Dimmer', 'Dimmer')}
+            onLongPress={() => handleLongPress('Dimmer', 'Dimmer')}
             style={styles.powerButton}
+            buttonKey="Dimmer"
           >
             <Icon name="sunny" size={16} color="#fff" />
             <Text style={styles.powerButtonText}>Dimmer</Text>
-          </ModernButton>
+          </CustomButton>
         </View>
 
-        {/* Separator between power section and next section - REDUCED BY HALF */}
         <View style={styles.separator} />
 
-        {/* Media Controls - Aligned with power buttons */}
+        {/* Media Controls */}
         <View style={styles.mediaControls}>
-          <ModernButton
-            onPress={() => handleCommand('Channel Down', irCodes.PageDown)}
+          <CustomButton
+            onPress={() => handleCommand('Channel Down', 'PageDown')}
+            onLongPress={() => handleLongPress('Channel Down', 'PageDown')}
             style={styles.channelButton}
+            buttonKey="PageDown"
           >
             <Icon name="remove" size={16} color="#fff" />
             <Text style={styles.channelButtonText}>CH -</Text>
-          </ModernButton>
+          </CustomButton>
           
-          <ModernButton
+          <CustomButton
             onPress={handlePlayPause}
+            onLongPress={() => handleLongPress('Play/Pause', 'PlayPause')}
             style={styles.playButton}
+            buttonKey="PlayPause"
           >
             <Icon name={isPlaying ? "pause" : "play"} size={24} color="#fff" />
-          </ModernButton>
+          </CustomButton>
           
-          <ModernButton
-            onPress={() => handleCommand('Channel Up', irCodes.PageUp)}
+          <CustomButton
+            onPress={() => handleCommand('Channel Up', 'PageUp')}
+            onLongPress={() => handleLongPress('Channel Up', 'PageUp')}
             style={styles.channelButton}
+            buttonKey="PageUp"
           >
             <Icon name="add" size={16} color="#fff" />
             <Text style={styles.channelButtonText}>CH +</Text>
-          </ModernButton>
+          </CustomButton>
         </View>
 
-        {/* Page Buttons Section - Aligned with power buttons */}
+        {/* Page Buttons Section */}
         <View style={styles.pageButtonsSection}>
-          <ModernButton
-            onPress={() => handleCommand('Page Down', irCodes.PageDown)}
+          <CustomButton
+            onPress={() => handleCommand('Page Down', 'PageDown')}
+            onLongPress={() => handleLongPress('Page Down', 'PageDown')}
             style={styles.pageButton}
+            buttonKey="PageDown"
           >
             <Icon name="arrow-down" size={16} color="#fff" />
             <Text style={styles.pageButtonText}>Page -</Text>
-          </ModernButton>
+          </CustomButton>
           
-          <ModernButton
-            onPress={() => handleCommand('Stop', irCodes.Stop)}
+          <CustomButton
+            onPress={() => handleCommand('Stop', 'Stop')}
+            onLongPress={() => handleLongPress('Stop', 'Stop')}
             style={styles.stopButton}
+            buttonKey="Stop"
           >
             <Icon name="stop" size={16} color="#fff" />
             <Text style={styles.stopButtonText}>Stop</Text>
-          </ModernButton>
+          </CustomButton>
           
-          <ModernButton
-            onPress={() => handleCommand('Page Up', irCodes.PageUp)}
+          <CustomButton
+            onPress={() => handleCommand('Page Up', 'PageUp')}
+            onLongPress={() => handleLongPress('Page Up', 'PageUp')}
             style={styles.pageButton}
+            buttonKey="PageUp"
           >
             <Icon name="arrow-up" size={16} color="#fff" />
             <Text style={styles.pageButtonText}>Page +</Text>
-          </ModernButton>
+          </CustomButton>
         </View>
 
-        {/* New Media Control Buttons - Aligned with power buttons */}
+        {/* Media Control Buttons */}
         <View style={styles.mediaControlsExtended}>
-          <ModernButton
-            onPress={() => handleCommand('60s Rewind', irCodes.Skip60Rewind)}
+          <CustomButton
+            onPress={() => handleCommand('60s Rewind', 'Skip60Rewind')}
+            onLongPress={() => handleLongPress('60s Rewind', 'Skip60Rewind')}
             style={styles.mediaControlButton}
+            buttonKey="Skip60Rewind"
           >
             <Icon name="play-back" size={12} color="#fff" />
             <Text style={styles.mediaControlButtonText}>-60s</Text>
-          </ModernButton>
+          </CustomButton>
           
-          <ModernButton
-            onPress={() => handleCommand('10s Rewind', irCodes.Skip10Rewind)}
+          <CustomButton
+            onPress={() => handleCommand('10s Rewind', 'Skip10Rewind')}
+            onLongPress={() => handleLongPress('10s Rewind', 'Skip10Rewind')}
             style={styles.mediaControlButton}
+            buttonKey="Skip10Rewind"
           >
             <Icon name="play-back" size={12} color="#fff" />
             <Text style={styles.mediaControlButtonText}>-10s</Text>
-          </ModernButton>
+          </CustomButton>
           
-          <ModernButton
-            onPress={() => handleCommand('10s Forward', irCodes.Skip10Forward)}
+          <CustomButton
+            onPress={() => handleCommand('10s Forward', 'Skip10Forward')}
+            onLongPress={() => handleLongPress('10s Forward', 'Skip10Forward')}
             style={styles.mediaControlButton}
+            buttonKey="Skip10Forward"
           >
             <Icon name="play-forward" size={12} color="#fff" />
             <Text style={styles.mediaControlButtonText}>+10s</Text>
-          </ModernButton>
+          </CustomButton>
           
-          <ModernButton
-            onPress={() => handleCommand('60s Forward', irCodes.Skip60Forward)}
+          <CustomButton
+            onPress={() => handleCommand('60s Forward', 'Skip60Forward')}
+            onLongPress={() => handleLongPress('60s Forward', 'Skip60Forward')}
             style={styles.mediaControlButton}
+            buttonKey="Skip60Forward"
           >
             <Icon name="play-forward" size={12} color="#fff" />
             <Text style={styles.mediaControlButtonText}>+60s</Text>
-          </ModernButton>
+          </CustomButton>
         </View>
 
-        {/* Repeat, Subtitle and Audio Buttons Section - Aligned with power buttons */}
+        {/* Repeat, Subtitle and Audio Buttons */}
         <View style={styles.subtitleAudioSection}>
-          <ModernButton
-            onPress={() => handleCommand('Repeat', irCodes.Repeat)}
+          <CustomButton
+            onPress={() => handleCommand('Repeat', 'Repeat')}
+            onLongPress={() => handleLongPress('Repeat', 'Repeat')}
             style={styles.subtitleAudioButton}
+            buttonKey="Repeat"
           >
             <Icon name="repeat" size={16} color="#fff" />
             <Text style={styles.subtitleAudioButtonText}>Repeat</Text>
-          </ModernButton>
+          </CustomButton>
           
-          <ModernButton
-            onPress={() => handleCommand('Subtitle', irCodes.Subtitle)}
+          <CustomButton
+            onPress={() => handleCommand('Subtitle', 'Subtitle')}
+            onLongPress={() => handleLongPress('Subtitle', 'Subtitle')}
             style={styles.subtitleAudioButton}
+            buttonKey="Subtitle"
           >
             <Icon name="text" size={16} color="#fff" />
             <Text style={styles.subtitleAudioButtonText}>Subtitle</Text>
-          </ModernButton>
+          </CustomButton>
           
-          <ModernButton
-            onPress={() => handleCommand('Audio', irCodes.Audio)}
+          <CustomButton
+            onPress={() => handleCommand('Audio', 'Audio')}
+            onLongPress={() => handleLongPress('Audio', 'Audio')}
             style={styles.subtitleAudioButton}
+            buttonKey="Audio"
           >
             <Icon name="musical-notes" size={16} color="#fff" />
             <Text style={styles.subtitleAudioButtonText}>Audio</Text>
-          </ModernButton>
+          </CustomButton>
         </View>
 
-        {/* Separator after repeat, subtitle and audio buttons - IDENTICAL TO REDUCED SEPARATOR */}
         <View style={styles.separator} />
 
-        {/* Info, 3D, Zoom buttons - Aligned with power buttons */}
+        {/* Info, 3D, Zoom buttons */}
         <View style={styles.infoButtonsSection}>
-          <ModernButton
-            onPress={() => handleCommand('Info', irCodes.Info)}
+          <CustomButton
+            onPress={() => handleCommand('Info', 'Info')}
+            onLongPress={() => handleLongPress('Info', 'Info')}
             style={styles.infoButton}
+            buttonKey="Info"
           >
             <Icon name="information-circle" size={16} color="#fff" />
             <Text style={styles.infoButtonText}>Info</Text>
-          </ModernButton>
+          </CustomButton>
           
-          <ModernButton
-            onPress={() => handleCommand('3D', irCodes['3D'])}
+          <CustomButton
+            onPress={() => handleCommand('3D', '3D')}
+            onLongPress={() => handleLongPress('3D', '3D')}
             style={styles.infoButton}
+            buttonKey="3D"
           >
             <Icon name="cube" size={16} color="#fff" />
             <Text style={styles.infoButtonText}>3D</Text>
-          </ModernButton>
+          </CustomButton>
           
           <View style={styles.infoSpacer} />
           
-          <ModernButton
-            onPress={() => handleCommand('Zoom', irCodes.Zoom)}
+          <CustomButton
+            onPress={() => handleCommand('Zoom', 'Zoom')}
+            onLongPress={() => handleLongPress('Zoom', 'Zoom')}
             style={styles.infoButton}
+            buttonKey="Zoom"
           >
             <Icon name="search" size={16} color="#fff" />
             <Text style={styles.infoButtonText}>Zoom</Text>
-          </ModernButton>
+          </CustomButton>
         </View>
 
-        {/* Navigation - RESTE CENTRÉ (exception au règle d'alignement) */}
+        {/* Navigation - RESTE CENTRÉ */}
         <View style={styles.navigationSection}>
           <View style={styles.navigationContainer}>
-            <ModernButton
-              onPress={() => handleCommand('Cursor Up', irCodes.CursorUp)}
+            <CustomButton
+              onPress={() => handleCommand('Cursor Up', 'CursorUp')}
+              onLongPress={() => handleLongPress('Cursor Up', 'CursorUp')}
               style={[styles.navButton, styles.navButtonUp]}
+              buttonKey="CursorUp"
             >
               <Icon name="chevron-up" size={28} color="#fff" />
-            </ModernButton>
+            </CustomButton>
             
-            <ModernButton
-              onPress={() => handleCommand('Cursor Left', irCodes.CursorLeft)}
+            <CustomButton
+              onPress={() => handleCommand('Cursor Left', 'CursorLeft')}
+              onLongPress={() => handleLongPress('Cursor Left', 'CursorLeft')}
               style={[styles.navButton, styles.navButtonLeft]}
+              buttonKey="CursorLeft"
             >
               <Icon name="chevron-back" size={28} color="#fff" />
-            </ModernButton>
+            </CustomButton>
             
-            <ModernButton
-              onPress={() => handleCommand('Cursor Enter', irCodes.CursorEnter)}
+            <CustomButton
+              onPress={() => handleCommand('Cursor Enter', 'CursorEnter')}
+              onLongPress={() => handleLongPress('OK', 'CursorEnter')}
               style={styles.okButton}
+              buttonKey="CursorEnter"
             >
               <Text style={styles.okText}>OK</Text>
-            </ModernButton>
+            </CustomButton>
             
-            <ModernButton
-              onPress={() => handleCommand('Cursor Right', irCodes.CursorRight)}
+            <CustomButton
+              onPress={() => handleCommand('Cursor Right', 'CursorRight')}
+              onLongPress={() => handleLongPress('Cursor Right', 'CursorRight')}
               style={[styles.navButton, styles.navButtonRight]}
+              buttonKey="CursorRight"
             >
               <Icon name="chevron-forward" size={28} color="#fff" />
-            </ModernButton>
+            </CustomButton>
             
-            <ModernButton
-              onPress={() => handleCommand('Cursor Down', irCodes.CursorDown)}
+            <CustomButton
+              onPress={() => handleCommand('Cursor Down', 'CursorDown')}
+              onLongPress={() => handleLongPress('Cursor Down', 'CursorDown')}
               style={[styles.navButton, styles.navButtonDown]}
+              buttonKey="CursorDown"
             >
               <Icon name="chevron-down" size={28} color="#fff" />
-            </ModernButton>
+            </CustomButton>
           </View>
         </View>
 
-        {/* Home, Menu, Back buttons - Aligned with power buttons */}
+        {/* Home, Menu, Back buttons */}
         <View style={styles.navigationControlsSection}>
-          <ModernButton
-            onPress={() => handleCommand('Home', irCodes.Home)}
+          <CustomButton
+            onPress={() => handleCommand('Home', 'Home')}
+            onLongPress={() => handleLongPress('Home', 'Home')}
             style={styles.navigationControlButton}
+            buttonKey="Home"
           >
             <Icon name="home" size={16} color="#fff" />
             <Text style={styles.navigationControlButtonText}>Home</Text>
-          </ModernButton>
+          </CustomButton>
           
-          <ModernButton
-            onPress={() => handleCommand('Menu', irCodes.Menu)}
+          <CustomButton
+            onPress={() => handleCommand('Menu', 'Menu')}
+            onLongPress={() => handleLongPress('Menu', 'Menu')}
             style={styles.navigationControlButton}
+            buttonKey="Menu"
           >
             <Icon name="menu" size={16} color="#fff" />
             <Text style={styles.navigationControlButtonText}>Menu</Text>
-          </ModernButton>
+          </CustomButton>
 
-          <ModernButton
-            onPress={() => handleCommand('Return', irCodes.Return)}
+          <CustomButton
+            onPress={() => handleCommand('Return', 'Return')}
+            onLongPress={() => handleLongPress('Back', 'Return')}
             style={styles.navigationControlButton}
+            buttonKey="Return"
           >
             <Icon name="arrow-back" size={16} color="#fff" />
             <Text style={styles.navigationControlButtonText}>Back</Text>
-          </ModernButton>
+          </CustomButton>
         </View>
 
-        {/* Separator before numeric keypad - IDENTICAL TO REDUCED SEPARATOR */}
         <View style={styles.separator} />
 
-        {/* Number Pad - Aligned with power buttons */}
+        {/* Number Pad */}
         <View style={styles.numberPad}>
           <View style={styles.numberRow}>
             {[1, 2, 3].map(num => (
-              <ModernButton
+              <CustomButton
                 key={num}
                 onPress={() => handleNumber(num)}
+                onLongPress={() => handleLongPress(`Chiffre ${num}`, `Digit${num}`)}
                 style={styles.numberButton}
+                buttonKey={`Digit${num}`}
               >
                 <Text style={styles.numberText}>{num}</Text>
-              </ModernButton>
+              </CustomButton>
             ))}
           </View>
           <View style={styles.numberRow}>
             {[4, 5, 6].map(num => (
-              <ModernButton
+              <CustomButton
                 key={num}
                 onPress={() => handleNumber(num)}
+                onLongPress={() => handleLongPress(`Chiffre ${num}`, `Digit${num}`)}
                 style={styles.numberButton}
+                buttonKey={`Digit${num}`}
               >
                 <Text style={styles.numberText}>{num}</Text>
-              </ModernButton>
+              </CustomButton>
             ))}
           </View>
           <View style={styles.numberRow}>
             {[7, 8, 9].map(num => (
-              <ModernButton
+              <CustomButton
                 key={num}
                 onPress={() => handleNumber(num)}
+                onLongPress={() => handleLongPress(`Chiffre ${num}`, `Digit${num}`)}
                 style={styles.numberButton}
+                buttonKey={`Digit${num}`}
               >
                 <Text style={styles.numberText}>{num}</Text>
-              </ModernButton>
+              </CustomButton>
             ))}
           </View>
           <View style={styles.numberRow}>
-            <ModernButton
-              onPress={() => handleCommand('Delete', irCodes.Delete)}
+            <CustomButton
+              onPress={() => handleCommand('Delete', 'Delete')}
+              onLongPress={() => handleLongPress('Delete', 'Delete')}
               style={styles.numberButton}
+              buttonKey="Delete"
             >
               <Icon name="backspace" size={22} color="#fff" />
-            </ModernButton>
-            <ModernButton
+            </CustomButton>
+            <CustomButton
               onPress={() => handleNumber(0)}
+              onLongPress={() => handleLongPress('Chiffre 0', 'Digit0')}
               style={styles.numberButton}
+              buttonKey="Digit0"
             >
               <Text style={styles.numberText}>0</Text>
-            </ModernButton>
-            <ModernButton
-              onPress={() => handleCommand('Format Scroll', irCodes.FormatScroll)}
+            </CustomButton>
+            <CustomButton
+              onPress={() => handleCommand('Format Scroll', 'FormatScroll')}
+              onLongPress={() => handleLongPress('Format Scroll', 'FormatScroll')}
               style={styles.numberButton}
+              buttonKey="FormatScroll"
             >
               <Icon name="refresh" size={22} color="#fff" />
-            </ModernButton>
+            </CustomButton>
           </View>
         </View>
 
-        {/* Air Video and Explorer Buttons - Aligned with power buttons */}
+        {/* Air Video and Explorer Buttons */}
         <View style={styles.specialButtonsSection}>
-          <ModernButton
-            onPress={() => handleCommand('Air Video', irCodes.RVideo)}
+          <CustomButton
+            onPress={() => handleCommand('Air Video', 'RVideo')}
+            onLongPress={() => handleLongPress('Air Video', 'RVideo')}
             style={styles.specialButton}
+            buttonKey="RVideo"
           >
             <Icon name="videocam" size={16} color="#fff" />
             <Text style={styles.specialButtonText}>Air Video</Text>
-          </ModernButton>
+          </CustomButton>
           
-          <ModernButton
-            onPress={() => handleCommand('Explorer', irCodes.Explorer)}
+          <CustomButton
+            onPress={() => handleCommand('Explorer', 'Explorer')}
+            onLongPress={() => handleLongPress('Explorer', 'Explorer')}
             style={styles.specialButton}
+            buttonKey="Explorer"
           >
             <Icon name="folder" size={16} color="#fff" />
             <Text style={styles.specialButtonText}>Explorer</Text>
-          </ModernButton>
+          </CustomButton>
         </View>
 
-        {/* Separator after Air Video and Explorer buttons */}
         <View style={styles.separator} />
 
-        {/* Volume Controls - Aligned with power buttons */}
+        {/* Volume Controls */}
         <View style={styles.volumeSection}>
-          <ModernButton
-            onPress={() => handleCommand('Volume Down', irCodes.VolumeDown)}
+          <CustomButton
+            onPress={() => handleCommand('Volume Down', 'VolumeDown')}
+            onLongPress={() => handleLongPress('Volume Down', 'VolumeDown')}
             style={styles.volumeButton}
+            buttonKey="VolumeDown"
           >
             <Icon name="volume-low" size={16} color="#fff" />
             <Text style={styles.volumeText}>Vol -</Text>
-          </ModernButton>
+          </CustomButton>
           
-          <ModernButton
-            onPress={() => handleCommand('Mute', irCodes.Mute)}
+          <CustomButton
+            onPress={() => handleCommand('Mute', 'Mute')}
+            onLongPress={() => handleLongPress('Mute', 'Mute')}
             style={styles.muteButton}
+            buttonKey="Mute"
           >
             <Icon name="volume-mute" size={20} color="#fff" />
-          </ModernButton>
+          </CustomButton>
           
-          <ModernButton
-            onPress={() => handleCommand('Volume Up', irCodes.VolumeUp)}
+          <CustomButton
+            onPress={() => handleCommand('Volume Up', 'VolumeUp')}
+            onLongPress={() => handleLongPress('Volume Up', 'VolumeUp')}
             style={styles.volumeButton}
+            buttonKey="VolumeUp"
           >
             <Icon name="volume-high" size={16} color="#fff" />
             <Text style={styles.volumeText}>Vol +</Text>
-          </ModernButton>
+          </CustomButton>
         </View>
 
-        {/* Color Function Buttons - Aligned with power buttons */}
+        {/* Color Function Buttons */}
         <View style={styles.colorButtonsSection}>
-          <ModernButton
-            onPress={() => handleCommand('Function Red', irCodes.FunctionRed)}
+          <CustomButton
+            onPress={() => handleCommand('Function Red', 'FunctionRed')}
+            onLongPress={() => handleLongPress('Function Red', 'FunctionRed')}
             style={[styles.colorButton, styles.redButton]}
+            buttonKey="FunctionRed"
           >
             <Text style={styles.colorButtonText}>Rouge</Text>
-          </ModernButton>
+          </CustomButton>
           
-          <ModernButton
-            onPress={() => handleCommand('Function Green', irCodes.FunctionGreen)}
+          <CustomButton
+            onPress={() => handleCommand('Function Green', 'FunctionGreen')}
+            onLongPress={() => handleLongPress('Function Green', 'FunctionGreen')}
             style={[styles.colorButton, styles.greenButton]}
+            buttonKey="FunctionGreen"
           >
             <Text style={styles.colorButtonText}>Vert</Text>
-          </ModernButton>
+          </CustomButton>
           
-          <ModernButton
-            onPress={() => handleCommand('Function Yellow', irCodes.FunctionYellow)}
+          <CustomButton
+            onPress={() => handleCommand('Function Yellow', 'FunctionYellow')}
+            onLongPress={() => handleLongPress('Function Yellow', 'FunctionYellow')}
             style={[styles.colorButton, styles.yellowButton]}
+            buttonKey="FunctionYellow"
           >
             <Text style={styles.colorButtonText}>Jaune</Text>
-          </ModernButton>
+          </CustomButton>
           
-          <ModernButton
-            onPress={() => handleCommand('Function Blue', irCodes.FunctionBlue)}
+          <CustomButton
+            onPress={() => handleCommand('Function Blue', 'FunctionBlue')}
+            onLongPress={() => handleLongPress('Function Blue', 'FunctionBlue')}
             style={[styles.colorButton, styles.blueButton]}
+            buttonKey="FunctionBlue"
           >
             <Text style={styles.colorButtonText}>Bleu</Text>
-          </ModernButton>
+          </CustomButton>
         </View>
 
-        {/* Logo Section - Aligned with power buttons */}
+        {/* Logo Section */}
         <View style={styles.logoSection}>
           <Image 
             source={require('../assets/images/490033b5-b48d-4f21-bd74-a10b28ac45b8.png')}
@@ -1177,6 +1292,20 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
           </View>
         )}
       </ScrollView>
+
+      {/* IR Code Edit Modal */}
+      <IRCodeEditModal
+        visible={editModalVisible}
+        buttonName={editingButton?.name || ''}
+        currentCode={editingButton?.currentCode || ''}
+        onClose={() => {
+          setEditModalVisible(false);
+          setEditingButton(null);
+        }}
+        onSave={handleSaveIRCode}
+        onResetToDefault={editingButton?.currentCode !== editingButton?.defaultCode ? handleResetToDefault : undefined}
+        hasCustomCode={editingButton ? hasCustomCode(editingButton.name) : false}
+      />
     </View>
   );
 };
