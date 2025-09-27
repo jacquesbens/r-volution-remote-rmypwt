@@ -306,7 +306,7 @@ const styles = StyleSheet.create({
   },
 
   // Info, 3D, Zoom buttons section - positioned above directional pad
-  // Updated to align Info left like Repeat and Zoom right like Audio
+  // Updated to match the exact same size as the Repeat button (subtitleAudioButton)
   infoButtonsSection: {
     flexDirection: 'row',
     alignItems: 'center',
