@@ -703,7 +703,7 @@ export const useDeviceDiscovery = () => {
     }
   }, [devices, saveDevices, checkDeviceReachability, verifyRVolutionDevice]);
 
-  // AMÉLIORATION PREVIEW: Remove device avec meilleure compatibilité web et gestion d'erreurs robuste
+  // CORRECTION: Remove device avec meilleure compatibilité web et gestion d'erreurs robuste
   const removeDevice = useCallback(async (deviceId: string, retryCount = 0) => {
     const maxRetries = 3;
     
@@ -1036,7 +1036,7 @@ export const useDeviceDiscovery = () => {
     }
   }, [checkDeviceReachability]);
 
-  // AMÉLIORATION PREVIEW: Fonction deleteDevice pour compatibilité avec les composants existants
+  // CORRECTION: Fonction deleteDevice pour compatibilité avec les composants existants
   const deleteDevice = useCallback(async (deviceId: string) => {
     console.log(`🗑️  deleteDevice called for: ${deviceId} (Platform: ${Platform.OS})`);
     return removeDevice(deviceId);
@@ -1064,7 +1064,7 @@ export const useDeviceDiscovery = () => {
     addDeviceManually,
     addDiscoveredDevice, // New: function to add discovered device to saved devices
     removeDevice,
-    deleteDevice, // AMÉLIORATION PREVIEW: Alias pour compatibilité
+    deleteDevice, // CORRECTION: Alias pour compatibilité
     renameDevice,
     updateDevice,
     updateDeviceStatus,

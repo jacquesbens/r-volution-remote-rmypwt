@@ -20,8 +20,8 @@ const DeviceCard: React.FC<DeviceCardProps> = ({ device, onPress, onRemove, onEd
     timestamp: Date;
   } | null>(null);
 
-  // Hook for native confirm functionality
-  const useNativeConfirm = () => {
+  // CORRECTION: Déplacer les hooks au niveau du composant
+  const nativeConfirm = React.useMemo(() => {
     if (Platform.OS === 'web') {
       return (message: string) => {
         if (typeof window !== 'undefined' && window.confirm) {
@@ -31,10 +31,9 @@ const DeviceCard: React.FC<DeviceCardProps> = ({ device, onPress, onRemove, onEd
       };
     }
     return null;
-  };
+  }, []);
 
-  // Hook for native alert functionality
-  const useNativeAlert = () => {
+  const nativeAlert = React.useMemo(() => {
     if (Platform.OS === 'web') {
       return (message: string) => {
         if (typeof window !== 'undefined' && window.alert) {
@@ -45,10 +44,7 @@ const DeviceCard: React.FC<DeviceCardProps> = ({ device, onPress, onRemove, onEd
       };
     }
     return null;
-  };
-
-  const nativeConfirm = useNativeConfirm();
-  const nativeAlert = useNativeAlert();
+  }, []);
 
   const handleTestConnection = async () => {
     if (!onTest || isTesting) return;
@@ -111,8 +107,8 @@ const DeviceCard: React.FC<DeviceCardProps> = ({ device, onPress, onRemove, onEd
     return false;
   };
 
-  // AMÉLIORATION PREVIEW: Fonction de suppression ultra-robuste pour tous les environnements
-  const handleRemoveDevice = () => {
+  // CORRECTION: Fonction de suppression corrigée pour utiliser les hooks au niveau du composant
+  const handleRemoveDevice = React.useCallback(() => {
     console.log(`🗑️  Remove device requested: ${device.name} (Platform: ${Platform.OS})`);
     
     // AMÉLIORATION PREVIEW: Approche multi-fallback pour la suppression
@@ -206,10 +202,10 @@ const DeviceCard: React.FC<DeviceCardProps> = ({ device, onPress, onRemove, onEd
         executeRemoval();
       }
     }
-  };
+  }, [device.name, onRemove, nativeConfirm]);
 
-  // AMÉLIORATION PREVIEW: Fonction d'information ultra-robuste
-  const handleShowInfo = () => {
+  // CORRECTION: Fonction d'information corrigée pour utiliser les hooks au niveau du composant
+  const handleShowInfo = React.useCallback(() => {
     console.log(`ℹ️  Show info requested: ${device.name} (Platform: ${Platform.OS})`);
     
     const lastSeenText = isValidLastSeen(device.lastSeen) 
@@ -265,7 +261,7 @@ const DeviceCard: React.FC<DeviceCardProps> = ({ device, onPress, onRemove, onEd
         console.log(`ℹ️  Device Info for ${device.name}:`, infoMessage);
       }
     }
-  };
+  }, [device, nativeAlert, isValidLastSeen, formatLastSeen]);
 
   return (
     <View style={styles.card}>

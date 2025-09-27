@@ -444,8 +444,8 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
   const [lastCommand, setLastCommand] = useState<string>('');
   const [isPlaying, setIsPlaying] = useState(false);
 
-  // Hook for native alert functionality
-  const useNativeAlert = () => {
+  // CORRECTION: Déplacer les hooks au niveau du composant
+  const nativeAlert = React.useMemo(() => {
     if (Platform.OS === 'web') {
       return (message: string) => {
         if (typeof window !== 'undefined' && window.alert) {
@@ -456,9 +456,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
       };
     }
     return null;
-  };
-
-  const nativeAlert = useNativeAlert();
+  }, []);
 
   // Default IR codes - CODES DÉFINIS DIRECTEMENT DANS LE CODE
   const defaultIRCodes = {
@@ -546,8 +544,8 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
     }
   };
 
-  // AMÉLIORATION PREVIEW: Fonction handleLongPress ultra-robuste pour tous les environnements
-  const handleLongPress = (buttonName: string, buttonKey: string) => {
+  // CORRECTION: Fonction handleLongPress corrigée pour utiliser les hooks au niveau du composant
+  const handleLongPress = React.useCallback((buttonName: string, buttonKey: string) => {
     console.log(`📋 Long press detected for ${buttonName} (${buttonKey}) - Environment: ${Platform.OS}`);
     
     // L'appui long affiche seulement le code IR enregistré
@@ -620,7 +618,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
         console.log(`📋 IR Code for ${buttonName}: ${irCode}`);
       }
     }
-  };
+  }, [nativeAlert, defaultIRCodes]);
 
   const handlePlayPause = () => {
     handleCommand('Play/Pause', 'PlayPause');
@@ -646,7 +644,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
     </View>
   );
 
-  // AMÉLIORATION PREVIEW: CustomButton ultra-robuste avec gestion d'événements optimisée pour tous les environnements
+  // CORRECTION: CustomButton corrigé pour utiliser les hooks au niveau du composant
   const CustomButton: React.FC<{
     onPress: () => void;
     onLongPress: () => void;
