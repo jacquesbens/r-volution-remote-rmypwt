@@ -1,8 +1,10 @@
 
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Platform } from 'react-native';
 import { RVolutionDevice } from '../types/Device';
 import { colors, commonStyles } from '../styles/commonStyles';
+import { useNativeAlert } from '../hooks/useNativeAlert';
+import { useNativeConfirm } from '../hooks/useNativeConfirm';
 import Icon from './Icon';
 
 interface DeviceCardProps {
@@ -20,31 +22,9 @@ const DeviceCard: React.FC<DeviceCardProps> = ({ device, onPress, onRemove, onEd
     timestamp: Date;
   } | null>(null);
 
-  // CORRECTION: Déplacer les hooks au niveau du composant
-  const nativeConfirm = React.useMemo(() => {
-    if (Platform.OS === 'web') {
-      return (message: string) => {
-        if (typeof window !== 'undefined' && window.confirm) {
-          return window.confirm(message);
-        }
-        return false;
-      };
-    }
-    return null;
-  }, []);
-
-  const nativeAlert = React.useMemo(() => {
-    if (Platform.OS === 'web') {
-      return (message: string) => {
-        if (typeof window !== 'undefined' && window.alert) {
-          window.alert(message);
-          return true;
-        }
-        return false;
-      };
-    }
-    return null;
-  }, []);
+  // Utiliser les hooks personnalisés pour les alertes et confirmations
+  const { showAlert } = useNativeAlert();
+  const { showConfirm } = useNativeConfirm();
 
   const handleTestConnection = async () => {
     if (!onTest || isTesting) return;
@@ -107,11 +87,10 @@ const DeviceCard: React.FC<DeviceCardProps> = ({ device, onPress, onRemove, onEd
     return false;
   };
 
-  // CORRECTION: Fonction de suppression corrigée pour utiliser les hooks au niveau du composant
-  const handleRemoveDevice = React.useCallback(() => {
+  // CORRECTION: Fonction de suppression utilisant le hook personnalisé
+  const handleRemoveDevice = () => {
     console.log(`🗑️  Remove device requested: ${device.name} (Platform: ${Platform.OS})`);
     
-    // AMÉLIORATION PREVIEW: Approche multi-fallback pour la suppression
     const executeRemoval = () => {
       console.log(`🗑️  Executing removal of device: ${device.name}`);
       try {
@@ -119,7 +98,7 @@ const DeviceCard: React.FC<DeviceCardProps> = ({ device, onPress, onRemove, onEd
         console.log('✅ Device removal callback executed successfully');
       } catch (error) {
         console.log(`❌ Error in onRemove callback:`, error);
-        // AMÉLIORATION PREVIEW: Fallback - essayer de forcer la suppression
+        // Fallback - essayer de forcer la suppression
         setTimeout(() => {
           try {
             onRemove();
@@ -131,81 +110,19 @@ const DeviceCard: React.FC<DeviceCardProps> = ({ device, onPress, onRemove, onEd
       }
     };
 
-    // AMÉLIORATION PREVIEW: Gestion spéciale pour l'environnement web/Preview
-    if (Platform.OS === 'web') {
-      try {
-        // Essayer d'abord Alert, puis fallback vers confirm natif
-        try {
-          Alert.alert(
-            'Supprimer l\'appareil',
-            `Êtes-vous sûr de vouloir supprimer "${device.name}" ?`,
-            [
-              { 
-                text: 'Annuler', 
-                style: 'cancel',
-                onPress: () => console.log('❌ Device removal cancelled via Alert')
-              },
-              { 
-                text: 'Supprimer', 
-                style: 'destructive', 
-                onPress: executeRemoval
-              },
-            ],
-            { 
-              cancelable: true,
-              userInterfaceStyle: 'light'
-            }
-          );
-        } catch (alertError) {
-          console.log(`⚠️ Alert failed on web, using native confirm:`, alertError);
-          if (nativeConfirm) {
-            const confirmed = nativeConfirm(`Êtes-vous sûr de vouloir supprimer "${device.name}" ?`);
-            if (confirmed) {
-              executeRemoval();
-            } else {
-              console.log('❌ Device removal cancelled via native confirm');
-            }
-          } else {
-            // Si même confirm échoue, suppression directe
-            console.log('⚠️ Native confirm not available, direct removal');
-            executeRemoval();
-          }
-        }
-      } catch (webError) {
-        console.log(`❌ Web removal handling failed:`, webError);
-        // Fallback ultime : suppression directe
-        executeRemoval();
-      }
-    } else {
-      // Sur mobile, utiliser Alert normalement
-      try {
-        Alert.alert(
-          'Supprimer l\'appareil',
-          `Êtes-vous sûr de vouloir supprimer "${device.name}" ?`,
-          [
-            { 
-              text: 'Annuler', 
-              style: 'cancel',
-              onPress: () => console.log('❌ Device removal cancelled')
-            },
-            { 
-              text: 'Supprimer', 
-              style: 'destructive', 
-              onPress: executeRemoval
-            },
-          ],
-          { cancelable: true }
-        );
-      } catch (mobileAlertError) {
-        console.log(`❌ Mobile Alert failed:`, mobileAlertError);
-        // Fallback : suppression directe
-        executeRemoval();
-      }
-    }
-  }, [device.name, onRemove, nativeConfirm]);
+    // Utiliser le hook personnalisé pour la confirmation
+    showConfirm(
+      'Supprimer l\'appareil',
+      `Êtes-vous sûr de vouloir supprimer "${device.name}" ?`,
+      executeRemoval, // onConfirm
+      () => console.log('❌ Device removal cancelled'), // onCancel
+      'Supprimer', // confirmText
+      'Annuler' // cancelText
+    );
+  };
 
-  // CORRECTION: Fonction d'information corrigée pour utiliser les hooks au niveau du composant
-  const handleShowInfo = React.useCallback(() => {
+  // CORRECTION: Fonction d'information utilisant le hook personnalisé
+  const handleShowInfo = () => {
     console.log(`ℹ️  Show info requested: ${device.name} (Platform: ${Platform.OS})`);
     
     const lastSeenText = isValidLastSeen(device.lastSeen) 
@@ -217,51 +134,9 @@ const DeviceCard: React.FC<DeviceCardProps> = ({ device, onPress, onRemove, onEd
       `Type: ${device.isManuallyAdded ? 'Ajout manuel' : 'Découverte automatique'}\n` +
       `Dernière connexion: ${lastSeenText}`;
     
-    // AMÉLIORATION PREVIEW: Approche multi-fallback pour l'affichage d'informations
-    if (Platform.OS === 'web') {
-      try {
-        // Essayer d'abord Alert, puis fallback vers alert natif
-        try {
-          Alert.alert(
-            'Informations de l\'appareil',
-            infoMessage,
-            [{ text: 'OK', style: 'default' }],
-            { 
-              cancelable: true,
-              userInterfaceStyle: 'light'
-            }
-          );
-        } catch (alertError) {
-          console.log(`⚠️ Alert failed on web, using native alert:`, alertError);
-          if (nativeAlert) {
-            nativeAlert(`Informations de l'appareil\n\n${infoMessage}`);
-            console.log('✅ Info displayed via native alert');
-          } else {
-            // Si même alert échoue, log dans la console
-            console.log(`ℹ️  Device Info for ${device.name}:`, infoMessage);
-          }
-        }
-      } catch (webError) {
-        console.log(`❌ Web info handling failed:`, webError);
-        // Fallback ultime : log dans la console
-        console.log(`ℹ️  Device Info for ${device.name}:`, infoMessage);
-      }
-    } else {
-      // Sur mobile, utiliser Alert normalement
-      try {
-        Alert.alert(
-          'Informations de l\'appareil',
-          infoMessage,
-          [{ text: 'OK', style: 'default' }],
-          { cancelable: true }
-        );
-      } catch (mobileAlertError) {
-        console.log(`❌ Mobile Alert failed:`, mobileAlertError);
-        // Fallback : log dans la console
-        console.log(`ℹ️  Device Info for ${device.name}:`, infoMessage);
-      }
-    }
-  }, [device, nativeAlert, isValidLastSeen, formatLastSeen]);
+    // Utiliser le hook personnalisé pour l'alerte
+    showAlert('Informations de l\'appareil', infoMessage);
+  };
 
   return (
     <View style={styles.card}>

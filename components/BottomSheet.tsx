@@ -40,6 +40,7 @@ const SimpleBottomSheet: React.FC<SimpleBottomSheetProps> = ({
   const lastGestureY = useRef(0);
   const startPositionY = useRef(0);
 
+  // CORRECTION: Ajouter gestureTranslateY aux dépendances
   useEffect(() => {
     if (isVisible) {
       setCurrentSnapPoint(SNAP_POINTS.HALF);

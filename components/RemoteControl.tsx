@@ -1,8 +1,9 @@
 
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Alert, ScrollView, TouchableOpacity, Image, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Platform } from 'react-native';
 import { useDeviceControl } from '../hooks/useDeviceControl';
 import { useCustomIRCodes } from '../hooks/useCustomIRCodes';
+import { useNativeAlert } from '../hooks/useNativeAlert';
 import { RVolutionDevice } from '../types/Device';
 import Icon from './Icon';
 import { colors } from '../styles/commonStyles';
@@ -444,19 +445,8 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
   const [lastCommand, setLastCommand] = useState<string>('');
   const [isPlaying, setIsPlaying] = useState(false);
 
-  // CORRECTION: Déplacer les hooks au niveau du composant
-  const nativeAlert = React.useMemo(() => {
-    if (Platform.OS === 'web') {
-      return (message: string) => {
-        if (typeof window !== 'undefined' && window.alert) {
-          window.alert(message);
-          return true;
-        }
-        return false;
-      };
-    }
-    return null;
-  }, []);
+  // Utiliser le hook personnalisé pour les alertes
+  const { showAlert } = useNativeAlert();
 
   // Default IR codes - CODES DÉFINIS DIRECTEMENT DANS LE CODE
   const defaultIRCodes = {
@@ -526,7 +516,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
       const irCode = defaultIRCodes[buttonKey as keyof typeof defaultIRCodes];
       if (!irCode) {
         console.log(`❌ No IR code found for button: ${buttonKey}`);
-        Alert.alert('Erreur', `Code IR non trouvé pour le bouton ${buttonKey}`);
+        showAlert('Erreur', `Code IR non trouvé pour le bouton ${buttonKey}`);
         return;
       }
       
@@ -536,89 +526,30 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
       console.log(`✅ ${commandName} command executed successfully`);
     } catch (error) {
       console.log(`❌ ${commandName} command failed:`, error);
-      Alert.alert(
+      showAlert(
         'Erreur de commande',
-        `Impossible d'exécuter la commande ${commandName}. Vérifiez que l'appareil est en ligne.`,
-        [{ text: 'OK' }]
+        `Impossible d'exécuter la commande ${commandName}. Vérifiez que l'appareil est en ligne.`
       );
     }
   };
 
-  // CORRECTION: Fonction handleLongPress corrigée pour utiliser les hooks au niveau du composant
-  const handleLongPress = React.useCallback((buttonName: string, buttonKey: string) => {
+  // CORRECTION: Fonction handleLongPress utilisant le hook personnalisé
+  const handleLongPress = (buttonName: string, buttonKey: string) => {
     console.log(`📋 Long press detected for ${buttonName} (${buttonKey}) - Environment: ${Platform.OS}`);
     
     // L'appui long affiche seulement le code IR enregistré
     const irCode = defaultIRCodes[buttonKey as keyof typeof defaultIRCodes];
     if (!irCode) {
       console.log(`❌ No IR code found for button: ${buttonKey}`);
-      
-      // AMÉLIORATION PREVIEW: Gestion d'erreur robuste
-      if (Platform.OS === 'web') {
-        try {
-          Alert.alert('Erreur', `Code IR non trouvé pour le bouton ${buttonKey}`);
-        } catch (alertError) {
-          console.log(`❌ Alert failed, code not found for ${buttonKey}`);
-          if (nativeAlert) {
-            nativeAlert(`Erreur: Code IR non trouvé pour le bouton ${buttonKey}`);
-          }
-        }
-      } else {
-        Alert.alert('Erreur', `Code IR non trouvé pour le bouton ${buttonKey}`);
-      }
+      showAlert('Erreur', `Code IR non trouvé pour le bouton ${buttonKey}`);
       return;
     }
     
     console.log(`📋 Displaying IR code for ${buttonName} (${buttonKey}): ${irCode}`);
     
-    // AMÉLIORATION PREVIEW: Approche multi-fallback pour l'affichage des codes IR
-    if (Platform.OS === 'web') {
-      try {
-        // Essayer d'abord Alert, puis fallback vers alert natif
-        try {
-          Alert.alert(
-            `Code IR - ${buttonName}`,
-            `Code enregistré: ${irCode}`,
-            [{ text: 'OK', style: 'default' }],
-            { 
-              cancelable: true,
-              userInterfaceStyle: 'light'
-            }
-          );
-        } catch (alertError) {
-          console.log(`⚠️ Alert failed on web, using native alert:`, alertError);
-          if (nativeAlert) {
-            nativeAlert(`Code IR - ${buttonName}\n\nCode enregistré: ${irCode}`);
-            console.log('✅ IR code displayed via native alert');
-          } else {
-            // Si même alert échoue, log dans la console avec un format visible
-            console.log(`📋 ===== IR CODE FOR ${buttonName.toUpperCase()} =====`);
-            console.log(`📋 Button Key: ${buttonKey}`);
-            console.log(`📋 IR Code: ${irCode}`);
-            console.log(`📋 ==========================================`);
-          }
-        }
-      } catch (webError) {
-        console.log(`❌ Web long press handling failed:`, webError);
-        // Fallback ultime : log dans la console
-        console.log(`📋 IR Code for ${buttonName}: ${irCode}`);
-      }
-    } else {
-      // Sur mobile, utiliser Alert normalement
-      try {
-        Alert.alert(
-          `Code IR - ${buttonName}`,
-          `Code enregistré: ${irCode}`,
-          [{ text: 'OK', style: 'default' }],
-          { cancelable: true }
-        );
-      } catch (mobileAlertError) {
-        console.log(`❌ Mobile Alert failed:`, mobileAlertError);
-        // Fallback : log dans la console
-        console.log(`📋 IR Code for ${buttonName}: ${irCode}`);
-      }
-    }
-  }, [nativeAlert, defaultIRCodes]);
+    // Utiliser le hook personnalisé pour afficher le code IR
+    showAlert(`Code IR - ${buttonName}`, `Code enregistré: ${irCode}`);
+  };
 
   const handlePlayPause = () => {
     handleCommand('Play/Pause', 'PlayPause');
@@ -644,7 +575,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
     </View>
   );
 
-  // CORRECTION: CustomButton corrigé pour utiliser les hooks au niveau du composant
+  // CORRECTION: CustomButton corrigé
   const CustomButton: React.FC<{
     onPress: () => void;
     onLongPress: () => void;
@@ -655,7 +586,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
   }> = ({ onPress, onLongPress, children, style, textStyle, buttonKey }) => {
     const [pressed, setPressed] = useState(false);
     
-    // AMÉLIORATION PREVIEW: Gestion ultra-robuste des événements tactiles
+    // Gestion ultra-robuste des événements tactiles
     const handlePressIn = () => {
       console.log(`🔘 Press in: ${buttonKey} (Platform: ${Platform.OS})`);
       setPressed(true);
@@ -684,7 +615,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
       }
     };
     
-    // AMÉLIORATION PREVIEW: Délais adaptés selon la plateforme pour une meilleure compatibilité
+    // Délais adaptés selon la plateforme pour une meilleure compatibilité
     const getLongPressDelay = () => {
       if (Platform.OS === 'web') {
         return 1200; // Plus long sur web/Preview pour éviter les déclenchements accidentels
