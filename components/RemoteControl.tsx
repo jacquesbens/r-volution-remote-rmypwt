@@ -534,7 +534,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
   };
 
   // CORRECTION: Fonction handleLongPress utilisant le hook personnalisé
-  const handleLongPress = (buttonName: string, buttonKey: string) => {
+  const handleLongPress = React.useCallback((buttonName: string, buttonKey: string) => {
     console.log(`📋 Long press detected for ${buttonName} (${buttonKey}) - Environment: ${Platform.OS}`);
     
     // L'appui long affiche seulement le code IR enregistré
@@ -549,7 +549,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
     
     // Utiliser le hook personnalisé pour afficher le code IR
     showAlert(`Code IR - ${buttonName}`, `Code enregistré: ${irCode}`);
-  };
+  }, [showAlert]);
 
   const handlePlayPause = () => {
     handleCommand('Play/Pause', 'PlayPause');
@@ -575,7 +575,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
     </View>
   );
 
-  // CORRECTION: CustomButton corrigé
+  // CORRECTION: CustomButton corrigé avec meilleure gestion des erreurs
   const CustomButton: React.FC<{
     onPress: () => void;
     onLongPress: () => void;
@@ -583,45 +583,47 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
     style?: any;
     textStyle?: any;
     buttonKey: string;
-  }> = ({ onPress, onLongPress, children, style, textStyle, buttonKey }) => {
+  }> = React.memo(({ onPress, onLongPress, children, style, textStyle, buttonKey }) => {
     const [pressed, setPressed] = useState(false);
     
     // Gestion ultra-robuste des événements tactiles
-    const handlePressIn = () => {
+    const handlePressIn = React.useCallback(() => {
       console.log(`🔘 Press in: ${buttonKey} (Platform: ${Platform.OS})`);
       setPressed(true);
-    };
+    }, [buttonKey]);
     
-    const handlePressOut = () => {
+    const handlePressOut = React.useCallback(() => {
       console.log(`🔘 Press out: ${buttonKey} (Platform: ${Platform.OS})`);
       setPressed(false);
-    };
+    }, [buttonKey]);
     
-    const handlePress = () => {
+    const handlePress = React.useCallback(() => {
       console.log(`🔘 Press: ${buttonKey} (Platform: ${Platform.OS})`);
       try {
         onPress();
+        console.log(`✅ Press handler completed for ${buttonKey}`);
       } catch (error) {
         console.log(`❌ Press handler failed for ${buttonKey}:`, error);
       }
-    };
+    }, [buttonKey, onPress]);
     
-    const handleLongPressEvent = () => {
+    const handleLongPressEvent = React.useCallback(() => {
       console.log(`🔘 Long press: ${buttonKey} - Environment: ${Platform.OS}`);
       try {
         onLongPress();
+        console.log(`✅ Long press handler completed for ${buttonKey}`);
       } catch (error) {
         console.log(`❌ Long press handler failed for ${buttonKey}:`, error);
       }
-    };
+    }, [buttonKey, onLongPress]);
     
     // Délais adaptés selon la plateforme pour une meilleure compatibilité
-    const getLongPressDelay = () => {
+    const getLongPressDelay = React.useCallback(() => {
       if (Platform.OS === 'web') {
         return 1200; // Plus long sur web/Preview pour éviter les déclenchements accidentels
       }
       return 800; // Standard sur mobile
-    };
+    }, []);
     
     return (
       <TouchableOpacity
@@ -651,7 +653,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
         )}
       </TouchableOpacity>
     );
-  };
+  });
 
   return (
     <View style={styles.container}>

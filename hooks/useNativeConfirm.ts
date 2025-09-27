@@ -22,6 +22,28 @@ export const useNativeConfirm = () => {
 
     setIsShowing(true);
 
+    // Fonction pour gérer l'annulation avec réinitialisation d'état
+    const handleCancel = () => {
+      console.log('❌ Confirm cancelled');
+      try {
+        onCancel?.();
+      } catch (error) {
+        console.log('⚠️ Cancel callback error:', error);
+      }
+      setTimeout(() => setIsShowing(false), 100);
+    };
+
+    // Fonction pour gérer la confirmation avec réinitialisation d'état
+    const handleConfirm = () => {
+      console.log('✅ Confirm accepted');
+      try {
+        onConfirm?.();
+      } catch (error) {
+        console.log('⚠️ Confirm callback error:', error);
+      }
+      setTimeout(() => setIsShowing(false), 100);
+    };
+
     // Gestion spéciale pour l'environnement web/Preview
     if (Platform.OS === 'web') {
       try {
@@ -33,52 +55,42 @@ export const useNativeConfirm = () => {
             { 
               text: cancelText, 
               style: 'cancel',
-              onPress: () => {
-                console.log('❌ Confirm cancelled via Alert');
-                onCancel?.();
-                setIsShowing(false);
-              }
+              onPress: handleCancel
             },
             { 
               text: confirmText, 
               style: 'default', 
-              onPress: () => {
-                console.log('✅ Confirm accepted via Alert');
-                onConfirm?.();
-                setIsShowing(false);
-              }
+              onPress: handleConfirm
             },
           ],
           { 
             cancelable: true,
             userInterfaceStyle: 'light',
-            onDismiss: () => {
-              console.log('❌ Confirm dismissed');
-              onCancel?.();
-              setIsShowing(false);
-            }
+            onDismiss: handleCancel
           }
         );
       } catch (alertError) {
         console.log(`⚠️ React Native Alert failed on web, using native confirm:`, alertError);
         // Fallback vers confirm natif du navigateur
-        if (typeof window !== 'undefined' && window.confirm) {
-          const fullMessage = message ? `${title}\n\n${message}` : title;
-          const result = window.confirm(fullMessage);
-          
-          if (result) {
-            console.log('✅ Confirm accepted via native confirm');
-            onConfirm?.();
+        try {
+          if (typeof window !== 'undefined' && window.confirm) {
+            const fullMessage = message ? `${title}\n\n${message}` : title;
+            const result = window.confirm(fullMessage);
+            
+            if (result) {
+              handleConfirm();
+            } else {
+              handleCancel();
+            }
           } else {
-            console.log('❌ Confirm cancelled via native confirm');
-            onCancel?.();
+            // Fallback ultime : log dans la console et appeler onCancel
+            console.log(`❓ CONFIRM: ${title}${message ? ` - ${message}` : ''} (auto-cancelled)`);
+            handleCancel();
           }
-        } else {
-          // Fallback ultime : log dans la console et appeler onCancel
-          console.log(`❓ CONFIRM: ${title}${message ? ` - ${message}` : ''} (auto-cancelled)`);
-          onCancel?.();
+        } catch (fallbackError) {
+          console.log('❌ All confirm fallbacks failed:', fallbackError);
+          handleCancel();
         }
-        setIsShowing(false);
       }
     } else {
       // Sur mobile, utiliser Alert normalement
@@ -90,37 +102,24 @@ export const useNativeConfirm = () => {
             { 
               text: cancelText, 
               style: 'cancel',
-              onPress: () => {
-                console.log('❌ Confirm cancelled');
-                onCancel?.();
-                setIsShowing(false);
-              }
+              onPress: handleCancel
             },
             { 
               text: confirmText, 
               style: 'default', 
-              onPress: () => {
-                console.log('✅ Confirm accepted');
-                onConfirm?.();
-                setIsShowing(false);
-              }
+              onPress: handleConfirm
             },
           ],
           { 
             cancelable: true,
-            onDismiss: () => {
-              console.log('❌ Confirm dismissed');
-              onCancel?.();
-              setIsShowing(false);
-            }
+            onDismiss: handleCancel
           }
         );
       } catch (mobileAlertError) {
         console.log(`❌ Mobile Alert failed:`, mobileAlertError);
         // Fallback : log dans la console et appeler onCancel
         console.log(`❓ CONFIRM: ${title}${message ? ` - ${message}` : ''} (auto-cancelled)`);
-        onCancel?.();
-        setIsShowing(false);
+        handleCancel();
       }
     }
   }, [isShowing]);

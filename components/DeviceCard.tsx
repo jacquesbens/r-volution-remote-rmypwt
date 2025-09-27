@@ -88,7 +88,7 @@ const DeviceCard: React.FC<DeviceCardProps> = ({ device, onPress, onRemove, onEd
   };
 
   // CORRECTION: Fonction de suppression utilisant le hook personnalisé
-  const handleRemoveDevice = () => {
+  const handleRemoveDevice = React.useCallback(() => {
     console.log(`🗑️  Remove device requested: ${device.name} (Platform: ${Platform.OS})`);
     
     const executeRemoval = () => {
@@ -119,10 +119,10 @@ const DeviceCard: React.FC<DeviceCardProps> = ({ device, onPress, onRemove, onEd
       'Supprimer', // confirmText
       'Annuler' // cancelText
     );
-  };
+  }, [device.name, onRemove, showConfirm]);
 
   // CORRECTION: Fonction d'information utilisant le hook personnalisé
-  const handleShowInfo = () => {
+  const handleShowInfo = React.useCallback(() => {
     console.log(`ℹ️  Show info requested: ${device.name} (Platform: ${Platform.OS})`);
     
     const lastSeenText = isValidLastSeen(device.lastSeen) 
@@ -136,7 +136,7 @@ const DeviceCard: React.FC<DeviceCardProps> = ({ device, onPress, onRemove, onEd
     
     // Utiliser le hook personnalisé pour l'alerte
     showAlert('Informations de l\'appareil', infoMessage);
-  };
+  }, [device.name, device.ip, device.port, device.isManuallyAdded, device.lastSeen, showAlert]);
 
   return (
     <View style={styles.card}>
@@ -189,7 +189,14 @@ const DeviceCard: React.FC<DeviceCardProps> = ({ device, onPress, onRemove, onEd
       <View style={styles.actions}>
         <TouchableOpacity
           style={styles.actionButton}
-          onPress={handleShowInfo}
+          onPress={() => {
+            console.log(`ℹ️  Info button pressed for device: ${device.name}`);
+            try {
+              handleShowInfo();
+            } catch (error) {
+              console.log(`❌ Info button handler failed:`, error);
+            }
+          }}
         >
           <Icon name="information-circle" size={16} color={colors.grey} />
         </TouchableOpacity>
@@ -212,7 +219,14 @@ const DeviceCard: React.FC<DeviceCardProps> = ({ device, onPress, onRemove, onEd
 
         <TouchableOpacity
           style={[styles.actionButton, styles.removeButton]}
-          onPress={handleRemoveDevice}
+          onPress={() => {
+            console.log(`🗑️  Remove button pressed for device: ${device.name}`);
+            try {
+              handleRemoveDevice();
+            } catch (error) {
+              console.log(`❌ Remove button handler failed:`, error);
+            }
+          }}
         >
           <Icon name="trash" size={16} color="#F44336" />
         </TouchableOpacity>
