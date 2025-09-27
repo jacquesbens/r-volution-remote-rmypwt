@@ -34,11 +34,11 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   
-  // Blue separator - thin blue line between sections
-  blueSeparator: {
+  // Separator - reduced by half
+  separator: {
     height: 1,
-    backgroundColor: '#3182ce', // Blue color
-    marginVertical: 10,
+    backgroundColor: colors.border,
+    marginVertical: 10, // Reduced from 20 to 10 (half)
     marginHorizontal: 20,
   },
   
@@ -805,8 +805,8 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
           </ModernButton>
         </View>
 
-        {/* Blue separator between power section and media controls */}
-        <View style={styles.blueSeparator} />
+        {/* Separator between power section and next section - REDUCED BY HALF */}
+        <View style={styles.separator} />
 
         {/* Media Controls - Aligned with power buttons */}
         <View style={styles.mediaControls}>
@@ -923,8 +923,8 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
           </ModernButton>
         </View>
 
-        {/* Blue separator after repeat, subtitle and audio buttons */}
-        <View style={styles.blueSeparator} />
+        {/* Separator after repeat, subtitle and audio buttons - IDENTICAL TO REDUCED SEPARATOR */}
+        <View style={styles.separator} />
 
         {/* Info, 3D, Zoom buttons - Aligned with power buttons */}
         <View style={styles.infoButtonsSection}>
@@ -954,9 +954,6 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
             <Text style={styles.infoButtonText}>Zoom</Text>
           </ModernButton>
         </View>
-
-        {/* Blue separator before navigation */}
-        <View style={styles.blueSeparator} />
 
         {/* Navigation - RESTE CENTRÉ (exception au règle d'alignement) */}
         <View style={styles.navigationSection}>
@@ -1025,8 +1022,8 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
           </ModernButton>
         </View>
 
-        {/* Blue separator before numeric keypad */}
-        <View style={styles.blueSeparator} />
+        {/* Separator before numeric keypad - IDENTICAL TO REDUCED SEPARATOR */}
+        <View style={styles.separator} />
 
         {/* Number Pad - Aligned with power buttons */}
         <View style={styles.numberPad}>
@@ -1104,8 +1101,8 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
           </ModernButton>
         </View>
 
-        {/* Blue separator after Air Video and Explorer buttons */}
-        <View style={styles.blueSeparator} />
+        {/* Separator after Air Video and Explorer buttons */}
+        <View style={styles.separator} />
 
         {/* Volume Controls - Aligned with power buttons */}
         <View style={styles.volumeSection}>
@@ -1132,9 +1129,6 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
             <Text style={styles.volumeText}>Vol +</Text>
           </ModernButton>
         </View>
-
-        {/* Blue separator before color buttons */}
-        <View style={styles.blueSeparator} />
 
         {/* Color Function Buttons - Aligned with power buttons */}
         <View style={styles.colorButtonsSection}>
