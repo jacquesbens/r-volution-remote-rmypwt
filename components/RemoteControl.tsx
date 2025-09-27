@@ -88,7 +88,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
   },
   
-  // Power and main controls
+  // Power and main controls - ADJUSTED TO MATCH REPEAT BUTTON
   powerSection: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -111,7 +111,7 @@ const styles = StyleSheet.create({
     elevation: 2,
     borderWidth: 1,
     borderColor: colors.border,
-    minWidth: 80,
+    flex: 0.32,
     position: 'relative',
   },
   
@@ -124,9 +124,9 @@ const styles = StyleSheet.create({
 
   offButton: {
     backgroundColor: colors.primary,
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+    borderRadius: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
@@ -136,17 +136,18 @@ const styles = StyleSheet.create({
     elevation: 2,
     borderWidth: 1,
     borderColor: colors.border,
+    flex: 0.32,
     position: 'relative',
   },
 
   offButtonText: {
     color: '#fff',
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '600',
-    marginTop: 2,
+    marginTop: 3,
   },
   
-  // Media controls
+  // Media controls - ADJUSTED TO MATCH REPEAT BUTTON
   mediaControls: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -169,7 +170,7 @@ const styles = StyleSheet.create({
     elevation: 2,
     borderWidth: 1,
     borderColor: colors.border,
-    minWidth: 80,
+    flex: 0.32,
     position: 'relative',
   },
   
@@ -182,9 +183,9 @@ const styles = StyleSheet.create({
   
   playButton: {
     backgroundColor: colors.primary,
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+    borderRadius: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
@@ -194,10 +195,11 @@ const styles = StyleSheet.create({
     elevation: 2,
     borderWidth: 1,
     borderColor: colors.border,
+    flex: 0.32,
     position: 'relative',
   },
 
-  // Page buttons section
+  // Page buttons section - ADJUSTED TO MATCH REPEAT BUTTON
   pageButtonsSection: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -220,7 +222,7 @@ const styles = StyleSheet.create({
     elevation: 2,
     borderWidth: 1,
     borderColor: colors.border,
-    minWidth: 80,
+    flex: 0.32,
     position: 'relative',
   },
 
@@ -245,7 +247,7 @@ const styles = StyleSheet.create({
     elevation: 2,
     borderWidth: 1,
     borderColor: colors.border,
-    minWidth: 80,
+    flex: 0.32,
     position: 'relative',
   },
 
