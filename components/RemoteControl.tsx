@@ -448,11 +448,43 @@ const styles = StyleSheet.create({
     marginHorizontal: 1,
   },
 
-  // Style pour l'image du bouton Format Scroll
-  formatScrollImage: {
-    width: 24,
-    height: 24,
-    resizeMode: 'contain',
+  // Style pour les lettres sur les boutons de couleur
+  colorButtonLetter: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: '700',
+  },
+
+  // Style pour l'icône Format Scroll personnalisée
+  formatScrollIcon: {
+    width: 20,
+    height: 20,
+    borderRadius: 4,
+    backgroundColor: '#fff',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  formatScrollIconInner: {
+    width: 12,
+    height: 12,
+    borderRadius: 2,
+    backgroundColor: colors.primary,
+    position: 'relative',
+  },
+
+  formatScrollLines: {
+    position: 'absolute',
+    top: 2,
+    left: 2,
+    right: 2,
+    bottom: 2,
+  },
+
+  formatScrollLine: {
+    height: 1,
+    backgroundColor: '#fff',
+    marginVertical: 1,
   },
 });
 
@@ -587,6 +619,19 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
       <View style={styles.pauseBars}>
         <View style={styles.pauseBar} />
         <View style={styles.pauseBar} />
+      </View>
+    </View>
+  );
+
+  // Composant pour l'icône Format Scroll personnalisée
+  const FormatScrollIcon = () => (
+    <View style={styles.formatScrollIcon}>
+      <View style={styles.formatScrollIconInner}>
+        <View style={styles.formatScrollLines}>
+          <View style={styles.formatScrollLine} />
+          <View style={styles.formatScrollLine} />
+          <View style={styles.formatScrollLine} />
+        </View>
       </View>
     </View>
   );
@@ -868,10 +913,8 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
             textStyle={styles.standardButtonText}
             buttonKey="FormatScroll"
           >
-            <Image 
-              source={require('../assets/images/257f9c8f-03e3-40d1-9fa8-b3a999163f63.png')}
-              style={styles.formatScrollImage}
-            />
+            <FormatScrollIcon />
+            <Text style={styles.standardButtonText}>Format</Text>
           </CustomButton>
           
           <CustomButton
@@ -1140,7 +1183,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
           </CustomButton>
         </View>
 
-        {/* Color Function Buttons - UTILISE smallButton AVEC HAUTEUR 50px avec couleurs - ESPACEMENT IDENTIQUE: 20px - TEXTE RETIRÉ */}
+        {/* Color Function Buttons - UTILISE smallButton AVEC HAUTEUR 50px avec couleurs - ESPACEMENT IDENTIQUE: 20px - AVEC LETTRES A B C D */}
         <View style={styles.colorButtonsSection}>
           <CustomButton
             onPress={() => handleCommand('Function Red', 'FunctionRed')}
@@ -1149,7 +1192,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
             textStyle={styles.smallButtonText}
             buttonKey="FunctionRed"
           >
-            {/* Pas de texte, juste la couleur du bouton */}
+            <Text style={styles.colorButtonLetter}>A</Text>
           </CustomButton>
           
           <CustomButton
@@ -1159,7 +1202,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
             textStyle={styles.smallButtonText}
             buttonKey="FunctionGreen"
           >
-            {/* Pas de texte, juste la couleur du bouton */}
+            <Text style={styles.colorButtonLetter}>B</Text>
           </CustomButton>
           
           <CustomButton
@@ -1169,7 +1212,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
             textStyle={styles.smallButtonText}
             buttonKey="FunctionYellow"
           >
-            {/* Pas de texte, juste la couleur du bouton */}
+            <Text style={styles.colorButtonLetter}>C</Text>
           </CustomButton>
           
           <CustomButton
@@ -1179,7 +1222,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
             textStyle={styles.smallButtonText}
             buttonKey="FunctionBlue"
           >
-            {/* Pas de texte, juste la couleur du bouton */}
+            <Text style={styles.colorButtonLetter}>D</Text>
           </CustomButton>
         </View>
 
