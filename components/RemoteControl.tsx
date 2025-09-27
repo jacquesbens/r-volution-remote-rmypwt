@@ -457,7 +457,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
   // CORRECTION: Utiliser correctement le hook personnalisé pour les alertes
   const { showAlert } = useNativeAlert();
 
-  // Default IR codes - CODES INTÉGRÉS DEPUIS L'IMAGE FOURNIE + CODES EXISTANTS
+  // Default IR codes - CODES INTÉGRÉS DEPUIS LES IMAGES FOURNIES + CODES EXISTANTS
   const defaultIRCodes = {
     // Basic functions - CODES INTÉGRÉS DEPUIS L'IMAGE
     '3D': 'ED124040',
@@ -508,16 +508,16 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
     'VolumeUp': 'E7184040',
     'Zoom': 'E21D4040',
     
-    // New requested buttons (codes existants conservés)
-    'Stop': 'BD424040',
-    'Skip60Forward': 'EE114040',
-    'Skip60Rewind': 'EF104040',
-    'Skip10Forward': 'BF404040',
-    'Skip10Rewind': 'DF204040',
-    'FastRewind': 'EF104040',
-    'FastForward': 'EE114040',
-    'ChannelDown': 'B9204040',
-    'ChannelUp': 'BF404040',
+    // NOUVEAUX CODES IR INTÉGRÉS DEPUIS LES IMAGES - SEULEMENT POUR LES BOUTONS EXISTANTS
+    'Stop': 'BD424040', // Code mis à jour depuis l'image 2
+    'Skip60Forward': 'EE114040', // Code mis à jour depuis l'image 2
+    'Skip60Rewind': 'EF104040', // Code mis à jour depuis l'image 2
+    'Skip10Forward': 'BF404040', // Code mis à jour depuis l'image 2
+    'Skip10Rewind': 'DF204040', // Code mis à jour depuis l'image 2
+    'FastRewind': 'E31CBF00', // Code mis à jour depuis l'image 1
+    'FastForward': 'E41BBF00', // Code mis à jour depuis l'image 1
+    'ChannelDown': 'E01F4040', // Code mis à jour depuis l'image 1 (Previous)
+    'ChannelUp': 'E11E4040', // Code mis à jour depuis l'image 1 (Next)
   };
 
   const handleCommand = async (commandName: string, buttonKey: string) => {
@@ -558,7 +558,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
     
     // CORRECTION: Utiliser correctement le hook personnalisé pour afficher le code IR
     showAlert(`Code IR - ${buttonName}`, `Code enregistré: ${irCode}`);
-  }, [showAlert, defaultIRCodes]);
+  }, [showAlert]);
 
   const handlePlayPause = () => {
     handleCommand('Play/Pause', 'PlayPause');
