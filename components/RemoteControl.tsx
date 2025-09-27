@@ -401,12 +401,13 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
 
-  // Home, Menu, Back buttons section - positioned below navigation with same design as special buttons
+  // Home, Menu, Back buttons section - positioned below navigation
+  // Updated to use the same size as the Repeat button (subtitleAudioButton style)
   navigationControlsSection: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: 10,
     marginBottom: 20,
   },
 
@@ -424,7 +425,7 @@ const styles = StyleSheet.create({
     elevation: 2,
     borderWidth: 1,
     borderColor: colors.border,
-    flex: 0.3,
+    flex: 0.32,
   },
 
   navigationControlButtonText: {
@@ -996,7 +997,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
           </View>
         </View>
 
-        {/* Home, Menu, Back buttons - positioned below navigation with Back moved to the right of Menu */}
+        {/* Home, Menu, Back buttons - positioned below navigation with same size as Repeat button */}
         <View style={styles.navigationControlsSection}>
           <ModernButton
             onPress={() => handleCommand('Home', irCodes.Home)}
