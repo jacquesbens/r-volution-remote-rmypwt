@@ -859,7 +859,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
 
         <View style={styles.separator} />
 
-        {/* Format Scroll, 3D, Zoom buttons - UTILISE standardButton - ESPACEMENT IDENTIQUE: 20px - POSITIONS INTERVERTIES */}
+        {/* Format Scroll, 3D, Zoom buttons - UTILISE standardButton - ESPACEMENT IDENTIQUE: 20px - POSITIONS INTERVERTIES (Info et Zoom échangés) */}
         <View style={styles.infoButtonsSection}>
           <CustomButton
             onPress={() => handleCommand('Format Scroll', 'FormatScroll')}
@@ -869,7 +869,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
             buttonKey="FormatScroll"
           >
             <Image 
-              source={require('../assets/images/b0f9e9ae-0f09-4e05-af5d-2921f3ede19b.png')}
+              source={require('../assets/images/257f9c8f-03e3-40d1-9fa8-b3a999163f63.png')}
               style={styles.formatScrollImage}
             />
           </CustomButton>
@@ -886,14 +886,14 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
           </CustomButton>
           
           <CustomButton
-            onPress={() => handleCommand('Info', 'Info')}
-            onLongPress={() => handleLongPress('Info', 'Info')}
+            onPress={() => handleCommand('Zoom', 'Zoom')}
+            onLongPress={() => handleLongPress('Zoom', 'Zoom')}
             style={styles.standardButton}
             textStyle={styles.standardButtonText}
-            buttonKey="Info"
+            buttonKey="Zoom"
           >
-            <Icon name="information-circle" size={16} color="#fff" />
-            <Text style={styles.standardButtonText}>Info</Text>
+            <Icon name="search" size={16} color="#fff" />
+            <Text style={styles.standardButtonText}>Zoom</Text>
           </CustomButton>
         </View>
 
@@ -1045,12 +1045,12 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
               <Text style={styles.numberText}>0</Text>
             </CustomButton>
             <CustomButton
-              onPress={() => handleCommand('Zoom', 'Zoom')}
-              onLongPress={() => handleLongPress('Zoom', 'Zoom')}
+              onPress={() => handleCommand('Info', 'Info')}
+              onLongPress={() => handleLongPress('Info', 'Info')}
               style={styles.numberButton}
-              buttonKey="Zoom"
+              buttonKey="Info"
             >
-              <Icon name="search" size={22} color="#fff" />
+              <Icon name="information-circle" size={22} color="#fff" />
             </CustomButton>
           </View>
         </View>
