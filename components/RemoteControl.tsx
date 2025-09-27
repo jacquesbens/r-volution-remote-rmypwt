@@ -265,7 +265,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   
-  // Number pad
+  // Number pad - ALIGNEMENT PARFAIT GAUCHE/DROITE
   numberPad: {
     marginBottom: 20,
     paddingHorizontal: 8,
@@ -275,7 +275,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: 16,
-    paddingHorizontal: 12,
+    paddingHorizontal: 0, // Supprimé le padding pour un alignement parfait
   },
   
   numberButton: {
@@ -862,7 +862,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
           </View>
         </View>
 
-        {/* Home, Menu, Back buttons - UTILISE standardButton */}
+        {/* Home, Menu, Back buttons - ALIGNEMENT PARFAIT */}
         <View style={styles.navigationControlsSection}>
           <CustomButton
             onPress={() => handleCommand('Home', 'Home')}
@@ -900,7 +900,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
 
         <View style={styles.separator} />
 
-        {/* Number Pad */}
+        {/* Number Pad - ALIGNEMENT PARFAIT GAUCHE/DROITE */}
         <View style={styles.numberPad}>
           <View style={styles.numberRow}>
             {[1, 2, 3].map(num => (
