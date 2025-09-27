@@ -294,9 +294,12 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   
-  // Number pad - ALIGNEMENT PARFAIT GAUCHE/DROITE
+  // Number pad - ALIGNEMENT PARFAIT GAUCHE/DROITE avec espacement égal en haut et en bas
+  numberPadSpacing: {
+    height: 20, // Espacement identique en haut et en bas du pavé numérique
+  },
+  
   numberPad: {
-    marginBottom: 20,
     paddingHorizontal: 8,
   },
   
@@ -478,6 +481,10 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
     'Skip60Rewind': 'EF104040',
     'Skip10Forward': 'BF404040',
     'Skip10Rewind': 'DF204040',
+    'FastRewind': 'EF104040',
+    'FastForward': 'EE114040',
+    'ChannelDown': 'B9204040',
+    'ChannelUp': 'BF404040',
   };
 
   const handleCommand = async (commandName: string, buttonKey: string) => {
@@ -629,17 +636,16 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
 
         <View style={styles.separator} />
 
-        {/* Media Controls - UTILISE standardButton */}
+        {/* Media Controls - CH- et CH+ avec icônes */}
         <View style={styles.mediaControls}>
           <CustomButton
-            onPress={() => handleCommand('Channel Down', 'PageDown')}
-            onLongPress={() => handleLongPress('Channel Down', 'PageDown')}
+            onPress={() => handleCommand('Channel Down', 'ChannelDown')}
+            onLongPress={() => handleLongPress('Channel Down', 'ChannelDown')}
             style={styles.standardButton}
             textStyle={styles.standardButtonText}
-            buttonKey="PageDown"
+            buttonKey="ChannelDown"
           >
-            <Icon name="remove" size={16} color="#fff" />
-            <Text style={styles.standardButtonText}>CH -</Text>
+            <Icon name="chevron-down" size={20} color="#fff" />
           </CustomButton>
           
           <CustomButton
@@ -653,20 +659,28 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
           </CustomButton>
           
           <CustomButton
-            onPress={() => handleCommand('Channel Up', 'PageUp')}
-            onLongPress={() => handleLongPress('Channel Up', 'PageUp')}
+            onPress={() => handleCommand('Channel Up', 'ChannelUp')}
+            onLongPress={() => handleLongPress('Channel Up', 'ChannelUp')}
             style={styles.standardButton}
             textStyle={styles.standardButtonText}
-            buttonKey="PageUp"
+            buttonKey="ChannelUp"
           >
-            <Icon name="add" size={16} color="#fff" />
-            <Text style={styles.standardButtonText}>CH +</Text>
+            <Icon name="chevron-up" size={20} color="#fff" />
           </CustomButton>
         </View>
 
-        {/* Stop Button - Maintenant seul sur sa ligne */}
+        {/* Stop Button avec boutons retour rapide et avance rapide */}
         <View style={styles.mediaControls}>
-          <View style={{ flex: 0.32 }} />
+          <CustomButton
+            onPress={() => handleCommand('Fast Rewind', 'FastRewind')}
+            onLongPress={() => handleLongPress('Fast Rewind', 'FastRewind')}
+            style={styles.standardButton}
+            textStyle={styles.standardButtonText}
+            buttonKey="FastRewind"
+          >
+            <Icon name="play-back" size={20} color="#fff" />
+          </CustomButton>
+          
           <CustomButton
             onPress={() => handleCommand('Stop', 'Stop')}
             onLongPress={() => handleLongPress('Stop', 'Stop')}
@@ -677,7 +691,16 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
             <Icon name="stop" size={16} color="#fff" />
             <Text style={styles.standardButtonText}>Stop</Text>
           </CustomButton>
-          <View style={{ flex: 0.32 }} />
+          
+          <CustomButton
+            onPress={() => handleCommand('Fast Forward', 'FastForward')}
+            onLongPress={() => handleLongPress('Fast Forward', 'FastForward')}
+            style={styles.standardButton}
+            textStyle={styles.standardButtonText}
+            buttonKey="FastForward"
+          >
+            <Icon name="play-forward" size={20} color="#fff" />
+          </CustomButton>
         </View>
 
         {/* Media Control Buttons - UTILISE smallButton AVEC HAUTEUR 50px */}
@@ -889,6 +912,9 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
 
         <View style={styles.separator} />
 
+        {/* Espacement identique au-dessus du pavé numérique */}
+        <View style={styles.numberPadSpacing} />
+
         {/* Number Pad - ALIGNEMENT PARFAIT GAUCHE/DROITE */}
         <View style={styles.numberPad}>
           <View style={styles.numberRow}>
@@ -957,6 +983,9 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
             </CustomButton>
           </View>
         </View>
+
+        {/* Espacement identique en dessous du pavé numérique */}
+        <View style={styles.numberPadSpacing} />
 
         <View style={styles.separator} />
 
