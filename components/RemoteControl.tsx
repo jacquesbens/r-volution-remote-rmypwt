@@ -146,58 +146,58 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   
-  // Power and main controls
+  // Power and main controls - ESPACEMENT DE RÉFÉRENCE: 20px
   powerSection: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 8,
-    marginBottom: 20,
+    marginBottom: 20, // ESPACEMENT DE RÉFÉRENCE
   },
   
-  // Media controls - TOUS UTILISENT standardButton
+  // Media controls - TOUS UTILISENT standardButton - ESPACEMENT IDENTIQUE: 20px
   mediaControls: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 20, // ESPACEMENT IDENTIQUE À LA RÉFÉRENCE
     paddingHorizontal: 8,
   },
 
-  // Media control buttons - TOUS UTILISENT smallButton AVEC HAUTEUR 50px
+  // Media control buttons - TOUS UTILISENT smallButton AVEC HAUTEUR 50px - ESPACEMENT IDENTIQUE: 20px
   mediaControlsExtended: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 8,
-    marginBottom: 20,
+    marginBottom: 20, // ESPACEMENT IDENTIQUE À LA RÉFÉRENCE
   },
 
-  // Subtitle and Audio buttons section - TOUS UTILISENT standardButton
+  // Subtitle and Audio buttons section - TOUS UTILISENT standardButton - ESPACEMENT IDENTIQUE: 20px
   subtitleAudioSection: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 8,
-    marginBottom: 20,
+    marginBottom: 20, // ESPACEMENT IDENTIQUE À LA RÉFÉRENCE
   },
 
-  // Info buttons section - TOUS UTILISENT standardButton
+  // Info buttons section - TOUS UTILISENT standardButton - ESPACEMENT IDENTIQUE: 20px
   infoButtonsSection: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 8,
-    marginBottom: 20,
+    marginBottom: 20, // ESPACEMENT IDENTIQUE À LA RÉFÉRENCE
   },
 
-  // NOUVELLE SECTION: Quatre boutons sur une ligne (Page-, Air Video, Explorer, Page+)
+  // NOUVELLE SECTION: Quatre boutons sur une ligne (Page-, Air Video, Explorer, Page+) - ESPACEMENT IDENTIQUE: 20px
   fourButtonsSection: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 8,
-    marginBottom: 20,
+    marginBottom: 20, // ESPACEMENT IDENTIQUE À LA RÉFÉRENCE
   },
 
   fourButtonsButton: {
@@ -228,10 +228,10 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   
-  // Navigation - RESTE CENTRÉ
+  // Navigation - RESTE CENTRÉ - ESPACEMENT IDENTIQUE: 20px
   navigationSection: {
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 20, // ESPACEMENT IDENTIQUE À LA RÉFÉRENCE
   },
   
   navigationContainer: {
@@ -285,13 +285,13 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
 
-  // Navigation controls section - TOUS UTILISENT standardButton
+  // Navigation controls section - TOUS UTILISENT standardButton - ESPACEMENT IDENTIQUE: 20px
   navigationControlsSection: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 8,
-    marginBottom: 20,
+    marginBottom: 20, // ESPACEMENT IDENTIQUE À LA RÉFÉRENCE
   },
   
   // Number pad - ALIGNEMENT PARFAIT GAUCHE/DROITE avec espacement égal en haut et en bas
@@ -339,13 +339,13 @@ const styles = StyleSheet.create({
   yellowButton: { backgroundColor: '#d69e2e' },
   blueButton: { backgroundColor: '#3182ce' },
   
-  // Volume controls - TOUS UTILISENT standardButton
+  // Volume controls - TOUS UTILISENT standardButton - ESPACEMENT IDENTIQUE: 20px
   volumeSection: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 8,
-    marginBottom: 20,
+    marginBottom: 20, // ESPACEMENT IDENTIQUE À LA RÉFÉRENCE
   },
   
   muteButton: {
@@ -366,19 +366,19 @@ const styles = StyleSheet.create({
     maxHeight: 50,
   },
 
-  // Color buttons section
+  // Color buttons section - ESPACEMENT IDENTIQUE: 20px
   colorButtonsSection: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 8,
-    marginBottom: 10,
+    marginBottom: 20, // ESPACEMENT IDENTIQUE À LA RÉFÉRENCE (changé de 10 à 20)
   },
 
-  // Logo section
+  // Logo section - ESPACEMENT IDENTIQUE: 20px
   logoSection: {
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 20, // ESPACEMENT IDENTIQUE À LA RÉFÉRENCE (changé de 10 à 20)
     paddingHorizontal: 8,
   },
 
@@ -598,7 +598,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
   return (
     <View style={styles.container}>
       <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
-        {/* Power Controls - UTILISE standardButton */}
+        {/* Power Controls - UTILISE standardButton - ESPACEMENT DE RÉFÉRENCE: 20px */}
         <View style={styles.powerSection}>
           <CustomButton
             onPress={() => handleCommand('Power On', 'PowerOn')}
@@ -636,7 +636,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
 
         <View style={styles.separator} />
 
-        {/* Media Controls - CH- et CH+ avec icônes de chapitre */}
+        {/* Media Controls - CH- et CH+ avec icônes de chapitre - ESPACEMENT IDENTIQUE: 20px */}
         <View style={styles.mediaControls}>
           <CustomButton
             onPress={() => handleCommand('Chapter Previous', 'ChannelDown')}
@@ -669,7 +669,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
           </CustomButton>
         </View>
 
-        {/* Stop Button avec boutons retour rapide et avance rapide */}
+        {/* Stop Button avec boutons retour rapide et avance rapide - ESPACEMENT IDENTIQUE: 20px */}
         <View style={styles.mediaControls}>
           <CustomButton
             onPress={() => handleCommand('Fast Rewind', 'FastRewind')}
@@ -688,8 +688,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
             textStyle={styles.standardButtonText}
             buttonKey="Stop"
           >
-            <Icon name="stop" size={16} color="#fff" />
-            <Text style={styles.standardButtonText}>Stop</Text>
+            <Icon name="stop" size={20} color="#fff" />
           </CustomButton>
           
           <CustomButton
@@ -703,7 +702,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
           </CustomButton>
         </View>
 
-        {/* Media Control Buttons - UTILISE smallButton AVEC HAUTEUR 50px */}
+        {/* Media Control Buttons - TOUS UTILISENT smallButton AVEC HAUTEUR 50px - ESPACEMENT IDENTIQUE: 20px */}
         <View style={styles.mediaControlsExtended}>
           <CustomButton
             onPress={() => handleCommand('60s Rewind', 'Skip60Rewind')}
@@ -750,7 +749,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
           </CustomButton>
         </View>
 
-        {/* Repeat, Subtitle and Audio Buttons - UTILISE standardButton */}
+        {/* Repeat, Subtitle and Audio Buttons - UTILISE standardButton - ESPACEMENT IDENTIQUE: 20px */}
         <View style={styles.subtitleAudioSection}>
           <CustomButton
             onPress={() => handleCommand('Repeat', 'Repeat')}
@@ -788,7 +787,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
 
         <View style={styles.separator} />
 
-        {/* Info, 3D, Zoom buttons - UTILISE standardButton */}
+        {/* Info, 3D, Zoom buttons - UTILISE standardButton - ESPACEMENT IDENTIQUE: 20px */}
         <View style={styles.infoButtonsSection}>
           <CustomButton
             onPress={() => handleCommand('Info', 'Info')}
@@ -824,7 +823,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
           </CustomButton>
         </View>
 
-        {/* Navigation - RESTE CENTRÉ */}
+        {/* Navigation - RESTE CENTRÉ - ESPACEMENT IDENTIQUE: 20px */}
         <View style={styles.navigationSection}>
           <View style={styles.navigationContainer}>
             <CustomButton
@@ -874,7 +873,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
           </View>
         </View>
 
-        {/* Home, Menu, Back buttons - ALIGNEMENT PARFAIT */}
+        {/* Home, Menu, Back buttons - ALIGNEMENT PARFAIT - ESPACEMENT IDENTIQUE: 20px */}
         <View style={styles.navigationControlsSection}>
           <CustomButton
             onPress={() => handleCommand('Home', 'Home')}
@@ -989,7 +988,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
 
         <View style={styles.separator} />
 
-        {/* NOUVELLE SECTION: Quatre boutons sur une ligne (Page-, Air Video, Explorer, Page+) - MAINTENANT AU-DESSUS DES BOUTONS DE VOLUME */}
+        {/* NOUVELLE SECTION: Quatre boutons sur une ligne (Page-, Air Video, Explorer, Page+) - MAINTENANT AU-DESSUS DES BOUTONS DE VOLUME - ESPACEMENT IDENTIQUE: 20px */}
         <View style={styles.fourButtonsSection}>
           <CustomButton
             onPress={() => handleCommand('Page Down', 'PageDown')}
@@ -1036,7 +1035,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
           </CustomButton>
         </View>
 
-        {/* Volume Controls - UTILISE standardButton */}
+        {/* Volume Controls - UTILISE standardButton - ESPACEMENT IDENTIQUE: 20px */}
         <View style={styles.volumeSection}>
           <CustomButton
             onPress={() => handleCommand('Volume Down', 'VolumeDown')}
@@ -1072,7 +1071,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
           </CustomButton>
         </View>
 
-        {/* Color Function Buttons - UTILISE smallButton AVEC HAUTEUR 50px avec couleurs */}
+        {/* Color Function Buttons - UTILISE smallButton AVEC HAUTEUR 50px avec couleurs - ESPACEMENT IDENTIQUE: 20px */}
         <View style={styles.colorButtonsSection}>
           <CustomButton
             onPress={() => handleCommand('Function Red', 'FunctionRed')}
@@ -1115,7 +1114,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
           </CustomButton>
         </View>
 
-        {/* Logo Section */}
+        {/* Logo Section - ESPACEMENT IDENTIQUE: 20px */}
         <View style={styles.logoSection}>
           <Image 
             source={require('../assets/images/490033b5-b48d-4f21-bd74-a10b28ac45b8.png')}
