@@ -412,6 +412,17 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
   },
+
+  // Style pour l'icône combinée Play/Pause
+  playPauseIconContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  playPauseIcon: {
+    marginHorizontal: 1,
+  },
 });
 
 const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
@@ -559,6 +570,15 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
     handleCommand(`Chiffre ${num}`, digitKey);
   };
 
+  // Composant pour l'icône combinée Play/Pause
+  const PlayPauseIcon = () => (
+    <View style={styles.playPauseIconContainer}>
+      <Icon name="play" size={12} color="#fff" style={styles.playPauseIcon} />
+      <Text style={{ color: '#fff', fontSize: 8, marginHorizontal: 2 }}>|</Text>
+      <Icon name="pause" size={12} color="#fff" style={styles.playPauseIcon} />
+    </View>
+  );
+
   const CustomButton: React.FC<{
     onPress: () => void;
     onLongPress: () => void;
@@ -660,7 +680,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
             textStyle={styles.standardButtonText}
             buttonKey="PlayPause"
           >
-            <Icon name={isPlaying ? "pause" : "play"} size={24} color="#fff" />
+            <PlayPauseIcon />
           </CustomButton>
           
           <CustomButton
