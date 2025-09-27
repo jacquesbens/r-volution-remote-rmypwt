@@ -88,16 +88,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
   },
   
-  // Power and main controls - MATCHED TO REPEAT BUTTON DIMENSIONS
-  powerSection: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 8,
-    marginBottom: 20,
-  },
-  
-  powerButton: {
+  // STANDARD BUTTON DIMENSIONS - TOUS LES BOUTONS PRINCIPAUX UTILISENT CES DIMENSIONS
+  standardButton: {
     backgroundColor: colors.primary,
     borderRadius: 10,
     paddingVertical: 12,
@@ -114,168 +106,18 @@ const styles = StyleSheet.create({
     flex: 0.32,
     position: 'relative',
     minHeight: 50,
+    maxHeight: 50,
   },
-  
-  powerButtonText: {
+
+  standardButtonText: {
     color: '#fff',
     fontSize: 11,
     fontWeight: '600',
     marginTop: 3,
   },
 
-  offButton: {
-    backgroundColor: colors.primary,
-    borderRadius: 10,
-    paddingVertical: 12,
-    paddingHorizontal: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-    borderWidth: 1,
-    borderColor: colors.border,
-    flex: 0.32,
-    position: 'relative',
-    minHeight: 50,
-  },
-
-  offButtonText: {
-    color: '#fff',
-    fontSize: 11,
-    fontWeight: '600',
-    marginTop: 3,
-  },
-  
-  // Media controls - MATCHED TO REPEAT BUTTON DIMENSIONS
-  mediaControls: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
-    paddingHorizontal: 8,
-  },
-  
-  channelButton: {
-    backgroundColor: colors.primary,
-    borderRadius: 10,
-    paddingVertical: 12,
-    paddingHorizontal: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-    borderWidth: 1,
-    borderColor: colors.border,
-    flex: 0.32,
-    position: 'relative',
-    minHeight: 50,
-  },
-  
-  channelButtonText: {
-    color: '#fff',
-    fontSize: 11,
-    fontWeight: '600',
-    marginTop: 3,
-  },
-  
-  // FIXED: Play button now matches Stop button dimensions exactly - SAME AS CHANNEL BUTTONS
-  playButton: {
-    backgroundColor: colors.primary,
-    borderRadius: 10,
-    paddingVertical: 12,
-    paddingHorizontal: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-    borderWidth: 1,
-    borderColor: colors.border,
-    flex: 0.32,
-    position: 'relative',
-    minHeight: 50,
-  },
-
-  // Page buttons section - MATCHED TO REPEAT BUTTON DIMENSIONS
-  pageButtonsSection: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 8,
-    marginBottom: 20,
-  },
-
-  pageButton: {
-    backgroundColor: colors.primary,
-    borderRadius: 10,
-    paddingVertical: 12,
-    paddingHorizontal: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-    borderWidth: 1,
-    borderColor: colors.border,
-    flex: 0.32,
-    position: 'relative',
-    minHeight: 50,
-  },
-
-  pageButtonText: {
-    color: '#fff',
-    fontSize: 11,
-    fontWeight: '600',
-    marginTop: 3,
-  },
-
-  // FIXED: Stop button matches Play button dimensions exactly - SAME AS CHANNEL BUTTONS
-  stopButton: {
-    backgroundColor: colors.primary,
-    borderRadius: 10,
-    paddingVertical: 12,
-    paddingHorizontal: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-    borderWidth: 1,
-    borderColor: colors.border,
-    flex: 0.32,
-    position: 'relative',
-    minHeight: 50,
-  },
-
-  stopButtonText: {
-    color: '#fff',
-    fontSize: 11,
-    fontWeight: '600',
-    marginTop: 3,
-  },
-
-  // FIXED: Media control buttons (-60, -10, +10, +60) - Reference dimensions for color buttons
-  mediaControlsExtended: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 8,
-    marginBottom: 20,
-  },
-
-  mediaControlButton: {
+  // SMALL BUTTON DIMENSIONS - POUR LES BOUTONS DE COULEUR ET CONTRÔLES MEDIA
+  smallButton: {
     backgroundColor: colors.primary,
     borderRadius: 10,
     paddingVertical: 8,
@@ -292,17 +134,54 @@ const styles = StyleSheet.create({
     flex: 0.24,
     position: 'relative',
     minHeight: 44,
+    maxHeight: 44,
   },
 
-  mediaControlButtonText: {
+  smallButtonText: {
     color: '#fff',
     fontSize: 9,
     fontWeight: '600',
     marginTop: 2,
     textAlign: 'center',
   },
+  
+  // Power and main controls
+  powerSection: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    marginBottom: 20,
+  },
+  
+  // Media controls - TOUS UTILISENT standardButton
+  mediaControls: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+    paddingHorizontal: 8,
+  },
+  
+  // Page buttons section - TOUS UTILISENT standardButton
+  pageButtonsSection: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    marginBottom: 20,
+  },
 
-  // Subtitle and Audio buttons section - REFERENCE DIMENSIONS
+  // Media control buttons - TOUS UTILISENT smallButton
+  mediaControlsExtended: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    marginBottom: 20,
+  },
+
+  // Subtitle and Audio buttons section - TOUS UTILISENT standardButton
   subtitleAudioSection: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -311,69 +190,13 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
 
-  subtitleAudioButton: {
-    backgroundColor: colors.primary,
-    borderRadius: 10,
-    paddingVertical: 12,
-    paddingHorizontal: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-    borderWidth: 1,
-    borderColor: colors.border,
-    flex: 0.32,
-    position: 'relative',
-    minHeight: 50,
-  },
-
-  subtitleAudioButtonText: {
-    color: '#fff',
-    fontSize: 11,
-    fontWeight: '600',
-    marginTop: 3,
-  },
-
-  // FIXED: Info, 3D, Zoom buttons now match Repeat, Subtitle, Audio dimensions
+  // Info buttons section - TOUS UTILISENT standardButton
   infoButtonsSection: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 8,
     marginBottom: 20,
-  },
-
-  infoButton: {
-    backgroundColor: colors.primary,
-    borderRadius: 10,
-    paddingVertical: 12,
-    paddingHorizontal: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-    borderWidth: 1,
-    borderColor: colors.border,
-    flex: 0.32,
-    position: 'relative',
-    minHeight: 50,
-  },
-
-  infoButtonText: {
-    color: '#fff',
-    fontSize: 11,
-    fontWeight: '600',
-    marginTop: 3,
-  },
-
-  infoSpacer: {
-    flex: 0.04,
   },
   
   // Navigation - RESTE CENTRÉ
@@ -433,39 +256,13 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
 
-  // Home, Menu, Back buttons section - REFERENCE DIMENSIONS for volume buttons
+  // Navigation controls section - TOUS UTILISENT standardButton
   navigationControlsSection: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 8,
     marginBottom: 20,
-  },
-
-  navigationControlButton: {
-    backgroundColor: colors.primary,
-    borderRadius: 10,
-    paddingVertical: 12,
-    paddingHorizontal: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-    borderWidth: 1,
-    borderColor: colors.border,
-    flex: 0.32,
-    position: 'relative',
-    minHeight: 50,
-  },
-
-  navigationControlButtonText: {
-    color: '#fff',
-    fontSize: 11,
-    fontWeight: '600',
-    marginTop: 3,
   },
   
   // Number pad
@@ -539,62 +336,19 @@ const styles = StyleSheet.create({
     marginTop: 3,
   },
   
-  // FIXED: Color function buttons now match -60 -10 +10 +60 button dimensions
-  colorButton: {
-    borderRadius: 10,
-    paddingVertical: 8,
-    paddingHorizontal: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 2,
-    position: 'relative',
-    flex: 0.24,
-    minHeight: 44,
-  },
-  
+  // Color function buttons - TOUS UTILISENT smallButton avec couleurs spéciales
   redButton: { backgroundColor: '#e53e3e' },
   greenButton: { backgroundColor: '#38a169' },
   yellowButton: { backgroundColor: '#d69e2e' },
   blueButton: { backgroundColor: '#3182ce' },
   
-  colorButtonText: {
-    color: '#fff',
-    fontSize: 9,
-    fontWeight: '600',
-    marginTop: 2,
-    textAlign: 'center',
-  },
-  
-  // FIXED: Volume controls now match Home, Menu, Back button dimensions
+  // Volume controls - TOUS UTILISENT standardButton
   volumeSection: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 8,
     marginBottom: 20,
-  },
-  
-  volumeButton: {
-    backgroundColor: colors.primary,
-    borderRadius: 10,
-    paddingVertical: 12,
-    paddingHorizontal: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-    borderWidth: 1,
-    borderColor: colors.border,
-    flex: 0.32,
-    position: 'relative',
-    minHeight: 50,
   },
   
   muteButton: {
@@ -612,13 +366,7 @@ const styles = StyleSheet.create({
     flex: 0.32,
     position: 'relative',
     minHeight: 50,
-  },
-  
-  volumeText: {
-    color: '#fff',
-    fontSize: 11,
-    fontWeight: '600',
-    marginTop: 3,
+    maxHeight: 50,
   },
 
   // Color buttons section
@@ -834,57 +582,62 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
   return (
     <View style={styles.container}>
       <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
-        {/* Power Controls */}
+        {/* Power Controls - UTILISE standardButton */}
         <View style={styles.powerSection}>
           <CustomButton
             onPress={() => handleCommand('Power On', 'PowerOn')}
             onLongPress={() => handleLongPress('Power On', 'PowerOn')}
-            style={styles.powerButton}
+            style={styles.standardButton}
+            textStyle={styles.standardButtonText}
             buttonKey="PowerOn"
           >
             <Icon name="power" size={16} color="#fff" />
-            <Text style={styles.powerButtonText}>ON</Text>
+            <Text style={styles.standardButtonText}>ON</Text>
           </CustomButton>
           
           <CustomButton
             onPress={() => handleCommand('Power Off', 'PowerOff')}
             onLongPress={() => handleLongPress('Power Off', 'PowerOff')}
-            style={styles.offButton}
+            style={styles.standardButton}
+            textStyle={styles.standardButtonText}
             buttonKey="PowerOff"
           >
             <Icon name="power" size={16} color="#fff" />
-            <Text style={styles.offButtonText}>OFF</Text>
+            <Text style={styles.standardButtonText}>OFF</Text>
           </CustomButton>
 
           <CustomButton
             onPress={() => handleCommand('Dimmer', 'Dimmer')}
             onLongPress={() => handleLongPress('Dimmer', 'Dimmer')}
-            style={styles.powerButton}
+            style={styles.standardButton}
+            textStyle={styles.standardButtonText}
             buttonKey="Dimmer"
           >
             <Icon name="sunny" size={16} color="#fff" />
-            <Text style={styles.powerButtonText}>Dimmer</Text>
+            <Text style={styles.standardButtonText}>Dimmer</Text>
           </CustomButton>
         </View>
 
         <View style={styles.separator} />
 
-        {/* Media Controls */}
+        {/* Media Controls - UTILISE standardButton */}
         <View style={styles.mediaControls}>
           <CustomButton
             onPress={() => handleCommand('Channel Down', 'PageDown')}
             onLongPress={() => handleLongPress('Channel Down', 'PageDown')}
-            style={styles.channelButton}
+            style={styles.standardButton}
+            textStyle={styles.standardButtonText}
             buttonKey="PageDown"
           >
             <Icon name="remove" size={16} color="#fff" />
-            <Text style={styles.channelButtonText}>CH -</Text>
+            <Text style={styles.standardButtonText}>CH -</Text>
           </CustomButton>
           
           <CustomButton
             onPress={handlePlayPause}
             onLongPress={() => handleLongPress('Play/Pause', 'PlayPause')}
-            style={styles.playButton}
+            style={styles.standardButton}
+            textStyle={styles.standardButtonText}
             buttonKey="PlayPause"
           >
             <Icon name={isPlaying ? "pause" : "play"} size={24} color="#fff" />
@@ -893,155 +646,169 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
           <CustomButton
             onPress={() => handleCommand('Channel Up', 'PageUp')}
             onLongPress={() => handleLongPress('Channel Up', 'PageUp')}
-            style={styles.channelButton}
+            style={styles.standardButton}
+            textStyle={styles.standardButtonText}
             buttonKey="PageUp"
           >
             <Icon name="add" size={16} color="#fff" />
-            <Text style={styles.channelButtonText}>CH +</Text>
+            <Text style={styles.standardButtonText}>CH +</Text>
           </CustomButton>
         </View>
 
-        {/* Page Buttons Section */}
+        {/* Page Buttons Section - UTILISE standardButton */}
         <View style={styles.pageButtonsSection}>
           <CustomButton
             onPress={() => handleCommand('Page Down', 'PageDown')}
             onLongPress={() => handleLongPress('Page Down', 'PageDown')}
-            style={styles.pageButton}
+            style={styles.standardButton}
+            textStyle={styles.standardButtonText}
             buttonKey="PageDown"
           >
             <Icon name="arrow-down" size={16} color="#fff" />
-            <Text style={styles.pageButtonText}>Page -</Text>
+            <Text style={styles.standardButtonText}>Page -</Text>
           </CustomButton>
           
           <CustomButton
             onPress={() => handleCommand('Stop', 'Stop')}
             onLongPress={() => handleLongPress('Stop', 'Stop')}
-            style={styles.stopButton}
+            style={styles.standardButton}
+            textStyle={styles.standardButtonText}
             buttonKey="Stop"
           >
             <Icon name="stop" size={16} color="#fff" />
-            <Text style={styles.stopButtonText}>Stop</Text>
+            <Text style={styles.standardButtonText}>Stop</Text>
           </CustomButton>
           
           <CustomButton
             onPress={() => handleCommand('Page Up', 'PageUp')}
             onLongPress={() => handleLongPress('Page Up', 'PageUp')}
-            style={styles.pageButton}
+            style={styles.standardButton}
+            textStyle={styles.standardButtonText}
             buttonKey="PageUp"
           >
             <Icon name="arrow-up" size={16} color="#fff" />
-            <Text style={styles.pageButtonText}>Page +</Text>
+            <Text style={styles.standardButtonText}>Page +</Text>
           </CustomButton>
         </View>
 
-        {/* Media Control Buttons */}
+        {/* Media Control Buttons - UTILISE smallButton */}
         <View style={styles.mediaControlsExtended}>
           <CustomButton
             onPress={() => handleCommand('60s Rewind', 'Skip60Rewind')}
             onLongPress={() => handleLongPress('60s Rewind', 'Skip60Rewind')}
-            style={styles.mediaControlButton}
+            style={styles.smallButton}
+            textStyle={styles.smallButtonText}
             buttonKey="Skip60Rewind"
           >
             <Icon name="play-back" size={12} color="#fff" />
-            <Text style={styles.mediaControlButtonText}>-60s</Text>
+            <Text style={styles.smallButtonText}>-60s</Text>
           </CustomButton>
           
           <CustomButton
             onPress={() => handleCommand('10s Rewind', 'Skip10Rewind')}
             onLongPress={() => handleLongPress('10s Rewind', 'Skip10Rewind')}
-            style={styles.mediaControlButton}
+            style={styles.smallButton}
+            textStyle={styles.smallButtonText}
             buttonKey="Skip10Rewind"
           >
             <Icon name="play-back" size={12} color="#fff" />
-            <Text style={styles.mediaControlButtonText}>-10s</Text>
+            <Text style={styles.smallButtonText}>-10s</Text>
           </CustomButton>
           
           <CustomButton
             onPress={() => handleCommand('10s Forward', 'Skip10Forward')}
             onLongPress={() => handleLongPress('10s Forward', 'Skip10Forward')}
-            style={styles.mediaControlButton}
+            style={styles.smallButton}
+            textStyle={styles.smallButtonText}
             buttonKey="Skip10Forward"
           >
             <Icon name="play-forward" size={12} color="#fff" />
-            <Text style={styles.mediaControlButtonText}>+10s</Text>
+            <Text style={styles.smallButtonText}>+10s</Text>
           </CustomButton>
           
           <CustomButton
             onPress={() => handleCommand('60s Forward', 'Skip60Forward')}
             onLongPress={() => handleLongPress('60s Forward', 'Skip60Forward')}
-            style={styles.mediaControlButton}
+            style={styles.smallButton}
+            textStyle={styles.smallButtonText}
             buttonKey="Skip60Forward"
           >
             <Icon name="play-forward" size={12} color="#fff" />
-            <Text style={styles.mediaControlButtonText}>+60s</Text>
+            <Text style={styles.smallButtonText}>+60s</Text>
           </CustomButton>
         </View>
 
-        {/* Repeat, Subtitle and Audio Buttons */}
+        {/* Repeat, Subtitle and Audio Buttons - UTILISE standardButton */}
         <View style={styles.subtitleAudioSection}>
           <CustomButton
             onPress={() => handleCommand('Repeat', 'Repeat')}
             onLongPress={() => handleLongPress('Repeat', 'Repeat')}
-            style={styles.subtitleAudioButton}
+            style={styles.standardButton}
+            textStyle={styles.standardButtonText}
             buttonKey="Repeat"
           >
             <Icon name="repeat" size={16} color="#fff" />
-            <Text style={styles.subtitleAudioButtonText}>Repeat</Text>
+            <Text style={styles.standardButtonText}>Repeat</Text>
           </CustomButton>
           
           <CustomButton
             onPress={() => handleCommand('Subtitle', 'Subtitle')}
             onLongPress={() => handleLongPress('Subtitle', 'Subtitle')}
-            style={styles.subtitleAudioButton}
+            style={styles.standardButton}
+            textStyle={styles.standardButtonText}
             buttonKey="Subtitle"
           >
             <Icon name="text" size={16} color="#fff" />
-            <Text style={styles.subtitleAudioButtonText}>Subtitle</Text>
+            <Text style={styles.standardButtonText}>Subtitle</Text>
           </CustomButton>
           
           <CustomButton
             onPress={() => handleCommand('Audio', 'Audio')}
             onLongPress={() => handleLongPress('Audio', 'Audio')}
-            style={styles.subtitleAudioButton}
+            style={styles.standardButton}
+            textStyle={styles.standardButtonText}
             buttonKey="Audio"
           >
             <Icon name="musical-notes" size={16} color="#fff" />
-            <Text style={styles.subtitleAudioButtonText}>Audio</Text>
+            <Text style={styles.standardButtonText}>Audio</Text>
           </CustomButton>
         </View>
 
         <View style={styles.separator} />
 
-        {/* Info, 3D, Zoom buttons - NOW MATCHING REPEAT BUTTON DIMENSIONS */}
+        {/* Info, 3D, Zoom buttons - UTILISE standardButton */}
         <View style={styles.infoButtonsSection}>
           <CustomButton
             onPress={() => handleCommand('Info', 'Info')}
             onLongPress={() => handleLongPress('Info', 'Info')}
-            style={styles.infoButton}
+            style={styles.standardButton}
+            textStyle={styles.standardButtonText}
             buttonKey="Info"
           >
             <Icon name="information-circle" size={16} color="#fff" />
-            <Text style={styles.infoButtonText}>Info</Text>
+            <Text style={styles.standardButtonText}>Info</Text>
           </CustomButton>
           
           <CustomButton
             onPress={() => handleCommand('3D', '3D')}
             onLongPress={() => handleLongPress('3D', '3D')}
-            style={styles.infoButton}
+            style={styles.standardButton}
+            textStyle={styles.standardButtonText}
             buttonKey="3D"
           >
             <Icon name="cube" size={16} color="#fff" />
-            <Text style={styles.infoButtonText}>3D</Text>
+            <Text style={styles.standardButtonText}>3D</Text>
           </CustomButton>
           
           <CustomButton
             onPress={() => handleCommand('Zoom', 'Zoom')}
             onLongPress={() => handleLongPress('Zoom', 'Zoom')}
-            style={styles.infoButton}
+            style={styles.standardButton}
+            textStyle={styles.standardButtonText}
             buttonKey="Zoom"
           >
             <Icon name="search" size={16} color="#fff" />
-            <Text style={styles.infoButtonText}>Zoom</Text>
+            <Text style={styles.standardButtonText}>Zoom</Text>
           </CustomButton>
         </View>
 
@@ -1095,36 +862,39 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
           </View>
         </View>
 
-        {/* Home, Menu, Back buttons */}
+        {/* Home, Menu, Back buttons - UTILISE standardButton */}
         <View style={styles.navigationControlsSection}>
           <CustomButton
             onPress={() => handleCommand('Home', 'Home')}
             onLongPress={() => handleLongPress('Home', 'Home')}
-            style={styles.navigationControlButton}
+            style={styles.standardButton}
+            textStyle={styles.standardButtonText}
             buttonKey="Home"
           >
             <Icon name="home" size={16} color="#fff" />
-            <Text style={styles.navigationControlButtonText}>Home</Text>
+            <Text style={styles.standardButtonText}>Home</Text>
           </CustomButton>
           
           <CustomButton
             onPress={() => handleCommand('Menu', 'Menu')}
             onLongPress={() => handleLongPress('Menu', 'Menu')}
-            style={styles.navigationControlButton}
+            style={styles.standardButton}
+            textStyle={styles.standardButtonText}
             buttonKey="Menu"
           >
             <Icon name="menu" size={16} color="#fff" />
-            <Text style={styles.navigationControlButtonText}>Menu</Text>
+            <Text style={styles.standardButtonText}>Menu</Text>
           </CustomButton>
 
           <CustomButton
             onPress={() => handleCommand('Return', 'Return')}
             onLongPress={() => handleLongPress('Back', 'Return')}
-            style={styles.navigationControlButton}
+            style={styles.standardButton}
+            textStyle={styles.standardButtonText}
             buttonKey="Return"
           >
             <Icon name="arrow-back" size={16} color="#fff" />
-            <Text style={styles.navigationControlButtonText}>Back</Text>
+            <Text style={styles.standardButtonText}>Back</Text>
           </CustomButton>
         </View>
 
@@ -1205,6 +975,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
             onPress={() => handleCommand('Air Video', 'RVideo')}
             onLongPress={() => handleLongPress('Air Video', 'RVideo')}
             style={styles.specialButton}
+            textStyle={styles.specialButtonText}
             buttonKey="RVideo"
           >
             <Icon name="videocam" size={16} color="#fff" />
@@ -1215,6 +986,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
             onPress={() => handleCommand('Explorer', 'Explorer')}
             onLongPress={() => handleLongPress('Explorer', 'Explorer')}
             style={styles.specialButton}
+            textStyle={styles.specialButtonText}
             buttonKey="Explorer"
           >
             <Icon name="folder" size={16} color="#fff" />
@@ -1224,75 +996,82 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
 
         <View style={styles.separator} />
 
-        {/* Volume Controls - NOW MATCHING HOME, MENU, BACK BUTTON DIMENSIONS */}
+        {/* Volume Controls - UTILISE standardButton */}
         <View style={styles.volumeSection}>
           <CustomButton
             onPress={() => handleCommand('Volume Down', 'VolumeDown')}
             onLongPress={() => handleLongPress('Volume Down', 'VolumeDown')}
-            style={styles.volumeButton}
+            style={styles.standardButton}
+            textStyle={styles.standardButtonText}
             buttonKey="VolumeDown"
           >
             <Icon name="volume-low" size={16} color="#fff" />
-            <Text style={styles.volumeText}>Vol -</Text>
+            <Text style={styles.standardButtonText}>Vol -</Text>
           </CustomButton>
           
           <CustomButton
             onPress={() => handleCommand('Mute', 'Mute')}
             onLongPress={() => handleLongPress('Mute', 'Mute')}
             style={styles.muteButton}
+            textStyle={styles.standardButtonText}
             buttonKey="Mute"
           >
             <Icon name="volume-mute" size={16} color="#fff" />
-            <Text style={styles.volumeText}>Mute</Text>
+            <Text style={styles.standardButtonText}>Mute</Text>
           </CustomButton>
           
           <CustomButton
             onPress={() => handleCommand('Volume Up', 'VolumeUp')}
             onLongPress={() => handleLongPress('Volume Up', 'VolumeUp')}
-            style={styles.volumeButton}
+            style={styles.standardButton}
+            textStyle={styles.standardButtonText}
             buttonKey="VolumeUp"
           >
             <Icon name="volume-high" size={16} color="#fff" />
-            <Text style={styles.volumeText}>Vol +</Text>
+            <Text style={styles.standardButtonText}>Vol +</Text>
           </CustomButton>
         </View>
 
-        {/* Color Function Buttons - NOW MATCHING -60 -10 +10 +60 BUTTON DIMENSIONS */}
+        {/* Color Function Buttons - UTILISE smallButton avec couleurs */}
         <View style={styles.colorButtonsSection}>
           <CustomButton
             onPress={() => handleCommand('Function Red', 'FunctionRed')}
             onLongPress={() => handleLongPress('Function Red', 'FunctionRed')}
-            style={[styles.colorButton, styles.redButton]}
+            style={[styles.smallButton, styles.redButton]}
+            textStyle={styles.smallButtonText}
             buttonKey="FunctionRed"
           >
-            <Text style={styles.colorButtonText}>Rouge</Text>
+            <Text style={styles.smallButtonText}>Rouge</Text>
           </CustomButton>
           
           <CustomButton
             onPress={() => handleCommand('Function Green', 'FunctionGreen')}
             onLongPress={() => handleLongPress('Function Green', 'FunctionGreen')}
-            style={[styles.colorButton, styles.greenButton]}
+            style={[styles.smallButton, styles.greenButton]}
+            textStyle={styles.smallButtonText}
             buttonKey="FunctionGreen"
           >
-            <Text style={styles.colorButtonText}>Vert</Text>
+            <Text style={styles.smallButtonText}>Vert</Text>
           </CustomButton>
           
           <CustomButton
             onPress={() => handleCommand('Function Yellow', 'FunctionYellow')}
             onLongPress={() => handleLongPress('Function Yellow', 'FunctionYellow')}
-            style={[styles.colorButton, styles.yellowButton]}
+            style={[styles.smallButton, styles.yellowButton]}
+            textStyle={styles.smallButtonText}
             buttonKey="FunctionYellow"
           >
-            <Text style={styles.colorButtonText}>Jaune</Text>
+            <Text style={styles.smallButtonText}>Jaune</Text>
           </CustomButton>
           
           <CustomButton
             onPress={() => handleCommand('Function Blue', 'FunctionBlue')}
             onLongPress={() => handleLongPress('Function Blue', 'FunctionBlue')}
-            style={[styles.colorButton, styles.blueButton]}
+            style={[styles.smallButton, styles.blueButton]}
+            textStyle={styles.smallButtonText}
             buttonKey="FunctionBlue"
           >
-            <Text style={styles.colorButtonText}>Bleu</Text>
+            <Text style={styles.smallButtonText}>Bleu</Text>
           </CustomButton>
         </View>
 
