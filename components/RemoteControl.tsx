@@ -636,16 +636,16 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
 
         <View style={styles.separator} />
 
-        {/* Media Controls - CH- et CH+ avec icônes */}
+        {/* Media Controls - CH- et CH+ avec icônes de chapitre */}
         <View style={styles.mediaControls}>
           <CustomButton
-            onPress={() => handleCommand('Channel Down', 'ChannelDown')}
-            onLongPress={() => handleLongPress('Channel Down', 'ChannelDown')}
+            onPress={() => handleCommand('Chapter Previous', 'ChannelDown')}
+            onLongPress={() => handleLongPress('Chapter Previous', 'ChannelDown')}
             style={styles.standardButton}
             textStyle={styles.standardButtonText}
             buttonKey="ChannelDown"
           >
-            <Icon name="chevron-down" size={20} color="#fff" />
+            <Icon name="play-skip-back" size={20} color="#fff" />
           </CustomButton>
           
           <CustomButton
@@ -659,13 +659,13 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
           </CustomButton>
           
           <CustomButton
-            onPress={() => handleCommand('Channel Up', 'ChannelUp')}
-            onLongPress={() => handleLongPress('Channel Up', 'ChannelUp')}
+            onPress={() => handleCommand('Chapter Next', 'ChannelUp')}
+            onLongPress={() => handleLongPress('Chapter Next', 'ChannelUp')}
             style={styles.standardButton}
             textStyle={styles.standardButtonText}
             buttonKey="ChannelUp"
           >
-            <Icon name="chevron-up" size={20} color="#fff" />
+            <Icon name="play-skip-forward" size={20} color="#fff" />
           </CustomButton>
         </View>
 
