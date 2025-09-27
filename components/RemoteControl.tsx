@@ -447,6 +447,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     marginHorizontal: 1,
   },
+
+  // Style pour l'image du bouton Format Scroll
+  formatScrollImage: {
+    width: 24,
+    height: 24,
+    resizeMode: 'contain',
+  },
 });
 
 const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
@@ -852,17 +859,19 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
 
         <View style={styles.separator} />
 
-        {/* Info, 3D, Zoom buttons - UTILISE standardButton - ESPACEMENT IDENTIQUE: 20px */}
+        {/* Format Scroll, 3D, Zoom buttons - UTILISE standardButton - ESPACEMENT IDENTIQUE: 20px - POSITIONS INTERVERTIES */}
         <View style={styles.infoButtonsSection}>
           <CustomButton
-            onPress={() => handleCommand('Info', 'Info')}
-            onLongPress={() => handleLongPress('Info', 'Info')}
+            onPress={() => handleCommand('Format Scroll', 'FormatScroll')}
+            onLongPress={() => handleLongPress('Format Scroll', 'FormatScroll')}
             style={styles.standardButton}
             textStyle={styles.standardButtonText}
-            buttonKey="Info"
+            buttonKey="FormatScroll"
           >
-            <Icon name="information-circle" size={16} color="#fff" />
-            <Text style={styles.standardButtonText}>Info</Text>
+            <Image 
+              source={require('../assets/images/b0f9e9ae-0f09-4e05-af5d-2921f3ede19b.png')}
+              style={styles.formatScrollImage}
+            />
           </CustomButton>
           
           <CustomButton
@@ -877,14 +886,14 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
           </CustomButton>
           
           <CustomButton
-            onPress={() => handleCommand('Zoom', 'Zoom')}
-            onLongPress={() => handleLongPress('Zoom', 'Zoom')}
+            onPress={() => handleCommand('Info', 'Info')}
+            onLongPress={() => handleLongPress('Info', 'Info')}
             style={styles.standardButton}
             textStyle={styles.standardButtonText}
-            buttonKey="Zoom"
+            buttonKey="Info"
           >
-            <Icon name="search" size={16} color="#fff" />
-            <Text style={styles.standardButtonText}>Zoom</Text>
+            <Icon name="information-circle" size={16} color="#fff" />
+            <Text style={styles.standardButtonText}>Info</Text>
           </CustomButton>
         </View>
 
@@ -1036,12 +1045,12 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
               <Text style={styles.numberText}>0</Text>
             </CustomButton>
             <CustomButton
-              onPress={() => handleCommand('Format Scroll', 'FormatScroll')}
-              onLongPress={() => handleLongPress('Format Scroll', 'FormatScroll')}
+              onPress={() => handleCommand('Zoom', 'Zoom')}
+              onLongPress={() => handleLongPress('Zoom', 'Zoom')}
               style={styles.numberButton}
-              buttonKey="FormatScroll"
+              buttonKey="Zoom"
             >
-              <Icon name="refresh" size={22} color="#fff" />
+              <Icon name="search" size={22} color="#fff" />
             </CustomButton>
           </View>
         </View>
@@ -1131,7 +1140,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
           </CustomButton>
         </View>
 
-        {/* Color Function Buttons - UTILISE smallButton AVEC HAUTEUR 50px avec couleurs - ESPACEMENT IDENTIQUE: 20px */}
+        {/* Color Function Buttons - UTILISE smallButton AVEC HAUTEUR 50px avec couleurs - ESPACEMENT IDENTIQUE: 20px - TEXTE RETIRÉ */}
         <View style={styles.colorButtonsSection}>
           <CustomButton
             onPress={() => handleCommand('Function Red', 'FunctionRed')}
@@ -1140,7 +1149,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
             textStyle={styles.smallButtonText}
             buttonKey="FunctionRed"
           >
-            <Text style={styles.smallButtonText}>Rouge</Text>
+            {/* Pas de texte, juste la couleur du bouton */}
           </CustomButton>
           
           <CustomButton
@@ -1150,7 +1159,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
             textStyle={styles.smallButtonText}
             buttonKey="FunctionGreen"
           >
-            <Text style={styles.smallButtonText}>Vert</Text>
+            {/* Pas de texte, juste la couleur du bouton */}
           </CustomButton>
           
           <CustomButton
@@ -1160,7 +1169,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
             textStyle={styles.smallButtonText}
             buttonKey="FunctionYellow"
           >
-            <Text style={styles.smallButtonText}>Jaune</Text>
+            {/* Pas de texte, juste la couleur du bouton */}
           </CustomButton>
           
           <CustomButton
@@ -1170,7 +1179,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
             textStyle={styles.smallButtonText}
             buttonKey="FunctionBlue"
           >
-            <Text style={styles.smallButtonText}>Bleu</Text>
+            {/* Pas de texte, juste la couleur du bouton */}
           </CustomButton>
         </View>
 
