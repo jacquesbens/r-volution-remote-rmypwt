@@ -184,7 +184,7 @@ const styles = StyleSheet.create({
     marginTop: 3,
   },
   
-  // FIXED: Play button now matches Stop button dimensions exactly
+  // FIXED: Play button now matches Stop button dimensions exactly - SAME AS CHANNEL BUTTONS
   playButton: {
     backgroundColor: colors.primary,
     borderRadius: 10,
@@ -239,7 +239,7 @@ const styles = StyleSheet.create({
     marginTop: 3,
   },
 
-  // FIXED: Stop button matches Play button dimensions exactly
+  // FIXED: Stop button matches Play button dimensions exactly - SAME AS CHANNEL BUTTONS
   stopButton: {
     backgroundColor: colors.primary,
     borderRadius: 10,
