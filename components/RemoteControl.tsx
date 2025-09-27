@@ -413,15 +413,28 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
 
-  // Style pour l'icône combinée Play/Pause
+  // Style pour l'icône combinée Play/Pause plus jolie
   playPauseIconContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
   },
 
   playPauseIcon: {
-    marginHorizontal: 1,
+    marginHorizontal: 2,
+  },
+
+  playPauseDivider: {
+    width: 1,
+    height: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.6)',
+    marginHorizontal: 4,
   },
 });
 
@@ -570,12 +583,12 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
     handleCommand(`Chiffre ${num}`, digitKey);
   };
 
-  // Composant pour l'icône combinée Play/Pause
+  // Composant pour l'icône combinée Play/Pause plus jolie
   const PlayPauseIcon = () => (
     <View style={styles.playPauseIconContainer}>
-      <Icon name="play" size={12} color="#fff" style={styles.playPauseIcon} />
-      <Text style={{ color: '#fff', fontSize: 8, marginHorizontal: 2 }}>|</Text>
-      <Icon name="pause" size={12} color="#fff" style={styles.playPauseIcon} />
+      <Icon name="play" size={14} color="#fff" style={styles.playPauseIcon} />
+      <View style={styles.playPauseDivider} />
+      <Icon name="pause" size={14} color="#fff" style={styles.playPauseIcon} />
     </View>
   );
 
