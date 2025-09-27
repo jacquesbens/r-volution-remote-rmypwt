@@ -7,6 +7,7 @@ import { RVolutionDevice } from '../types/Device';
 import Icon from './Icon';
 import IRCodeEditModal from './IRCodeEditModal';
 import { colors } from '../styles/commonStyles';
+import Constants from 'expo-constants';
 
 interface RemoteControlProps {
   device: RVolutionDevice;
@@ -22,6 +23,33 @@ const styles = StyleSheet.create({
   scrollContainer: {
     flexGrow: 1,
     paddingBottom: 10,
+  },
+  
+  // Device name header
+  deviceHeader: {
+    alignItems: 'center',
+    marginBottom: 20,
+    paddingVertical: 12,
+    backgroundColor: colors.surface,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  
+  deviceName: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.text,
+    textAlign: 'center',
+  },
+  
+  deviceInfo: {
+    fontSize: 12,
+    color: colors.textSecondary,
+    marginTop: 4,
   },
   
   // Section headers
@@ -425,6 +453,9 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
     defaultCode: string;
   } | null>(null);
 
+  // Check if running on emulator - Constants.isDevice is false on emulator/simulator
+  const isEmulator = !Constants.isDevice;
+
   // Default IR codes
   const defaultIRCodes = {
     // Basic functions
@@ -504,9 +535,21 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
   };
 
   const handleLongPress = (buttonName: string, buttonKey: string) => {
+    // Only allow IR code editing on emulator
+    if (!isEmulator) {
+      console.log('🚫 IR code editing is only available on emulator');
+      Alert.alert(
+        'Fonction non disponible',
+        'La modification des codes IR n\'est disponible que sur l\'émulateur pour des raisons de sécurité.',
+        [{ text: 'OK' }]
+      );
+      return;
+    }
+
     const defaultCode = defaultIRCodes[buttonKey as keyof typeof defaultIRCodes];
     const currentCode = getIRCode(buttonKey, defaultCode);
     
+    console.log(`🔧 Opening IR code editor for ${buttonName} (${buttonKey})`);
     setEditingButton({
       name: buttonName,
       currentCode,
@@ -553,7 +596,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
     return (
       <TouchableOpacity
         onPress={onPress}
-        onLongPress={onLongPress}
+        onLongPress={isEmulator ? onLongPress : undefined} // Only enable long press on emulator
         onPressIn={() => setPressed(true)}
         onPressOut={() => setPressed(false)}
         style={[
@@ -564,7 +607,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
         activeOpacity={0.8}
         delayLongPress={800}
       >
-        {isCustom && <View style={styles.customIndicator} />}
+        {isCustom && isEmulator && <View style={styles.customIndicator} />}
         {typeof children === 'string' ? (
           <Text style={[
             styles.modernButtonText,
@@ -583,6 +626,15 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
   return (
     <View style={styles.container}>
       <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
+        {/* Device Name Header */}
+        <View style={styles.deviceHeader}>
+          <Text style={styles.deviceName}>{device.name}</Text>
+          <Text style={styles.deviceInfo}>
+            {device.ip}:{device.port} • {device.isOnline ? 'En ligne' : 'Hors ligne'}
+            {isEmulator && ' • Mode émulateur'}
+          </Text>
+        </View>
+
         {/* Power Controls - UTILISE standardButton */}
         <View style={styles.powerSection}>
           <CustomButton
@@ -1093,19 +1145,21 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
         )}
       </ScrollView>
 
-      {/* IR Code Edit Modal */}
-      <IRCodeEditModal
-        visible={editModalVisible}
-        buttonName={editingButton?.name || ''}
-        currentCode={editingButton?.currentCode || ''}
-        onClose={() => {
-          setEditModalVisible(false);
-          setEditingButton(null);
-        }}
-        onSave={handleSaveIRCode}
-        onResetToDefault={editingButton?.currentCode !== editingButton?.defaultCode ? handleResetToDefault : undefined}
-        hasCustomCode={editingButton ? hasCustomCode(editingButton.name) : false}
-      />
+      {/* IR Code Edit Modal - Only show on emulator */}
+      {isEmulator && (
+        <IRCodeEditModal
+          visible={editModalVisible}
+          buttonName={editingButton?.name || ''}
+          currentCode={editingButton?.currentCode || ''}
+          onClose={() => {
+            setEditModalVisible(false);
+            setEditingButton(null);
+          }}
+          onSave={handleSaveIRCode}
+          onResetToDefault={editingButton?.currentCode !== editingButton?.defaultCode ? handleResetToDefault : undefined}
+          hasCustomCode={editingButton ? hasCustomCode(editingButton.name) : false}
+        />
+      )}
     </View>
   );
 };
