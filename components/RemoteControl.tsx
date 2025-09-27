@@ -181,6 +181,7 @@ const styles = StyleSheet.create({
     marginTop: 3,
   },
   
+  // CORRECTION: Le bouton Play doit avoir les mêmes dimensions que le bouton Stop
   playButton: {
     backgroundColor: colors.primary,
     borderRadius: 10,
@@ -327,10 +328,10 @@ const styles = StyleSheet.create({
     marginTop: 3,
   },
 
-  // Info, 3D, Zoom buttons section
+  // CORRECTION: Info, 3D, Zoom buttons section - Le bouton 3D est maintenant correctement centré
   infoButtonsSection: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 8,
     marginBottom: 20,
@@ -352,6 +353,7 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     flex: 0.32,
     position: 'relative',
+    marginHorizontal: 4,
   },
 
   infoButtonText: {
@@ -993,7 +995,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
 
         <View style={styles.separator} />
 
-        {/* Info, 3D, Zoom buttons */}
+        {/* Info, 3D, Zoom buttons - CORRECTION: Le bouton 3D est maintenant correctement centré */}
         <View style={styles.infoButtonsSection}>
           <CustomButton
             onPress={() => handleCommand('Info', 'Info')}
@@ -1014,8 +1016,6 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
             <Icon name="cube" size={16} color="#fff" />
             <Text style={styles.infoButtonText}>3D</Text>
           </CustomButton>
-          
-          <View style={styles.infoSpacer} />
           
           <CustomButton
             onPress={() => handleCommand('Zoom', 'Zoom')}
