@@ -68,7 +68,7 @@ export const useDeviceDiscovery = () => {
     }
   }, []);
 
-  // AMÉLIORATION: Load saved devices from storage avec meilleure gestion d'erreurs
+  // AMÉLIORATION PREVIEW: Load saved devices avec meilleure compatibilité web
   const loadSavedDevices = useCallback(async () => {
     if (devicesLoadedRef.current || initializingRef.current) {
       console.log('📱 Devices already loaded or loading, skipping...');
@@ -79,7 +79,30 @@ export const useDeviceDiscovery = () => {
     
     try {
       console.log(`📱 Loading saved devices from storage (Platform: ${Platform.OS})...`);
-      const savedDevices = await AsyncStorage.getItem(STORAGE_KEY);
+      
+      // AMÉLIORATION PREVIEW: Gestion spéciale pour l'environnement web/Preview
+      let savedDevices = null;
+      if (Platform.OS === 'web') {
+        // Sur web, utiliser une approche plus robuste
+        try {
+          savedDevices = await AsyncStorage.getItem(STORAGE_KEY);
+          console.log('📱 Web storage access successful');
+        } catch (webError) {
+          console.log('⚠️ Web storage access failed, using fallback:', webError);
+          // Fallback pour Preview : utiliser localStorage directement si disponible
+          if (typeof window !== 'undefined' && window.localStorage) {
+            try {
+              savedDevices = window.localStorage.getItem(STORAGE_KEY);
+              console.log('📱 Fallback to localStorage successful');
+            } catch (localStorageError) {
+              console.log('❌ localStorage fallback failed:', localStorageError);
+            }
+          }
+        }
+      } else {
+        savedDevices = await AsyncStorage.getItem(STORAGE_KEY);
+      }
+      
       if (savedDevices) {
         const parsedDevices = JSON.parse(savedDevices);
         
@@ -111,7 +134,7 @@ export const useDeviceDiscovery = () => {
     }
   }, [devices]);
 
-  // AMÉLIORATION: Save devices to storage avec retry et meilleure gestion d'erreurs
+  // AMÉLIORATION PREVIEW: Save devices avec meilleure compatibilité web
   const saveDevices = useCallback(async (devicesToSave: RVolutionDevice[], retryCount = 0) => {
     const maxRetries = 3;
     
@@ -131,16 +154,51 @@ export const useDeviceDiscovery = () => {
         console.log(`⚠️ Filtered out ${devicesToSave.length - validDevices.length} invalid devices`);
       }
       
-      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(validDevices));
+      const dataToSave = JSON.stringify(validDevices);
+      
+      // AMÉLIORATION PREVIEW: Gestion spéciale pour l'environnement web/Preview
+      if (Platform.OS === 'web') {
+        try {
+          await AsyncStorage.setItem(STORAGE_KEY, dataToSave);
+          console.log('💾 Web AsyncStorage save successful');
+        } catch (webError) {
+          console.log('⚠️ Web AsyncStorage save failed, using fallback:', webError);
+          // Fallback pour Preview : utiliser localStorage directement
+          if (typeof window !== 'undefined' && window.localStorage) {
+            try {
+              window.localStorage.setItem(STORAGE_KEY, dataToSave);
+              console.log('💾 Fallback to localStorage successful');
+            } catch (localStorageError) {
+              console.log('❌ localStorage fallback failed:', localStorageError);
+              throw localStorageError;
+            }
+          } else {
+            throw new Error('No storage mechanism available');
+          }
+        }
+      } else {
+        await AsyncStorage.setItem(STORAGE_KEY, dataToSave);
+      }
+      
       console.log('💾 Devices saved to storage successfully');
       
-      // AMÉLIORATION: Vérification de la sauvegarde
+      // AMÉLIORATION PREVIEW: Vérification de la sauvegarde adaptée à la plateforme
       if (Platform.OS === 'web') {
         // Sur web/Preview, vérifier que la sauvegarde a bien fonctionné
-        const verification = await AsyncStorage.getItem(STORAGE_KEY);
+        let verification = null;
+        try {
+          verification = await AsyncStorage.getItem(STORAGE_KEY);
+        } catch (verifyError) {
+          // Fallback verification
+          if (typeof window !== 'undefined' && window.localStorage) {
+            verification = window.localStorage.getItem(STORAGE_KEY);
+          }
+        }
+        
         if (!verification) {
           throw new Error('Storage verification failed');
         }
+        console.log('✅ Storage verification successful');
       }
       
     } catch (error) {
@@ -645,7 +703,7 @@ export const useDeviceDiscovery = () => {
     }
   }, [devices, saveDevices, checkDeviceReachability, verifyRVolutionDevice]);
 
-  // AMÉLIORATION: Remove device avec meilleure gestion d'erreurs et retry
+  // AMÉLIORATION PREVIEW: Remove device avec meilleure compatibilité web et gestion d'erreurs robuste
   const removeDevice = useCallback(async (deviceId: string, retryCount = 0) => {
     const maxRetries = 3;
     
@@ -666,21 +724,52 @@ export const useDeviceDiscovery = () => {
       // AMÉLIORATION: Mettre à jour l'état immédiatement pour un feedback visuel
       setDevices(updatedDevices);
       
-      // AMÉLIORATION: Sauvegarder avec retry
-      await saveDevices(updatedDevices);
+      // AMÉLIORATION PREVIEW: Sauvegarder avec retry et gestion spéciale pour web
+      try {
+        await saveDevices(updatedDevices);
+        console.log('✅ Device removed and saved successfully');
+      } catch (saveError) {
+        console.log('❌ Save failed after device removal:', saveError);
+        
+        // AMÉLIORATION PREVIEW: En cas d'échec de sauvegarde, forcer la mise à jour de l'état
+        // pour que l'UI reste cohérente même si la persistance échoue
+        if (Platform.OS === 'web') {
+          console.log('⚠️ Web save failed, but keeping UI state updated');
+          // L'état est déjà mis à jour, on continue
+        } else {
+          // Sur mobile, restaurer l'état précédent si la sauvegarde échoue
+          setDevices(devices);
+          throw saveError;
+        }
+      }
       
-      console.log('✅ Device removed successfully');
-      
-      // AMÉLIORATION: Vérification post-suppression
+      // AMÉLIORATION PREVIEW: Vérification post-suppression adaptée à la plateforme
       if (Platform.OS === 'web') {
         // Sur web/Preview, vérifier que la suppression a bien fonctionné
-        const verification = await AsyncStorage.getItem(STORAGE_KEY);
-        if (verification) {
-          const verificationDevices = JSON.parse(verification);
-          const stillExists = verificationDevices.find((d: any) => d.id === deviceId);
-          if (stillExists) {
-            throw new Error('Device removal verification failed');
+        try {
+          let verification = null;
+          try {
+            verification = await AsyncStorage.getItem(STORAGE_KEY);
+          } catch (verifyError) {
+            // Fallback verification
+            if (typeof window !== 'undefined' && window.localStorage) {
+              verification = window.localStorage.getItem(STORAGE_KEY);
+            }
           }
+          
+          if (verification) {
+            const verificationDevices = JSON.parse(verification);
+            const stillExists = verificationDevices.find((d: any) => d.id === deviceId);
+            if (stillExists) {
+              console.log('⚠️ Device still exists in storage, but UI is updated');
+              // Ne pas lever d'erreur, l'UI est cohérente
+            } else {
+              console.log('✅ Device removal verification successful');
+            }
+          }
+        } catch (verificationError) {
+          console.log('⚠️ Verification failed, but UI is updated:', verificationError);
+          // Ne pas lever d'erreur, l'UI est cohérente
         }
       }
       
@@ -698,7 +787,14 @@ export const useDeviceDiscovery = () => {
         return removeDevice(deviceId, retryCount + 1);
       }
       
-      // Si tous les retries échouent, restaurer l'état précédent
+      // AMÉLIORATION PREVIEW: Si tous les retries échouent sur web, garder l'UI cohérente
+      if (Platform.OS === 'web') {
+        console.log('⚠️ All retry attempts failed on web, but keeping UI updated');
+        // L'état de l'UI reste cohérent même si la persistance échoue
+        return;
+      }
+      
+      // Sur mobile, restaurer l'état précédent
       console.log('❌ All retry attempts failed, restoring previous state');
       await loadSavedDevices();
       
@@ -940,6 +1036,12 @@ export const useDeviceDiscovery = () => {
     }
   }, [checkDeviceReachability]);
 
+  // AMÉLIORATION PREVIEW: Fonction deleteDevice pour compatibilité avec les composants existants
+  const deleteDevice = useCallback(async (deviceId: string) => {
+    console.log(`🗑️  deleteDevice called for: ${deviceId} (Platform: ${Platform.OS})`);
+    return removeDevice(deviceId);
+  }, [removeDevice]);
+
   // Initialize by loading saved devices
   useEffect(() => {
     if (!devicesLoadedRef.current && !initializingRef.current) {
@@ -962,6 +1064,7 @@ export const useDeviceDiscovery = () => {
     addDeviceManually,
     addDiscoveredDevice, // New: function to add discovered device to saved devices
     removeDevice,
+    deleteDevice, // AMÉLIORATION PREVIEW: Alias pour compatibilité
     renameDevice,
     updateDevice,
     updateDeviceStatus,

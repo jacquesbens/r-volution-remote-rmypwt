@@ -530,7 +530,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
     }
   };
 
-  // AMÉLIORATION: Fonction handleLongPress plus robuste pour tous les environnements
+  // AMÉLIORATION PREVIEW: Fonction handleLongPress ultra-robuste pour tous les environnements
   const handleLongPress = (buttonName: string, buttonKey: string) => {
     console.log(`📋 Long press detected for ${buttonName} (${buttonKey}) - Environment: ${Platform.OS}`);
     
@@ -538,27 +538,78 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
     const irCode = defaultIRCodes[buttonKey as keyof typeof defaultIRCodes];
     if (!irCode) {
       console.log(`❌ No IR code found for button: ${buttonKey}`);
-      Alert.alert('Erreur', `Code IR non trouvé pour le bouton ${buttonKey}`);
+      
+      // AMÉLIORATION PREVIEW: Gestion d'erreur robuste
+      if (Platform.OS === 'web') {
+        try {
+          Alert.alert('Erreur', `Code IR non trouvé pour le bouton ${buttonKey}`);
+        } catch (alertError) {
+          console.log(`❌ Alert failed, code not found for ${buttonKey}`);
+          if (typeof window !== 'undefined' && window.alert) {
+            window.alert(`Erreur: Code IR non trouvé pour le bouton ${buttonKey}`);
+          }
+        }
+      } else {
+        Alert.alert('Erreur', `Code IR non trouvé pour le bouton ${buttonKey}`);
+      }
       return;
     }
     
     console.log(`📋 Displaying IR code for ${buttonName} (${buttonKey}): ${irCode}`);
     
-    // AMÉLIORATION: Utilisation d'une approche plus robuste pour l'affichage
-    try {
-      Alert.alert(
-        `Code IR - ${buttonName}`,
-        `Code enregistré: ${irCode}`,
-        [{ text: 'OK', style: 'default' }],
-        { 
-          cancelable: true,
-          userInterfaceStyle: 'light' // Force le style clair pour une meilleure compatibilité
+    // AMÉLIORATION PREVIEW: Approche multi-fallback pour l'affichage des codes IR
+    if (Platform.OS === 'web') {
+      try {
+        // Sur web/Preview, utiliser alert() natif comme fallback si Alert échoue
+        const useNativeAlert = () => {
+          if (typeof window !== 'undefined' && window.alert) {
+            window.alert(`Code IR - ${buttonName}\n\nCode enregistré: ${irCode}`);
+            console.log('✅ IR code displayed via native alert');
+            return true;
+          }
+          return false;
+        };
+
+        // Essayer d'abord Alert, puis fallback vers alert natif
+        try {
+          Alert.alert(
+            `Code IR - ${buttonName}`,
+            `Code enregistré: ${irCode}`,
+            [{ text: 'OK', style: 'default' }],
+            { 
+              cancelable: true,
+              userInterfaceStyle: 'light'
+            }
+          );
+        } catch (alertError) {
+          console.log(`⚠️ Alert failed on web, using native alert:`, alertError);
+          if (!useNativeAlert()) {
+            // Si même alert échoue, log dans la console avec un format visible
+            console.log(`📋 ===== IR CODE FOR ${buttonName.toUpperCase()} =====`);
+            console.log(`📋 Button Key: ${buttonKey}`);
+            console.log(`📋 IR Code: ${irCode}`);
+            console.log(`📋 ==========================================`);
+          }
         }
-      );
-    } catch (alertError) {
-      console.log(`❌ Alert failed, using fallback:`, alertError);
-      // Fallback: log dans la console si Alert échoue
-      console.log(`📋 IR Code for ${buttonName}: ${irCode}`);
+      } catch (webError) {
+        console.log(`❌ Web long press handling failed:`, webError);
+        // Fallback ultime : log dans la console
+        console.log(`📋 IR Code for ${buttonName}: ${irCode}`);
+      }
+    } else {
+      // Sur mobile, utiliser Alert normalement
+      try {
+        Alert.alert(
+          `Code IR - ${buttonName}`,
+          `Code enregistré: ${irCode}`,
+          [{ text: 'OK', style: 'default' }],
+          { cancelable: true }
+        );
+      } catch (mobileAlertError) {
+        console.log(`❌ Mobile Alert failed:`, mobileAlertError);
+        // Fallback : log dans la console
+        console.log(`📋 IR Code for ${buttonName}: ${irCode}`);
+      }
     }
   };
 
@@ -586,7 +637,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
     </View>
   );
 
-  // AMÉLIORATION: CustomButton plus robuste avec meilleure gestion des événements
+  // AMÉLIORATION PREVIEW: CustomButton ultra-robuste avec gestion d'événements optimisée pour tous les environnements
   const CustomButton: React.FC<{
     onPress: () => void;
     onLongPress: () => void;
@@ -597,19 +648,19 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
   }> = ({ onPress, onLongPress, children, style, textStyle, buttonKey }) => {
     const [pressed, setPressed] = useState(false);
     
-    // AMÉLIORATION: Gestion plus robuste des événements tactiles
+    // AMÉLIORATION PREVIEW: Gestion ultra-robuste des événements tactiles
     const handlePressIn = () => {
-      console.log(`🔘 Press in: ${buttonKey}`);
+      console.log(`🔘 Press in: ${buttonKey} (Platform: ${Platform.OS})`);
       setPressed(true);
     };
     
     const handlePressOut = () => {
-      console.log(`🔘 Press out: ${buttonKey}`);
+      console.log(`🔘 Press out: ${buttonKey} (Platform: ${Platform.OS})`);
       setPressed(false);
     };
     
     const handlePress = () => {
-      console.log(`🔘 Press: ${buttonKey}`);
+      console.log(`🔘 Press: ${buttonKey} (Platform: ${Platform.OS})`);
       try {
         onPress();
       } catch (error) {
@@ -626,6 +677,14 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
       }
     };
     
+    // AMÉLIORATION PREVIEW: Délais adaptés selon la plateforme pour une meilleure compatibilité
+    const getLongPressDelay = () => {
+      if (Platform.OS === 'web') {
+        return 1200; // Plus long sur web/Preview pour éviter les déclenchements accidentels
+      }
+      return 800; // Standard sur mobile
+    };
+    
     return (
       <TouchableOpacity
         onPress={handlePress}
@@ -638,8 +697,8 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
           style,
         ]}
         activeOpacity={0.8}
-        delayLongPress={Platform.OS === 'web' ? 1000 : 800} // AMÉLIORATION: Délai adapté selon la plateforme
-        disabled={isLoading} // AMÉLIORATION: Désactiver pendant le chargement
+        delayLongPress={getLongPressDelay()}
+        disabled={isLoading} // Désactiver pendant le chargement
       >
         {typeof children === 'string' ? (
           <Text style={[

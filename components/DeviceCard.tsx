@@ -81,57 +81,111 @@ const DeviceCard: React.FC<DeviceCardProps> = ({ device, onPress, onRemove, onEd
     return false;
   };
 
-  // AMÉLIORATION: Fonction de suppression plus robuste pour tous les environnements
+  // AMÉLIORATION PREVIEW: Fonction de suppression ultra-robuste pour tous les environnements
   const handleRemoveDevice = () => {
     console.log(`🗑️  Remove device requested: ${device.name} (Platform: ${Platform.OS})`);
     
-    try {
-      Alert.alert(
-        'Supprimer l\'appareil',
-        `Êtes-vous sûr de vouloir supprimer "${device.name}" ?`,
-        [
-          { 
-            text: 'Annuler', 
-            style: 'cancel',
-            onPress: () => console.log('❌ Device removal cancelled')
-          },
-          { 
-            text: 'Supprimer', 
-            style: 'destructive', 
-            onPress: () => {
-              console.log(`🗑️  Confirming removal of device: ${device.name}`);
-              try {
-                onRemove();
-              } catch (error) {
-                console.log(`❌ Error in onRemove callback:`, error);
-                // Fallback: show error to user
-                Alert.alert(
-                  'Erreur',
-                  'Impossible de supprimer l\'appareil. Veuillez réessayer.',
-                  [{ text: 'OK' }]
-                );
-              }
-            }
-          },
-        ],
-        { 
-          cancelable: true,
-          userInterfaceStyle: 'light' // Force le style clair pour une meilleure compatibilité
-        }
-      );
-    } catch (alertError) {
-      console.log(`❌ Alert failed for device removal:`, alertError);
-      // Fallback: direct removal without confirmation
-      console.log(`🗑️  Fallback: Direct removal of device: ${device.name}`);
+    // AMÉLIORATION PREVIEW: Approche multi-fallback pour la suppression
+    const executeRemoval = () => {
+      console.log(`🗑️  Executing removal of device: ${device.name}`);
       try {
         onRemove();
+        console.log('✅ Device removal callback executed successfully');
       } catch (error) {
-        console.log(`❌ Fallback removal also failed:`, error);
+        console.log(`❌ Error in onRemove callback:`, error);
+        // AMÉLIORATION PREVIEW: Fallback - essayer de forcer la suppression
+        setTimeout(() => {
+          try {
+            onRemove();
+            console.log('✅ Device removal fallback successful');
+          } catch (fallbackError) {
+            console.log(`❌ Fallback removal also failed:`, fallbackError);
+          }
+        }, 100);
+      }
+    };
+
+    // AMÉLIORATION PREVIEW: Gestion spéciale pour l'environnement web/Preview
+    if (Platform.OS === 'web') {
+      try {
+        // Sur web/Preview, utiliser confirm() natif comme fallback si Alert échoue
+        const useNativeConfirm = () => {
+          if (typeof window !== 'undefined' && window.confirm) {
+            const confirmed = window.confirm(`Êtes-vous sûr de vouloir supprimer "${device.name}" ?`);
+            if (confirmed) {
+              executeRemoval();
+            } else {
+              console.log('❌ Device removal cancelled via native confirm');
+            }
+            return true;
+          }
+          return false;
+        };
+
+        // Essayer d'abord Alert, puis fallback vers confirm natif
+        try {
+          Alert.alert(
+            'Supprimer l\'appareil',
+            `Êtes-vous sûr de vouloir supprimer "${device.name}" ?`,
+            [
+              { 
+                text: 'Annuler', 
+                style: 'cancel',
+                onPress: () => console.log('❌ Device removal cancelled via Alert')
+              },
+              { 
+                text: 'Supprimer', 
+                style: 'destructive', 
+                onPress: executeRemoval
+              },
+            ],
+            { 
+              cancelable: true,
+              userInterfaceStyle: 'light'
+            }
+          );
+        } catch (alertError) {
+          console.log(`⚠️ Alert failed on web, using native confirm:`, alertError);
+          if (!useNativeConfirm()) {
+            // Si même confirm échoue, suppression directe
+            console.log('⚠️ Native confirm not available, direct removal');
+            executeRemoval();
+          }
+        }
+      } catch (webError) {
+        console.log(`❌ Web removal handling failed:`, webError);
+        // Fallback ultime : suppression directe
+        executeRemoval();
+      }
+    } else {
+      // Sur mobile, utiliser Alert normalement
+      try {
+        Alert.alert(
+          'Supprimer l\'appareil',
+          `Êtes-vous sûr de vouloir supprimer "${device.name}" ?`,
+          [
+            { 
+              text: 'Annuler', 
+              style: 'cancel',
+              onPress: () => console.log('❌ Device removal cancelled')
+            },
+            { 
+              text: 'Supprimer', 
+              style: 'destructive', 
+              onPress: executeRemoval
+            },
+          ],
+          { cancelable: true }
+        );
+      } catch (mobileAlertError) {
+        console.log(`❌ Mobile Alert failed:`, mobileAlertError);
+        // Fallback : suppression directe
+        executeRemoval();
       }
     }
   };
 
-  // AMÉLIORATION: Fonction d'information plus robuste
+  // AMÉLIORATION PREVIEW: Fonction d'information ultra-robuste
   const handleShowInfo = () => {
     console.log(`ℹ️  Show info requested: ${device.name} (Platform: ${Platform.OS})`);
     
@@ -144,20 +198,56 @@ const DeviceCard: React.FC<DeviceCardProps> = ({ device, onPress, onRemove, onEd
       `Type: ${device.isManuallyAdded ? 'Ajout manuel' : 'Découverte automatique'}\n` +
       `Dernière connexion: ${lastSeenText}`;
     
-    try {
-      Alert.alert(
-        'Informations de l\'appareil',
-        infoMessage,
-        [{ text: 'OK', style: 'default' }],
-        { 
-          cancelable: true,
-          userInterfaceStyle: 'light'
+    // AMÉLIORATION PREVIEW: Approche multi-fallback pour l'affichage d'informations
+    if (Platform.OS === 'web') {
+      try {
+        // Sur web/Preview, utiliser alert() natif comme fallback si Alert échoue
+        const useNativeAlert = () => {
+          if (typeof window !== 'undefined' && window.alert) {
+            window.alert(`Informations de l'appareil\n\n${infoMessage}`);
+            console.log('✅ Info displayed via native alert');
+            return true;
+          }
+          return false;
+        };
+
+        // Essayer d'abord Alert, puis fallback vers alert natif
+        try {
+          Alert.alert(
+            'Informations de l\'appareil',
+            infoMessage,
+            [{ text: 'OK', style: 'default' }],
+            { 
+              cancelable: true,
+              userInterfaceStyle: 'light'
+            }
+          );
+        } catch (alertError) {
+          console.log(`⚠️ Alert failed on web, using native alert:`, alertError);
+          if (!useNativeAlert()) {
+            // Si même alert échoue, log dans la console
+            console.log(`ℹ️  Device Info for ${device.name}:`, infoMessage);
+          }
         }
-      );
-    } catch (alertError) {
-      console.log(`❌ Info alert failed:`, alertError);
-      // Fallback: log info to console
-      console.log(`ℹ️  Device Info for ${device.name}:`, infoMessage);
+      } catch (webError) {
+        console.log(`❌ Web info handling failed:`, webError);
+        // Fallback ultime : log dans la console
+        console.log(`ℹ️  Device Info for ${device.name}:`, infoMessage);
+      }
+    } else {
+      // Sur mobile, utiliser Alert normalement
+      try {
+        Alert.alert(
+          'Informations de l\'appareil',
+          infoMessage,
+          [{ text: 'OK', style: 'default' }],
+          { cancelable: true }
+        );
+      } catch (mobileAlertError) {
+        console.log(`❌ Mobile Alert failed:`, mobileAlertError);
+        // Fallback : log dans la console
+        console.log(`ℹ️  Device Info for ${device.name}:`, infoMessage);
+      }
     }
   };
 
