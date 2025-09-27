@@ -163,15 +163,6 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     paddingHorizontal: 8,
   },
-  
-  // Page buttons section - TOUS UTILISENT standardButton
-  pageButtonsSection: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 8,
-    marginBottom: 20,
-  },
 
   // Media control buttons - TOUS UTILISENT smallButton AVEC HAUTEUR 50px
   mediaControlsExtended: {
@@ -198,6 +189,43 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 8,
     marginBottom: 20,
+  },
+
+  // NOUVELLE SECTION: Quatre boutons sur une ligne (Page-, Air Video, Explorer, Page+)
+  fourButtonsSection: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    marginBottom: 20,
+  },
+
+  fourButtonsButton: {
+    backgroundColor: colors.primary,
+    borderRadius: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: colors.border,
+    flex: 0.24,
+    position: 'relative',
+    minHeight: 50,
+    maxHeight: 50,
+  },
+
+  fourButtonsButtonText: {
+    color: '#fff',
+    fontSize: 9,
+    fontWeight: '600',
+    marginTop: 2,
+    textAlign: 'center',
   },
   
   // Navigation - RESTE CENTRÉ
@@ -300,42 +328,6 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 22,
     fontWeight: '700',
-  },
-
-  // Special buttons section - MAINTENANT AVEC LA MÊME HAUTEUR QUE LE BOUTON ON (50px)
-  specialButtonsSection: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 8,
-    marginBottom: 20,
-  },
-  
-  specialButton: {
-    backgroundColor: colors.primary,
-    borderRadius: 10,
-    paddingVertical: 12,
-    paddingHorizontal: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-    borderWidth: 1,
-    borderColor: colors.border,
-    flex: 0.48,
-    position: 'relative',
-    minHeight: 50,
-    maxHeight: 50,
-  },
-  
-  specialButtonText: {
-    color: '#fff',
-    fontSize: 11,
-    fontWeight: '600',
-    marginTop: 3,
   },
   
   // Color function buttons - TOUS UTILISENT smallButton AVEC HAUTEUR 50px avec couleurs spéciales
@@ -672,19 +664,56 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
           </CustomButton>
         </View>
 
-        {/* Page Buttons Section - UTILISE standardButton */}
-        <View style={styles.pageButtonsSection}>
+        {/* NOUVELLE SECTION: Quatre boutons sur une ligne (Page-, Air Video, Explorer, Page+) */}
+        <View style={styles.fourButtonsSection}>
           <CustomButton
             onPress={() => handleCommand('Page Down', 'PageDown')}
             onLongPress={() => handleLongPress('Page Down', 'PageDown')}
-            style={styles.standardButton}
-            textStyle={styles.standardButtonText}
+            style={styles.fourButtonsButton}
+            textStyle={styles.fourButtonsButtonText}
             buttonKey="PageDown"
           >
-            <Icon name="arrow-down" size={16} color="#fff" />
-            <Text style={styles.standardButtonText}>Page -</Text>
+            <Icon name="arrow-down" size={14} color="#fff" />
+            <Text style={styles.fourButtonsButtonText}>Page -</Text>
           </CustomButton>
           
+          <CustomButton
+            onPress={() => handleCommand('Air Video', 'RVideo')}
+            onLongPress={() => handleLongPress('Air Video', 'RVideo')}
+            style={styles.fourButtonsButton}
+            textStyle={styles.fourButtonsButtonText}
+            buttonKey="RVideo"
+          >
+            <Icon name="videocam" size={14} color="#fff" />
+            <Text style={styles.fourButtonsButtonText}>Air Video</Text>
+          </CustomButton>
+          
+          <CustomButton
+            onPress={() => handleCommand('Explorer', 'Explorer')}
+            onLongPress={() => handleLongPress('Explorer', 'Explorer')}
+            style={styles.fourButtonsButton}
+            textStyle={styles.fourButtonsButtonText}
+            buttonKey="Explorer"
+          >
+            <Icon name="folder" size={14} color="#fff" />
+            <Text style={styles.fourButtonsButtonText}>Explorer</Text>
+          </CustomButton>
+          
+          <CustomButton
+            onPress={() => handleCommand('Page Up', 'PageUp')}
+            onLongPress={() => handleLongPress('Page Up', 'PageUp')}
+            style={styles.fourButtonsButton}
+            textStyle={styles.fourButtonsButtonText}
+            buttonKey="PageUp"
+          >
+            <Icon name="arrow-up" size={14} color="#fff" />
+            <Text style={styles.fourButtonsButtonText}>Page +</Text>
+          </CustomButton>
+        </View>
+
+        {/* Stop Button - Maintenant seul sur sa ligne */}
+        <View style={styles.mediaControls}>
+          <View style={{ flex: 0.32 }} />
           <CustomButton
             onPress={() => handleCommand('Stop', 'Stop')}
             onLongPress={() => handleLongPress('Stop', 'Stop')}
@@ -695,17 +724,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
             <Icon name="stop" size={16} color="#fff" />
             <Text style={styles.standardButtonText}>Stop</Text>
           </CustomButton>
-          
-          <CustomButton
-            onPress={() => handleCommand('Page Up', 'PageUp')}
-            onLongPress={() => handleLongPress('Page Up', 'PageUp')}
-            style={styles.standardButton}
-            textStyle={styles.standardButtonText}
-            buttonKey="PageUp"
-          >
-            <Icon name="arrow-up" size={16} color="#fff" />
-            <Text style={styles.standardButtonText}>Page +</Text>
-          </CustomButton>
+          <View style={{ flex: 0.32 }} />
         </View>
 
         {/* Media Control Buttons - UTILISE smallButton AVEC HAUTEUR 50px */}
@@ -984,31 +1003,6 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
               <Icon name="refresh" size={22} color="#fff" />
             </CustomButton>
           </View>
-        </View>
-
-        {/* Air Video and Explorer Buttons - MAINTENANT AVEC HAUTEUR 50px */}
-        <View style={styles.specialButtonsSection}>
-          <CustomButton
-            onPress={() => handleCommand('Air Video', 'RVideo')}
-            onLongPress={() => handleLongPress('Air Video', 'RVideo')}
-            style={styles.specialButton}
-            textStyle={styles.specialButtonText}
-            buttonKey="RVideo"
-          >
-            <Icon name="videocam" size={16} color="#fff" />
-            <Text style={styles.specialButtonText}>Air Video</Text>
-          </CustomButton>
-          
-          <CustomButton
-            onPress={() => handleCommand('Explorer', 'Explorer')}
-            onLongPress={() => handleLongPress('Explorer', 'Explorer')}
-            style={styles.specialButton}
-            textStyle={styles.specialButtonText}
-            buttonKey="Explorer"
-          >
-            <Icon name="folder" size={16} color="#fff" />
-            <Text style={styles.specialButtonText}>Explorer</Text>
-          </CustomButton>
         </View>
 
         <View style={styles.separator} />
