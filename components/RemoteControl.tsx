@@ -294,13 +294,10 @@ const styles = StyleSheet.create({
     marginBottom: 20, // ESPACEMENT IDENTIQUE À LA RÉFÉRENCE
   },
   
-  // Number pad - ALIGNEMENT PARFAIT GAUCHE/DROITE avec espacement égal en haut et en bas
-  numberPadSpacing: {
-    height: 20, // Espacement identique en haut et en bas du pavé numérique
-  },
-  
+  // Number pad - ESPACEMENT IDENTIQUE AUX AUTRES SECTIONS: 20px
   numberPad: {
     paddingHorizontal: 8,
+    marginBottom: 20, // ESPACEMENT IDENTIQUE À LA RÉFÉRENCE (comme les autres sections)
   },
   
   numberRow: {
@@ -372,13 +369,13 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 8,
-    marginBottom: 20, // ESPACEMENT IDENTIQUE À LA RÉFÉRENCE (changé de 10 à 20)
+    marginBottom: 20, // ESPACEMENT IDENTIQUE À LA RÉFÉRENCE
   },
 
   // Logo section - ESPACEMENT IDENTIQUE: 20px
   logoSection: {
     alignItems: 'center',
-    marginBottom: 20, // ESPACEMENT IDENTIQUE À LA RÉFÉRENCE (changé de 10 à 20)
+    marginBottom: 20, // ESPACEMENT IDENTIQUE À LA RÉFÉRENCE
     paddingHorizontal: 8,
   },
 
@@ -911,10 +908,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
 
         <View style={styles.separator} />
 
-        {/* Espacement identique au-dessus du pavé numérique */}
-        <View style={styles.numberPadSpacing} />
-
-        {/* Number Pad - ALIGNEMENT PARFAIT GAUCHE/DROITE */}
+        {/* Number Pad - ESPACEMENT IDENTIQUE AUX AUTRES SECTIONS: 20px */}
         <View style={styles.numberPad}>
           <View style={styles.numberRow}>
             {[1, 2, 3].map(num => (
@@ -982,9 +976,6 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
             </CustomButton>
           </View>
         </View>
-
-        {/* Espacement identique en dessous du pavé numérique */}
-        <View style={styles.numberPadSpacing} />
 
         <View style={styles.separator} />
 
