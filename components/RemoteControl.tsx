@@ -444,6 +444,22 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
   const [lastCommand, setLastCommand] = useState<string>('');
   const [isPlaying, setIsPlaying] = useState(false);
 
+  // Hook for native alert functionality
+  const useNativeAlert = () => {
+    if (Platform.OS === 'web') {
+      return (message: string) => {
+        if (typeof window !== 'undefined' && window.alert) {
+          window.alert(message);
+          return true;
+        }
+        return false;
+      };
+    }
+    return null;
+  };
+
+  const nativeAlert = useNativeAlert();
+
   // Default IR codes - CODES DÉFINIS DIRECTEMENT DANS LE CODE
   const defaultIRCodes = {
     // Basic functions
@@ -545,8 +561,8 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
           Alert.alert('Erreur', `Code IR non trouvé pour le bouton ${buttonKey}`);
         } catch (alertError) {
           console.log(`❌ Alert failed, code not found for ${buttonKey}`);
-          if (typeof window !== 'undefined' && window.alert) {
-            window.alert(`Erreur: Code IR non trouvé pour le bouton ${buttonKey}`);
+          if (nativeAlert) {
+            nativeAlert(`Erreur: Code IR non trouvé pour le bouton ${buttonKey}`);
           }
         }
       } else {
@@ -560,16 +576,6 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
     // AMÉLIORATION PREVIEW: Approche multi-fallback pour l'affichage des codes IR
     if (Platform.OS === 'web') {
       try {
-        // Sur web/Preview, utiliser alert() natif comme fallback si Alert échoue
-        const useNativeAlert = () => {
-          if (typeof window !== 'undefined' && window.alert) {
-            window.alert(`Code IR - ${buttonName}\n\nCode enregistré: ${irCode}`);
-            console.log('✅ IR code displayed via native alert');
-            return true;
-          }
-          return false;
-        };
-
         // Essayer d'abord Alert, puis fallback vers alert natif
         try {
           Alert.alert(
@@ -583,7 +589,10 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
           );
         } catch (alertError) {
           console.log(`⚠️ Alert failed on web, using native alert:`, alertError);
-          if (!useNativeAlert()) {
+          if (nativeAlert) {
+            nativeAlert(`Code IR - ${buttonName}\n\nCode enregistré: ${irCode}`);
+            console.log('✅ IR code displayed via native alert');
+          } else {
             // Si même alert échoue, log dans la console avec un format visible
             console.log(`📋 ===== IR CODE FOR ${buttonName.toUpperCase()} =====`);
             console.log(`📋 Button Key: ${buttonKey}`);

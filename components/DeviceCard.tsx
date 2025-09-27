@@ -20,6 +20,36 @@ const DeviceCard: React.FC<DeviceCardProps> = ({ device, onPress, onRemove, onEd
     timestamp: Date;
   } | null>(null);
 
+  // Hook for native confirm functionality
+  const useNativeConfirm = () => {
+    if (Platform.OS === 'web') {
+      return (message: string) => {
+        if (typeof window !== 'undefined' && window.confirm) {
+          return window.confirm(message);
+        }
+        return false;
+      };
+    }
+    return null;
+  };
+
+  // Hook for native alert functionality
+  const useNativeAlert = () => {
+    if (Platform.OS === 'web') {
+      return (message: string) => {
+        if (typeof window !== 'undefined' && window.alert) {
+          window.alert(message);
+          return true;
+        }
+        return false;
+      };
+    }
+    return null;
+  };
+
+  const nativeConfirm = useNativeConfirm();
+  const nativeAlert = useNativeAlert();
+
   const handleTestConnection = async () => {
     if (!onTest || isTesting) return;
     
@@ -108,20 +138,6 @@ const DeviceCard: React.FC<DeviceCardProps> = ({ device, onPress, onRemove, onEd
     // AMÉLIORATION PREVIEW: Gestion spéciale pour l'environnement web/Preview
     if (Platform.OS === 'web') {
       try {
-        // Sur web/Preview, utiliser confirm() natif comme fallback si Alert échoue
-        const useNativeConfirm = () => {
-          if (typeof window !== 'undefined' && window.confirm) {
-            const confirmed = window.confirm(`Êtes-vous sûr de vouloir supprimer "${device.name}" ?`);
-            if (confirmed) {
-              executeRemoval();
-            } else {
-              console.log('❌ Device removal cancelled via native confirm');
-            }
-            return true;
-          }
-          return false;
-        };
-
         // Essayer d'abord Alert, puis fallback vers confirm natif
         try {
           Alert.alert(
@@ -146,7 +162,14 @@ const DeviceCard: React.FC<DeviceCardProps> = ({ device, onPress, onRemove, onEd
           );
         } catch (alertError) {
           console.log(`⚠️ Alert failed on web, using native confirm:`, alertError);
-          if (!useNativeConfirm()) {
+          if (nativeConfirm) {
+            const confirmed = nativeConfirm(`Êtes-vous sûr de vouloir supprimer "${device.name}" ?`);
+            if (confirmed) {
+              executeRemoval();
+            } else {
+              console.log('❌ Device removal cancelled via native confirm');
+            }
+          } else {
             // Si même confirm échoue, suppression directe
             console.log('⚠️ Native confirm not available, direct removal');
             executeRemoval();
@@ -201,16 +224,6 @@ const DeviceCard: React.FC<DeviceCardProps> = ({ device, onPress, onRemove, onEd
     // AMÉLIORATION PREVIEW: Approche multi-fallback pour l'affichage d'informations
     if (Platform.OS === 'web') {
       try {
-        // Sur web/Preview, utiliser alert() natif comme fallback si Alert échoue
-        const useNativeAlert = () => {
-          if (typeof window !== 'undefined' && window.alert) {
-            window.alert(`Informations de l'appareil\n\n${infoMessage}`);
-            console.log('✅ Info displayed via native alert');
-            return true;
-          }
-          return false;
-        };
-
         // Essayer d'abord Alert, puis fallback vers alert natif
         try {
           Alert.alert(
@@ -224,7 +237,10 @@ const DeviceCard: React.FC<DeviceCardProps> = ({ device, onPress, onRemove, onEd
           );
         } catch (alertError) {
           console.log(`⚠️ Alert failed on web, using native alert:`, alertError);
-          if (!useNativeAlert()) {
+          if (nativeAlert) {
+            nativeAlert(`Informations de l'appareil\n\n${infoMessage}`);
+            console.log('✅ Info displayed via native alert');
+          } else {
             // Si même alert échoue, log dans la console
             console.log(`ℹ️  Device Info for ${device.name}:`, infoMessage);
           }
