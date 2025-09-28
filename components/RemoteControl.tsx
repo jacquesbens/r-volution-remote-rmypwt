@@ -8,6 +8,7 @@ import { RVolutionDevice } from '../types/Device';
 import Icon from './Icon';
 import { colors } from '../styles/commonStyles';
 import Constants from 'expo-constants';
+import * as Haptics from 'expo-haptics';
 
 interface RemoteControlProps {
   device: RVolutionDevice;
@@ -561,9 +562,13 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
 
   const handleCommand = async (commandName: string, buttonKey: string) => {
     try {
+      // Trigger haptic feedback on button press
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      
       const irCode = defaultIRCodes[buttonKey as keyof typeof defaultIRCodes];
       if (!irCode) {
         console.log(`❌ No IR code found for button: ${buttonKey}`);
+        // Only show alert for missing IR codes, not for successful commands
         showAlert('Erreur', `Code IR non trouvé pour le bouton ${buttonKey}`);
         return;
       }
@@ -572,6 +577,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
       console.log(`🎮 Executing ${commandName} command on ${device.name} with code: ${irCode} (button: ${buttonKey})`);
       await sendIRCommand(device, irCode);
       console.log(`✅ ${commandName} command executed successfully`);
+      // Removed the success alert message - no more messages on successful button press
     } catch (error) {
       console.log(`❌ ${commandName} command failed:`, error);
       showAlert(
@@ -599,8 +605,8 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
     showAlert(`Code IR - ${buttonName}`, `Code enregistré: ${irCode}`);
   }, [showAlert]);
 
-  const handlePlayPause = () => {
-    handleCommand('Play/Pause', 'PlayPause');
+  const handlePlayPause = async () => {
+    await handleCommand('Play/Pause', 'PlayPause');
     setIsPlaying(!isPlaying);
   };
 
