@@ -120,9 +120,9 @@ const styles = StyleSheet.create({
   },
   brandSubtitle: {
     fontSize: 32,
-    fontWeight: '300',
-    color: colors.accent,
+    fontWeight: '700', // Same font weight as R_Volution
+    color: colors.white, // White color as requested
     textAlign: 'center',
-    letterSpacing: 1,
+    letterSpacing: 2, // Same letter spacing as R_Volution
   },
 });
