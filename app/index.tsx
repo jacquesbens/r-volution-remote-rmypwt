@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Image, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useDeviceDiscovery } from '../hooks/useDeviceDiscovery';
@@ -81,17 +81,10 @@ export default function AppSplashScreen() {
     return (
       <View style={styles.container}>
         <View style={styles.content}>
-          {/* R_volution Splash Screen Image */}
-          <Image
-            source={require('../assets/images/feeccb3e-8345-49bd-9e2e-d401524b7d27.png')}
-            style={styles.splashImage}
-            resizeMode="contain"
-          />
-          
-          {/* Loading Indicator */}
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#FFFFFF" />
-            <Text style={styles.loadingText}>Initialisation...</Text>
+          {/* R_Volution Brand Text */}
+          <View style={styles.brandContainer}>
+            <Text style={styles.brandTitle}>R_Volution</Text>
+            <Text style={styles.brandSubtitle}>Remote</Text>
           </View>
         </View>
       </View>
@@ -113,23 +106,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 40,
   },
-  splashImage: {
-    width: '100%',
-    height: '60%',
-    maxWidth: 400,
-    maxHeight: 400,
-    marginBottom: 60,
-  },
-  loadingContainer: {
-    position: 'absolute',
-    bottom: 120,
+  brandContainer: {
     alignItems: 'center',
+    justifyContent: 'center',
   },
-  loadingText: {
+  brandTitle: {
+    fontSize: 48,
+    fontWeight: '700',
     color: colors.text,
-    fontSize: 18,
-    marginTop: 20,
+    textAlign: 'center',
+    letterSpacing: 2,
+    marginBottom: 8,
+  },
+  brandSubtitle: {
+    fontSize: 32,
     fontWeight: '300',
-    letterSpacing: 0.5,
+    color: colors.accent,
+    textAlign: 'center',
+    letterSpacing: 1,
   },
 });
