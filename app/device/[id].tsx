@@ -16,14 +16,15 @@ export default function DeviceControlScreen() {
   const [device, setDevice] = useState<RVolutionDevice | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [hasCheckedForDevice, setHasCheckedForDevice] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
 
   // Find and set the device whenever devices array changes
   useEffect(() => {
-    console.log(`🔍 Looking for device with ID: ${id}`);
+    console.log(`🔍 Looking for device with ID: ${id} (retry: ${retryCount})`);
     console.log(`📱 Available devices: ${devices.length}`);
     
-    // Only proceed if we have devices loaded or if we've already checked
-    if (devices.length === 0 && !hasCheckedForDevice) {
+    // Only proceed if we have devices loaded or if we've already checked multiple times
+    if (devices.length === 0 && !hasCheckedForDevice && retryCount < 3) {
       console.log('⏳ Waiting for devices to load...');
       return;
     }
@@ -39,35 +40,45 @@ export default function DeviceControlScreen() {
       console.log(`✅ Device found: ${foundDevice.name} (${foundDevice.ip}:${foundDevice.port})`);
       setDevice(foundDevice);
       setIsLoading(false);
-    } else if (hasCheckedForDevice) {
-      console.log(`❌ Device with ID ${id} not found in devices list`);
-      setIsLoading(false);
+      setRetryCount(0); // Reset retry count on success
+    } else if (hasCheckedForDevice || retryCount >= 3) {
+      console.log(`❌ Device with ID ${id} not found in devices list after ${retryCount} retries`);
       
-      // Show alert after a short delay to ensure the component is mounted
-      setTimeout(() => {
-        Alert.alert(
-          'Appareil non trouvé', 
-          'L\'appareil sélectionné n\'a pas été trouvé dans la liste.',
-          [
-            { text: 'Ajouter des appareils', onPress: () => router.push('/add-device') },
-            { text: 'Retour', onPress: () => router.push('/add-device') }
-          ]
-        );
-      }, 100);
+      // If we have devices but not the one we're looking for, show error immediately
+      if (devices.length > 0 || retryCount >= 3) {
+        setIsLoading(false);
+        
+        // Show alert after a short delay to ensure the component is mounted
+        setTimeout(() => {
+          Alert.alert(
+            'Appareil non trouvé', 
+            'L\'appareil sélectionné n\'a pas été trouvé dans la liste. Il se peut qu\'il ait été supprimé ou qu\'il y ait eu un problème de synchronisation.',
+            [
+              { text: 'Réessayer', onPress: () => {
+                setRetryCount(prev => prev + 1);
+                setIsLoading(true);
+                setHasCheckedForDevice(false);
+              }},
+              { text: 'Retour aux appareils', onPress: () => router.push('/add-device') }
+            ]
+          );
+        }, 100);
+      }
     }
-  }, [id, devices, router, hasCheckedForDevice]);
+  }, [id, devices, router, hasCheckedForDevice, retryCount]);
 
   // Set a timeout to stop loading if no devices are found after reasonable time
   useEffect(() => {
     const timeout = setTimeout(() => {
-      if (!hasCheckedForDevice && devices.length === 0) {
-        console.log('⏰ Timeout reached, checking for device anyway');
+      if (!hasCheckedForDevice && devices.length === 0 && retryCount < 3) {
+        console.log('⏰ Timeout reached, retrying device search...');
+        setRetryCount(prev => prev + 1);
         setHasCheckedForDevice(true);
       }
     }, 2000); // Wait 2 seconds max for devices to load
 
     return () => clearTimeout(timeout);
-  }, [hasCheckedForDevice, devices.length]);
+  }, [hasCheckedForDevice, devices.length, retryCount]);
 
   // Periodic status updates
   useEffect(() => {
@@ -97,6 +108,14 @@ export default function DeviceControlScreen() {
     router.push('/add-device');
   };
 
+  const handleRetrySearch = () => {
+    console.log('🔄 Retrying device search...');
+    setRetryCount(prev => prev + 1);
+    setIsLoading(true);
+    setHasCheckedForDevice(false);
+    setDevice(null);
+  };
+
   // Show loading state while checking for device
   if (isLoading) {
     return (
@@ -105,13 +124,25 @@ export default function DeviceControlScreen() {
           <TouchableOpacity onPress={handleBackToAddDevices} style={styles.backButton}>
             <Icon name="arrow-back" size={24} color={colors.text} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Chargement...</Text>
+          <Text style={styles.headerTitle}>
+            {retryCount > 0 ? `Recherche... (${retryCount}/3)` : 'Chargement...'}
+          </Text>
           <View style={styles.placeholder} />
         </View>
         
         <View style={styles.loadingContainer}>
           <Icon name="refresh" size={32} color={colors.primary} />
-          <Text style={styles.loadingText}>Chargement de l'appareil...</Text>
+          <Text style={styles.loadingText}>
+            {retryCount > 0 
+              ? `Recherche de l'appareil... (tentative ${retryCount}/3)`
+              : 'Chargement de l\'appareil...'
+            }
+          </Text>
+          {retryCount > 0 && (
+            <TouchableOpacity style={styles.retryButton} onPress={handleRetrySearch}>
+              <Text style={styles.retryButtonText}>Réessayer maintenant</Text>
+            </TouchableOpacity>
+          )}
         </View>
       </SafeAreaView>
     );
@@ -133,14 +164,30 @@ export default function DeviceControlScreen() {
           <Icon name="alert-circle" size={48} color={colors.accent} />
           <Text style={styles.errorTitle}>Appareil non trouvé</Text>
           <Text style={styles.errorText}>
-            L'appareil sélectionné n'a pas été trouvé dans la liste.
+            L'appareil sélectionné n'a pas été trouvé dans la liste. 
+            {retryCount > 0 && ` (${retryCount} tentatives effectuées)`}
           </Text>
-          <TouchableOpacity 
-            style={styles.retryButton} 
-            onPress={handleAddDevices}
-          >
-            <Text style={styles.retryButtonText}>Ajouter des appareils</Text>
-          </TouchableOpacity>
+          <Text style={styles.errorSubText}>
+            Cela peut arriver si l'appareil a été supprimé ou s'il y a eu un problème de synchronisation.
+          </Text>
+          
+          <View style={styles.errorActions}>
+            <TouchableOpacity 
+              style={styles.retryButton} 
+              onPress={handleRetrySearch}
+            >
+              <Icon name="refresh" size={16} color={colors.white} />
+              <Text style={styles.retryButtonText}>Réessayer</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity 
+              style={styles.backToDevicesButton} 
+              onPress={handleAddDevices}
+            >
+              <Icon name="list" size={16} color={colors.primary} />
+              <Text style={styles.backToDevicesButtonText}>Voir tous les appareils</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </SafeAreaView>
     );
@@ -240,11 +287,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     flex: 1,
+    paddingHorizontal: 32,
   },
   loadingText: {
     fontSize: 16,
     color: colors.grey,
     marginTop: 12,
+    textAlign: 'center',
   },
   errorContainer: {
     alignItems: 'center',
@@ -264,16 +313,48 @@ const styles = StyleSheet.create({
     color: colors.grey,
     textAlign: 'center',
     lineHeight: 24,
+    marginBottom: 8,
+  },
+  errorSubText: {
+    fontSize: 14,
+    color: colors.grey,
+    textAlign: 'center',
+    lineHeight: 20,
     marginBottom: 32,
   },
+  errorActions: {
+    flexDirection: 'row',
+    gap: 16,
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+  },
   retryButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: colors.primary,
-    paddingHorizontal: 24,
+    paddingHorizontal: 20,
     paddingVertical: 12,
     borderRadius: 8,
+    gap: 8,
   },
   retryButtonText: {
-    color: colors.text,
+    color: colors.white,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  backToDevicesButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.backgroundAlt,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 8,
+    gap: 8,
+    borderWidth: 1,
+    borderColor: colors.primary,
+  },
+  backToDevicesButtonText: {
+    color: colors.primary,
     fontSize: 16,
     fontWeight: '600',
   },

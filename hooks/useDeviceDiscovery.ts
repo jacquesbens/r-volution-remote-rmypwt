@@ -134,7 +134,7 @@ export const useDeviceDiscovery = () => {
     }
   }, [devices]);
 
-  // AMÉLIORATION PREVIEW: Save devices avec meilleure compatibilité web
+  // AMÉLIORATION PREVIEW: Save devices avec meilleure compatibilité web et vérification immédiate
   const saveDevices = useCallback(async (devicesToSave: RVolutionDevice[], retryCount = 0) => {
     const maxRetries = 3;
     
@@ -182,10 +182,11 @@ export const useDeviceDiscovery = () => {
       
       console.log('💾 Devices saved to storage successfully');
       
-      // AMÉLIORATION PREVIEW: Vérification de la sauvegarde adaptée à la plateforme
+      // AMÉLIORATION CRITIQUE: Vérification immédiate de la sauvegarde pour éviter les problèmes de synchronisation
+      await new Promise(resolve => setTimeout(resolve, 100)); // Petit délai pour s'assurer que la sauvegarde est complète
+      
+      let verification = null;
       if (Platform.OS === 'web') {
-        // Sur web/Preview, vérifier que la sauvegarde a bien fonctionné
-        let verification = null;
         try {
           verification = await AsyncStorage.getItem(STORAGE_KEY);
         } catch (verifyError) {
@@ -194,12 +195,20 @@ export const useDeviceDiscovery = () => {
             verification = window.localStorage.getItem(STORAGE_KEY);
           }
         }
-        
-        if (!verification) {
-          throw new Error('Storage verification failed');
-        }
-        console.log('✅ Storage verification successful');
+      } else {
+        verification = await AsyncStorage.getItem(STORAGE_KEY);
       }
+      
+      if (!verification) {
+        throw new Error('Storage verification failed - data not persisted');
+      }
+      
+      const verifiedDevices = JSON.parse(verification);
+      if (verifiedDevices.length !== validDevices.length) {
+        throw new Error(`Storage verification failed - expected ${validDevices.length} devices, found ${verifiedDevices.length}`);
+      }
+      
+      console.log('✅ Storage verification successful - devices properly persisted');
       
     } catch (error) {
       console.log(`❌ Error saving devices (attempt ${retryCount + 1}/${maxRetries}):`, error);
@@ -564,7 +573,7 @@ export const useDeviceDiscovery = () => {
   }, [getLocalNetworkInfo, scanIPBatch]);
 
   // Add discovered device to saved devices
-  // MODIFIED: Remove device from discovered list after adding to saved devices
+  // MODIFIED: Remove device from discovered list after adding to saved devices and force state refresh
   const addDiscoveredDevice = useCallback(async (discoveredDevice: RVolutionDevice) => {
     try {
       console.log('➕ Adding discovered device to saved devices:', discoveredDevice.name);
@@ -579,20 +588,28 @@ export const useDeviceDiscovery = () => {
       // Create new device with manual flag set to false (since it was discovered)
       const newDevice: RVolutionDevice = {
         ...discoveredDevice,
-        id: `added_${discoveredDevice.ip}_${Date.now()}`,
+        id: `added_${discoveredDevice.ip}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         isManuallyAdded: false,
       };
       
-      // Update devices state
+      console.log('📝 Creating new device with ID:', newDevice.id);
+      
+      // Update devices state FIRST for immediate UI feedback
       const updatedDevices = [...devices, newDevice];
       setDevices(updatedDevices);
       
-      // Save to storage
+      // Save to storage with verification
       await saveDevices(updatedDevices);
       
       // CHANGE 2: Remove the device from discovered devices list after adding it
       console.log('🧹 Removing device from discovered list after adding to saved devices');
       setDiscoveredDevices(prev => prev.filter(device => device.ip !== discoveredDevice.ip));
+      
+      // AMÉLIORATION CRITIQUE: Force reload from storage to ensure synchronization
+      console.log('🔄 Force reloading devices from storage to ensure synchronization...');
+      devicesLoadedRef.current = false; // Reset the loaded flag
+      await new Promise(resolve => setTimeout(resolve, 200)); // Small delay
+      await loadSavedDevices(); // Reload from storage
       
       console.log('✅ Discovered device added to saved devices successfully and removed from discovered list!');
       return newDevice;
@@ -601,9 +618,10 @@ export const useDeviceDiscovery = () => {
       console.log('❌ Failed to add discovered device:', error);
       throw error;
     }
-  }, [devices, saveDevices]);
+  }, [devices, saveDevices, loadSavedDevices]);
 
   // Manual device addition using the fast CGI endpoint
+  // MODIFIED: Improved state synchronization and verification
   const addDeviceManually = useCallback(async (ip: string, port: number = HTTP_PORT, customName?: string): Promise<RVolutionDevice> => {
     console.log('📱 === MANUAL DEVICE ADDITION STARTED ===');
     console.log(`   IP: ${ip}`);
@@ -662,7 +680,7 @@ export const useDeviceDiscovery = () => {
       }
       
       const newDevice: RVolutionDevice = {
-        id: `manual_${ip}_${HTTP_PORT}_${Date.now()}`,
+        id: `manual_${ip}_${HTTP_PORT}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         name: deviceName,
         ip: ip,
         port: HTTP_PORT,
@@ -671,8 +689,7 @@ export const useDeviceDiscovery = () => {
         isManuallyAdded: true,
       };
       
-      console.log('📝 Creating device:', {
-        id: newDevice.id,
+      console.log('📝 Creating device with ID:', newDevice.id, {
         name: newDevice.name,
         ip: newDevice.ip,
         port: newDevice.port,
@@ -682,14 +699,20 @@ export const useDeviceDiscovery = () => {
         reachable: isReachable,
       });
       
-      // Update devices state
+      // Update devices state FIRST for immediate UI feedback
       const updatedDevices = [...devices, newDevice];
       console.log('📱 Updating devices state. Total devices:', updatedDevices.length);
       setDevices(updatedDevices);
       
-      // Save to storage
+      // Save to storage with verification
       console.log('💾 Saving devices to storage...');
       await saveDevices(updatedDevices);
+      
+      // AMÉLIORATION CRITIQUE: Force reload from storage to ensure synchronization
+      console.log('🔄 Force reloading devices from storage to ensure synchronization...');
+      devicesLoadedRef.current = false; // Reset the loaded flag
+      await new Promise(resolve => setTimeout(resolve, 200)); // Small delay
+      await loadSavedDevices(); // Reload from storage
       
       console.log('✅ Manual device addition completed successfully!');
       console.log('📱 === MANUAL DEVICE ADDITION FINISHED ===');
@@ -701,7 +724,7 @@ export const useDeviceDiscovery = () => {
       console.log('📱 === MANUAL DEVICE ADDITION FAILED ===');
       throw error;
     }
-  }, [devices, saveDevices, checkDeviceReachability, verifyRVolutionDevice]);
+  }, [devices, saveDevices, checkDeviceReachability, verifyRVolutionDevice, loadSavedDevices]);
 
   // CORRECTION: Remove device avec meilleure compatibilité web et gestion d'erreurs robuste
   const removeDevice = useCallback(async (deviceId: string, retryCount = 0) => {
@@ -743,35 +766,11 @@ export const useDeviceDiscovery = () => {
         }
       }
       
-      // AMÉLIORATION PREVIEW: Vérification post-suppression adaptée à la plateforme
-      if (Platform.OS === 'web') {
-        // Sur web/Preview, vérifier que la suppression a bien fonctionné
-        try {
-          let verification = null;
-          try {
-            verification = await AsyncStorage.getItem(STORAGE_KEY);
-          } catch (verifyError) {
-            // Fallback verification
-            if (typeof window !== 'undefined' && window.localStorage) {
-              verification = window.localStorage.getItem(STORAGE_KEY);
-            }
-          }
-          
-          if (verification) {
-            const verificationDevices = JSON.parse(verification);
-            const stillExists = verificationDevices.find((d: any) => d.id === deviceId);
-            if (stillExists) {
-              console.log('⚠️ Device still exists in storage, but UI is updated');
-              // Ne pas lever d'erreur, l'UI est cohérente
-            } else {
-              console.log('✅ Device removal verification successful');
-            }
-          }
-        } catch (verificationError) {
-          console.log('⚠️ Verification failed, but UI is updated:', verificationError);
-          // Ne pas lever d'erreur, l'UI est cohérente
-        }
-      }
+      // AMÉLIORATION CRITIQUE: Force reload from storage to ensure synchronization
+      console.log('🔄 Force reloading devices from storage to ensure synchronization...');
+      devicesLoadedRef.current = false; // Reset the loaded flag
+      await new Promise(resolve => setTimeout(resolve, 200)); // Small delay
+      await loadSavedDevices(); // Reload from storage
       
     } catch (error) {
       console.log(`❌ Error removing device (attempt ${retryCount + 1}/${maxRetries}):`, error);
@@ -812,8 +811,15 @@ export const useDeviceDiscovery = () => {
     );
     setDevices(updatedDevices);
     await saveDevices(updatedDevices);
+    
+    // AMÉLIORATION CRITIQUE: Force reload from storage to ensure synchronization
+    console.log('🔄 Force reloading devices from storage to ensure synchronization...');
+    devicesLoadedRef.current = false;
+    await new Promise(resolve => setTimeout(resolve, 200));
+    await loadSavedDevices();
+    
     console.log('✅ Device renamed successfully');
-  }, [devices, saveDevices]);
+  }, [devices, saveDevices, loadSavedDevices]);
 
   // Update device (name and/or IP)
   const updateDevice = useCallback(async (deviceId: string, updates: { name?: string; ip?: string; port?: number }) => {
@@ -869,6 +875,13 @@ export const useDeviceDiscovery = () => {
 
       setDevices(updatedDevices);
       await saveDevices(updatedDevices);
+      
+      // AMÉLIORATION CRITIQUE: Force reload from storage to ensure synchronization
+      console.log('🔄 Force reloading devices from storage to ensure synchronization...');
+      devicesLoadedRef.current = false;
+      await new Promise(resolve => setTimeout(resolve, 200));
+      await loadSavedDevices();
+      
       console.log('✅ Device updated successfully');
       
       return updatedDevice;
@@ -876,7 +889,7 @@ export const useDeviceDiscovery = () => {
       console.log('❌ Device update failed:', error);
       throw error;
     }
-  }, [devices, saveDevices]);
+  }, [devices, saveDevices, loadSavedDevices]);
 
   // Fast device status update using CGI endpoint
   const updateDeviceStatus = useCallback(async () => {
