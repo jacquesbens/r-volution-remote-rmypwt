@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { View, Text, TextInput, StyleSheet, Alert, Modal, TouchableOpacity, ActivityIndicator, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import Button from './Button';
 import { colors } from '../styles/commonStyles';
@@ -16,6 +16,10 @@ const AddDeviceModal: React.FC<AddDeviceModalProps> = ({ visible, onClose, onAdd
   const [name, setName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isTestingConnection, setIsTestingConnection] = useState(false);
+  
+  // Refs for input fields to control focus
+  const ipInputRef = useRef<TextInput>(null);
+  const nameInputRef = useRef<TextInput>(null);
 
   const handleAddDevice = async () => {
     if (!ip.trim()) {
@@ -30,6 +34,11 @@ const AddDeviceModal: React.FC<AddDeviceModalProps> = ({ visible, onClose, onAdd
       handleClose();
     } catch (error) {
       console.log('AddDeviceModal: Error adding device:', error);
+      
+      // Remove focus from inputs on error to prevent keyboard from staying open
+      ipInputRef.current?.blur();
+      nameInputRef.current?.blur();
+      
       // Error is already handled by parent component
     } finally {
       setIsLoading(false);
@@ -83,6 +92,10 @@ const AddDeviceModal: React.FC<AddDeviceModalProps> = ({ visible, onClose, onAdd
   };
 
   const handleClose = () => {
+    // Remove focus from inputs before closing
+    ipInputRef.current?.blur();
+    nameInputRef.current?.blur();
+    
     setIp('');
     setName('');
     setIsLoading(false);
@@ -119,6 +132,7 @@ const AddDeviceModal: React.FC<AddDeviceModalProps> = ({ visible, onClose, onAdd
           <View style={styles.section}>
             <Text style={styles.label}>Adresse IP *</Text>
             <TextInput
+              ref={ipInputRef}
               style={styles.input}
               value={ip}
               onChangeText={setIp}
@@ -133,6 +147,7 @@ const AddDeviceModal: React.FC<AddDeviceModalProps> = ({ visible, onClose, onAdd
           <View style={styles.section}>
             <Text style={styles.label}>Nom personnalisé (optionnel)</Text>
             <TextInput
+              ref={nameInputRef}
               style={styles.input}
               value={name}
               onChangeText={setName}

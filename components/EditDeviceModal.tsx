@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, TextInput, StyleSheet, Alert, Modal, TouchableOpacity, ActivityIndicator, ScrollView } from 'react-native';
 import { RVolutionDevice } from '../types/Device';
 import Button from './Button';
@@ -18,6 +18,10 @@ const EditDeviceModal: React.FC<EditDeviceModalProps> = ({ visible, device, onCl
   const [ip, setIp] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isTestingConnection, setIsTestingConnection] = useState(false);
+  
+  // Refs for input fields to control focus
+  const nameInputRef = useRef<TextInput>(null);
+  const ipInputRef = useRef<TextInput>(null);
 
   useEffect(() => {
     if (device && visible) {
@@ -54,9 +58,19 @@ const EditDeviceModal: React.FC<EditDeviceModalProps> = ({ visible, device, onCl
         ip: ip.trim(),
         port: 80 // Always use HTTP port 80
       });
+      
+      // Remove focus from inputs before closing
+      nameInputRef.current?.blur();
+      ipInputRef.current?.blur();
+      
       handleClose();
     } catch (error) {
       console.log('EditDeviceModal: Error updating device:', error);
+      
+      // Remove focus from inputs on error to prevent keyboard from staying open
+      nameInputRef.current?.blur();
+      ipInputRef.current?.blur();
+      
       Alert.alert(
         'Erreur de modification',
         error.message || 'Impossible de modifier l\'appareil.',
@@ -114,6 +128,10 @@ const EditDeviceModal: React.FC<EditDeviceModalProps> = ({ visible, device, onCl
   };
 
   const handleClose = () => {
+    // Remove focus from inputs before closing
+    nameInputRef.current?.blur();
+    ipInputRef.current?.blur();
+    
     setName('');
     setIp('');
     setIsLoading(false);
@@ -147,6 +165,7 @@ const EditDeviceModal: React.FC<EditDeviceModalProps> = ({ visible, device, onCl
           <View style={styles.section}>
             <Text style={styles.label}>Nom de l'appareil *</Text>
             <TextInput
+              ref={nameInputRef}
               style={styles.input}
               value={name}
               onChangeText={setName}
@@ -159,6 +178,7 @@ const EditDeviceModal: React.FC<EditDeviceModalProps> = ({ visible, device, onCl
           <View style={styles.section}>
             <Text style={styles.label}>Adresse IP *</Text>
             <TextInput
+              ref={ipInputRef}
               style={styles.input}
               value={ip}
               onChangeText={setIp}

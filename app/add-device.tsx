@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, ActivityIndicator, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -30,6 +30,10 @@ const AddDeviceScreen: React.FC = () => {
   const [isAdding, setIsAdding] = useState(false);
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [deviceToEdit, setDeviceToEdit] = useState<RVolutionDevice | null>(null);
+  
+  // Refs for input fields to control focus
+  const deviceNameInputRef = useRef<TextInput>(null);
+  const ipAddressInputRef = useRef<TextInput>(null);
 
   const handleScanNetwork = async () => {
     console.log('🔍 Starting automatic network scan with HTTP protocol');
@@ -78,9 +82,13 @@ const AddDeviceScreen: React.FC = () => {
       
       console.log('✅ Device added successfully:', newDevice);
       
-      // Clear the form
+      // Clear the form and remove focus from inputs
       setDeviceName('');
       setIpAddress('');
+      
+      // Blur both input fields to dismiss keyboard and remove focus
+      deviceNameInputRef.current?.blur();
+      ipAddressInputRef.current?.blur();
       
       Alert.alert(
         'Appareil ajouté',
@@ -89,6 +97,11 @@ const AddDeviceScreen: React.FC = () => {
       );
     } catch (error) {
       console.log('❌ Failed to add device:', error);
+      
+      // Remove focus from inputs even on error to prevent keyboard from staying open
+      deviceNameInputRef.current?.blur();
+      ipAddressInputRef.current?.blur();
+      
       Alert.alert(
         'Erreur d\'ajout',
         error.message || 'Impossible d\'ajouter l\'appareil.',
@@ -244,6 +257,7 @@ const AddDeviceScreen: React.FC = () => {
             <View style={styles.inputContainer}>
               <Text style={styles.inputLabel}>Nom</Text>
               <TextInput
+                ref={deviceNameInputRef}
                 style={styles.input}
                 value={deviceName}
                 onChangeText={setDeviceName}
@@ -255,6 +269,7 @@ const AddDeviceScreen: React.FC = () => {
             <View style={styles.inputContainer}>
               <Text style={styles.inputLabel}>IP / Hôte</Text>
               <TextInput
+                ref={ipAddressInputRef}
                 style={styles.input}
                 value={ipAddress}
                 onChangeText={setIpAddress}
