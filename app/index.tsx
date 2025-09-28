@@ -107,14 +107,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 40,
   },
   brandContainer: {
-    alignItems: 'center',
+    alignItems: 'flex-start', // Changed to align items to the left
     justifyContent: 'center',
   },
   brandTitle: {
-    fontSize: 48,
+    fontSize: 36, // Reduced from 48 to 36
     fontWeight: '700',
     color: colors.text,
-    textAlign: 'center',
+    textAlign: 'left', // Changed to left alignment
     letterSpacing: 2,
     marginBottom: 8,
   },
@@ -122,7 +122,8 @@ const styles = StyleSheet.create({
     fontSize: 32,
     fontWeight: '700', // Same font weight as R_Volution
     color: colors.white, // White color as requested
-    textAlign: 'center',
+    textAlign: 'left', // Changed to left alignment to match R_Volution
     letterSpacing: 2, // Same letter spacing as R_Volution
+    alignSelf: 'flex-start', // Ensures it aligns to the left edge of the container
   },
 });
