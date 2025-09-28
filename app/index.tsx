@@ -2,7 +2,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Image, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import * as SplashScreen from 'expo-splash-screen';
 import { useDeviceDiscovery } from '../hooks/useDeviceDiscovery';
 import { colors } from '../styles/commonStyles';
@@ -80,7 +79,7 @@ export default function AppSplashScreen() {
   // Show loading screen while app initializes
   if (!appIsReady) {
     return (
-      <SafeAreaView style={styles.container}>
+      <View style={styles.container}>
         <View style={styles.content}>
           {/* R_volution Splash Screen Image */}
           <Image
@@ -95,7 +94,7 @@ export default function AppSplashScreen() {
             <Text style={styles.loadingText}>Initialisation...</Text>
           </View>
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
@@ -106,7 +105,7 @@ export default function AppSplashScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1a2332', // Dark blue background matching the R_volution splash image
+    backgroundColor: colors.background, // Use the same background color as the app
   },
   content: {
     flex: 1,
@@ -127,7 +126,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   loadingText: {
-    color: '#FFFFFF',
+    color: colors.text,
     fontSize: 18,
     marginTop: 20,
     fontWeight: '300',
