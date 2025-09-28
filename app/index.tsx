@@ -1,129 +1,125 @@
 
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useDeviceDiscovery } from '../hooks/useDeviceDiscovery';
-import { colors } from '../styles/commonStyles';
 
-// Keep the splash screen visible while we fetch resources
+// Prevent the splash screen from auto-hiding before Asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
 export default function AppSplashScreen() {
   const router = useRouter();
   const { devices } = useDeviceDiscovery();
-  const [isLoading, setIsLoading] = useState(true);
-  const [appIsReady, setAppIsReady] = useState(false);
+  const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    const initializeApp = async () => {
+    async function prepare() {
       try {
-        console.log('🚀 Splash screen: Initializing R_volution Remote app...');
+        console.log('🚀 Initializing R_Volution Remote app...');
         
-        // Wait exactly 3 seconds to show the splash screen
-        const minSplashTime = 3000; // 3 seconds as requested
-        const startTime = Date.now();
+        // Force splash screen to show for exactly 3 seconds
+        const splashStartTime = Date.now();
+        const minSplashDuration = 3000; // 3 seconds
         
-        // Wait for devices to be loaded
-        await new Promise(resolve => {
-          const checkDevices = () => {
-            // Check if devices have been loaded (either empty array or with devices)
-            if (devices !== undefined) {
-              console.log(`📱 Devices loaded: ${devices.length} registered devices found`);
-              resolve(true);
-            } else {
-              setTimeout(checkDevices, 100);
-            }
-          };
-          checkDevices();
-        });
-        
-        // Ensure minimum splash time for better UX
-        const elapsedTime = Date.now() - startTime;
-        if (elapsedTime < minSplashTime) {
-          console.log(`⏱️ Waiting ${minSplashTime - elapsedTime}ms more for splash screen...`);
-          await new Promise(resolve => setTimeout(resolve, minSplashTime - elapsedTime));
+        // Wait for devices to load
+        let devicesLoaded = false;
+        while (!devicesLoaded) {
+          if (devices !== undefined) {
+            devicesLoaded = true;
+            console.log(`📱 Devices loaded: ${devices.length} registered devices found`);
+          } else {
+            await new Promise(resolve => setTimeout(resolve, 50));
+          }
         }
         
-        console.log(`📱 App initialization complete. Found ${devices.length} registered devices`);
+        // Ensure minimum splash duration
+        const elapsedTime = Date.now() - splashStartTime;
+        if (elapsedTime < minSplashDuration) {
+          const remainingTime = minSplashDuration - elapsedTime;
+          console.log(`⏱️ Showing splash screen for ${remainingTime}ms more...`);
+          await new Promise(resolve => setTimeout(resolve, remainingTime));
+        }
         
-        // Mark app as ready
-        setAppIsReady(true);
+        console.log(`✅ Splash screen completed after ${Date.now() - splashStartTime}ms`);
         
-        // Navigate based on device availability
-        if (devices.length > 0) {
-          // If devices exist, navigate to the first device's remote control
-          const firstDevice = devices[0];
-          console.log(`🎮 Navigating to remote control for: ${firstDevice.name} (${firstDevice.ip})`);
-          router.replace(`/device/${firstDevice.id}`);
-        } else {
-          // If no devices, navigate to add device screen
-          console.log('➕ No devices found, navigating to device registration screen');
+      } catch (e) {
+        console.warn('❌ Error during app initialization:', e);
+      } finally {
+        // Tell the application to render
+        setIsReady(true);
+      }
+    }
+
+    prepare();
+  }, [devices]);
+
+  useEffect(() => {
+    if (isReady) {
+      const navigateToApp = async () => {
+        try {
+          // Hide the native splash screen
+          await SplashScreen.hideAsync();
+          
+          // Navigate based on device availability
+          if (devices && devices.length > 0) {
+            const firstDevice = devices[0];
+            console.log(`🎮 Navigating to remote control for: ${firstDevice.name} (${firstDevice.ip})`);
+            router.replace(`/device/${firstDevice.id}`);
+          } else {
+            console.log('➕ No devices found, navigating to device registration screen');
+            router.replace('/add-device');
+          }
+        } catch (error) {
+          console.error('❌ Navigation error:', error);
           router.replace('/add-device');
         }
-        
-      } catch (error) {
-        console.log('❌ App initialization error:', error);
-        // On error, navigate to add device screen as fallback
-        router.replace('/add-device');
-      } finally {
-        setIsLoading(false);
-        // Hide the native splash screen
-        await SplashScreen.hideAsync();
-      }
-    };
+      };
 
-    initializeApp();
-  }, [devices, router]);
+      navigateToApp();
+    }
+  }, [isReady, devices, router]);
 
-  // Show loading screen while app initializes
-  if (!appIsReady) {
-    return (
-      <View style={styles.container}>
-        <View style={styles.content}>
-          {/* R_Volution Brand Text */}
-          <View style={styles.brandContainer}>
-            <Text style={styles.brandTitle}>R_Volution</Text>
-            <Text style={styles.brandSubtitle}>Remote</Text>
-          </View>
-        </View>
-      </View>
-    );
-  }
-
-  // This should not be reached as navigation happens before appIsReady becomes true
-  return null;
+  return (
+    <View style={styles.container}>
+      <Image 
+        source={require('../assets/images/167869d5-9c4d-490f-ae3a-6a8528fe7003.png')} 
+        style={styles.image} 
+      />
+      <Text style={styles.rVolutionText}>R_Volution</Text>
+      <Text style={styles.remoteText}>Remote</Text>
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background, // Use the same background color as the app
-  },
-  content: {
-    flex: 1,
-    justifyContent: 'center',
+    backgroundColor: '#1a2332',
     alignItems: 'center',
-    paddingHorizontal: 40,
-  },
-  brandContainer: {
-    alignItems: 'flex-start', // Changed to align items to the left
     justifyContent: 'center',
   },
-  brandTitle: {
-    fontSize: 36, // Reduced from 48 to 36
+  image: {
+    width: 150,
+    height: 150,
+    resizeMode: 'contain',
+    marginBottom: 20,
+  },
+  rVolutionText: {
+    color: 'white',
+    fontSize: 36,
     fontWeight: '700',
-    color: colors.text,
-    textAlign: 'left', // Changed to left alignment
     letterSpacing: 2,
+    textAlign: 'left',
     marginBottom: 8,
   },
-  brandSubtitle: {
-    fontSize: 32,
-    fontWeight: '700', // Same font weight as R_Volution
-    color: colors.white, // White color as requested
-    textAlign: 'left', // Changed to left alignment to match R_Volution
-    letterSpacing: 2, // Same letter spacing as R_Volution
-    alignSelf: 'flex-start', // Ensures it aligns to the left edge of the container
+  remoteText: {
+    color: 'white',
+    fontSize: 36,
+    fontWeight: '700',
+    letterSpacing: 2,
+    textAlign: 'left',
+    alignSelf: 'flex-start',
+    marginLeft: 0,
   },
 });

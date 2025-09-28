@@ -9,9 +9,9 @@
     "userInterfaceStyle": "dark",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/images/feeccb3e-8345-49bd-9e2e-d401524b7d27.png",
+      "image": "./assets/images/167869d5-9c4d-490f-ae3a-6a8528fe7003.png",
       "resizeMode": "contain",
-      "backgroundColor": "#101824"
+      "backgroundColor": "#1a2332"
     },
     "ios": {
       "supportsTablet": true,
