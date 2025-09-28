@@ -205,16 +205,16 @@ export default function DeviceControlScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* Device Status Indicator */}
-      <View style={styles.statusContainer}>
-        <View style={[styles.statusIndicator, { backgroundColor: device.isOnline ? colors.success : colors.accent }]} />
-        <Text style={styles.statusText}>
-          {device.isOnline ? 'En ligne' : 'Hors ligne'}
-        </Text>
-        <Text style={styles.deviceInfo}>
-          {device.ip}:{device.port}
-        </Text>
-      </View>
+      {/* Device Status Indicator - Only show when device is offline */}
+      {!device.isOnline && (
+        <View style={styles.statusContainer}>
+          <View style={[styles.statusIndicator, { backgroundColor: colors.accent }]} />
+          <Text style={styles.statusText}>Hors ligne</Text>
+          <Text style={styles.deviceInfo}>
+            {device.ip}:{device.port}
+          </Text>
+        </View>
+      )}
 
       {/* Remote Control */}
       <RemoteControl device={device} />
