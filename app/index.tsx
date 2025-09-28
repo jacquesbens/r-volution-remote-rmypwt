@@ -4,7 +4,8 @@ import { View, Text, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useDeviceDiscovery } from '../hooks/useDeviceDiscovery';
-import { colors } from '../styles/commonStyles';
+import { colors, commonStyles } from '../styles/commonStyles';
+import { useFonts, Orbitron_700Bold } from '@expo-google-fonts/orbitron';
 
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();
@@ -15,10 +16,21 @@ export default function AppSplashScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [appIsReady, setAppIsReady] = useState(false);
 
+  // Load the Orbitron font
+  const [fontsLoaded] = useFonts({
+    Orbitron_700Bold,
+  });
+
   useEffect(() => {
     const initializeApp = async () => {
       try {
         console.log('🚀 Splash screen: Initializing R_volution Remote app...');
+        
+        // Wait for fonts to load
+        if (!fontsLoaded) {
+          console.log('⏳ Waiting for fonts to load...');
+          return;
+        }
         
         // Wait a minimum time to show the splash screen
         const minSplashTime = 2500; // 2.5 seconds to show the beautiful splash
@@ -74,17 +86,17 @@ export default function AppSplashScreen() {
     };
 
     initializeApp();
-  }, [devices, router]);
+  }, [devices, router, fontsLoaded]);
 
   // Show loading screen while app initializes
-  if (!appIsReady) {
+  if (!appIsReady || !fontsLoaded) {
     return (
       <View style={styles.container}>
         <View style={styles.content}>
-          {/* R_Volution Brand Text */}
+          {/* R_Volution Brand Text with custom typography */}
           <View style={styles.brandContainer}>
-            <Text style={styles.brandTitle}>R_Volution</Text>
-            <Text style={styles.brandSubtitle}>Remote</Text>
+            <Text style={[commonStyles.rVolutionText, styles.brandTitle]}>R_Volution</Text>
+            <Text style={[commonStyles.remoteText, styles.brandSubtitle]}>Remote</Text>
           </View>
         </View>
       </View>
@@ -111,19 +123,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   brandTitle: {
-    fontSize: 36, // Reduced from 48 to 36
-    fontWeight: '700',
-    color: colors.text,
-    textAlign: 'left', // Changed to left alignment
-    letterSpacing: 2,
     marginBottom: 8,
   },
   brandSubtitle: {
-    fontSize: 32,
-    fontWeight: '700', // Same font weight as R_Volution
-    color: colors.white, // White color as requested
-    textAlign: 'left', // Changed to left alignment to match R_Volution
-    letterSpacing: 2, // Same letter spacing as R_Volution
     alignSelf: 'flex-start', // Ensures it aligns to the left edge of the container
   },
 });
