@@ -3,19 +3,34 @@ import React, { useEffect, useState } from 'react';
 import { Platform } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Stack, useGlobalSearchParams } from 'expo-router';
-import { SafeAreaProvider, useSafeAreaInsets, SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { setupErrorLogging } from '../utils/errorLogger';
 
 const STORAGE_KEY = 'natively_emulate_mobile';
 
 export default function RootLayout() {
   const { emulate } = useGlobalSearchParams();
-  const insets = useSafeAreaInsets();
-  const [isMobileEmulation, setIsMobileEmulation] = useState(false);
+  const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    setupErrorLogging();
+    const initializeApp = async () => {
+      try {
+        setupErrorLogging();
+        console.log('🚀 App initialization complete');
+        setIsReady(true);
+      } catch (error) {
+        console.error('❌ Error during app initialization:', error);
+        setIsReady(true); // Still set ready to prevent infinite loading
+      }
+    };
+
+    initializeApp();
   }, []);
+
+  // Don't render the Stack until the app is ready
+  if (!isReady) {
+    return null;
+  }
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -30,7 +45,7 @@ export default function RootLayout() {
             name="index" 
             options={{
               headerShown: false,
-              gestureEnabled: false, // Disable swipe back on splash screen
+              gestureEnabled: false,
             }}
           />
           <Stack.Screen 
