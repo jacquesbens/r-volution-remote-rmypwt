@@ -50,7 +50,7 @@ export default function DeviceControlScreen() {
           'L\'appareil sélectionné n\'a pas été trouvé dans la liste.',
           [
             { text: 'Ajouter des appareils', onPress: () => router.push('/add-device') },
-            { text: 'Retour', onPress: () => router.back() }
+            { text: 'Retour', onPress: () => router.push('/add-device') }
           ]
         );
       }, 100);
@@ -92,12 +92,17 @@ export default function DeviceControlScreen() {
     router.push('/add-device');
   };
 
+  const handleBackToAddDevices = () => {
+    console.log('🔙 Navigating back to add devices screen');
+    router.push('/add-device');
+  };
+
   // Show loading state while checking for device
   if (isLoading) {
     return (
       <SafeAreaView style={commonStyles.container}>
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+          <TouchableOpacity onPress={handleBackToAddDevices} style={styles.backButton}>
             <Icon name="arrow-back" size={24} color={colors.text} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Chargement...</Text>
@@ -117,7 +122,7 @@ export default function DeviceControlScreen() {
     return (
       <SafeAreaView style={commonStyles.container}>
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+          <TouchableOpacity onPress={handleBackToAddDevices} style={styles.backButton}>
             <Icon name="arrow-back" size={24} color={colors.text} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Erreur</Text>
@@ -144,7 +149,7 @@ export default function DeviceControlScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+        <TouchableOpacity onPress={handleBackToAddDevices} style={styles.backButton}>
           <Icon name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{device.name}</Text>
@@ -200,6 +205,10 @@ const styles = StyleSheet.create({
     color: colors.text,
     flex: 1,
     textAlign: 'center',
+  },
+  placeholder: {
+    width: 40,
+    height: 40,
   },
   statusContainer: {
     flexDirection: 'row',
