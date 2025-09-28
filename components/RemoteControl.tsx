@@ -391,26 +391,6 @@ const styles = StyleSheet.create({
     height: 120,
     resizeMode: 'contain',
   },
-  
-  // Loading overlay
-  loadingOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0,0,0,0.7)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 12,
-  },
-  
-  loadingText: {
-    color: '#fff',
-    marginTop: 10,
-    fontSize: 14,
-    fontWeight: '500',
-  },
 
   // Style pour l'icône combinée Play/Pause - Nouvelle version ressemblant à l'image fournie
   playPauseIconContainer: {
@@ -1239,14 +1219,6 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
             style={styles.logo}
           />
         </View>
-
-        {/* Loading Overlay */}
-        {isLoading && (
-          <View style={styles.loadingOverlay}>
-            <Icon name="refresh" size={24} color="#fff" />
-            <Text style={styles.loadingText}>Envoi de {lastCommand}...</Text>
-          </View>
-        )}
       </ScrollView>
     </View>
   );
