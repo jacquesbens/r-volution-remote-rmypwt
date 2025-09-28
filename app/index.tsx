@@ -83,7 +83,7 @@ export default function AppSplashScreen() {
   return (
     <View style={styles.container}>
       <Image 
-        source={require('../assets/images/167869d5-9c4d-490f-ae3a-6a8528fe7003.png')} 
+        source={require('../assets/images/feeccb3e-8345-49bd-9e2e-d401524b7d27.png')} 
         style={styles.image} 
       />
       <Text style={styles.rVolutionText}>R_Volution</Text>
