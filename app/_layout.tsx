@@ -26,7 +26,20 @@ export default function RootLayout() {
             animation: 'slide_from_right',
           }}
         >
-          <Stack.Screen name="index" />
+          <Stack.Screen 
+            name="index" 
+            options={{
+              headerShown: false,
+              gestureEnabled: false, // Disable swipe back on splash screen
+            }}
+          />
+          <Stack.Screen 
+            name="add-device" 
+            options={{
+              headerShown: false,
+              animation: 'fade',
+            }}
+          />
           <Stack.Screen 
             name="device/[id]" 
             options={{
