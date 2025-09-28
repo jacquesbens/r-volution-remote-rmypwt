@@ -1100,14 +1100,14 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
           </CustomButton>
           
           <CustomButton
-            onPress={() => handleCommand('Air Video', 'RVideo')}
-            onLongPress={() => handleLongPress('Air Video', 'RVideo')}
+            onPress={() => handleCommand('R_video', 'RVideo')}
+            onLongPress={() => handleLongPress('R_video', 'RVideo')}
             style={styles.fourButtonsButton}
             textStyle={styles.fourButtonsButtonText}
             buttonKey="RVideo"
           >
             <Icon name="videocam" size={14} color="#fff" />
-            <Text style={styles.fourButtonsButtonText}>Air Video</Text>
+            <Text style={styles.fourButtonsButtonText}>R_video</Text>
           </CustomButton>
           
           <CustomButton
