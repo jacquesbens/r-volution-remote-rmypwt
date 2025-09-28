@@ -20,8 +20,8 @@ export default function AppSplashScreen() {
       try {
         console.log('🚀 Splash screen: Initializing R_volution Remote app...');
         
-        // Wait a minimum time to show the splash screen
-        const minSplashTime = 2500; // 2.5 seconds to show the beautiful splash
+        // Wait exactly 3 seconds to show the splash screen
+        const minSplashTime = 3000; // 3 seconds as requested
         const startTime = Date.now();
         
         // Wait for devices to be loaded
