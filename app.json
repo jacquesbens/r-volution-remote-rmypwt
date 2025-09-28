@@ -1,17 +1,16 @@
-
 {
   "expo": {
     "name": "Natively",
     "slug": "Natively",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/167869d5-9c4d-490f-ae3a-6a8528fe7003.png",
+    "icon": "./assets/images/natively-dark.png",
     "userInterfaceStyle": "dark",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/images/feeccb3e-8345-49bd-9e2e-d401524b7d27.png",
+      "image": "./assets/images/natively-dark.png",
       "resizeMode": "contain",
-      "backgroundColor": "#101824"
+      "backgroundColor": "#000000"
     },
     "ios": {
       "supportsTablet": true,
@@ -22,14 +21,14 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/167869d5-9c4d-490f-ae3a-6a8528fe7003.png",
+        "foregroundImage": "./assets/images/natively-dark.png",
         "backgroundColor": "#000000"
       },
       "edgeToEdgeEnabled": true,
       "package": "com.anonymous.Natively"
     },
     "web": {
-      "favicon": "./assets/images/167869d5-9c4d-490f-ae3a-6a8528fe7003.png",
+      "favicon": "./assets/images/final_quest_240x240.png",
       "bundler": "metro"
     },
     "plugins": [

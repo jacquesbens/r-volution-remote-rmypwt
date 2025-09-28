@@ -49,7 +49,6 @@ export default function DeviceControlScreen() {
           'Appareil non trouvé', 
           'L\'appareil sélectionné n\'a pas été trouvé dans la liste.',
           [
-            { text: 'Ajouter des appareils', onPress: () => router.push('/add-device') },
             { text: 'Retour', onPress: () => router.back() }
           ]
         );
@@ -86,11 +85,6 @@ export default function DeviceControlScreen() {
       clearInterval(interval);
     };
   }, [device, updateDeviceStatus]);
-
-  const handleAddDevices = () => {
-    console.log('➕ Navigating to add devices screen');
-    router.push('/add-device');
-  };
 
   // Show loading state while checking for device
   if (isLoading) {
@@ -132,9 +126,9 @@ export default function DeviceControlScreen() {
           </Text>
           <TouchableOpacity 
             style={styles.retryButton} 
-            onPress={handleAddDevices}
+            onPress={() => router.back()}
           >
-            <Text style={styles.retryButtonText}>Ajouter des appareils</Text>
+            <Text style={styles.retryButtonText}>Retour à la liste</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -148,20 +142,7 @@ export default function DeviceControlScreen() {
           <Icon name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{device.name}</Text>
-        <TouchableOpacity onPress={handleAddDevices} style={styles.addButton}>
-          <Icon name="add" size={24} color={colors.text} />
-        </TouchableOpacity>
-      </View>
-
-      {/* Device Status Indicator */}
-      <View style={styles.statusContainer}>
-        <View style={[styles.statusIndicator, { backgroundColor: device.isOnline ? colors.success : colors.accent }]} />
-        <Text style={styles.statusText}>
-          {device.isOnline ? 'En ligne' : 'Hors ligne'}
-        </Text>
-        <Text style={styles.deviceInfo}>
-          {device.ip}:{device.port}
-        </Text>
+        <View style={styles.placeholder} />
       </View>
 
       {/* Remote Control */}
@@ -189,43 +170,13 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     backgroundColor: colors.backgroundAlt,
   },
-  addButton: {
-    padding: 8,
-    borderRadius: 8,
-    backgroundColor: colors.backgroundAlt,
-  },
   headerTitle: {
     fontSize: 18,
     fontWeight: '600',
     color: colors.text,
-    flex: 1,
-    textAlign: 'center',
   },
-  statusContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    backgroundColor: colors.backgroundAlt,
-    marginHorizontal: 16,
-    marginVertical: 8,
-    borderRadius: 12,
-    gap: 8,
-  },
-  statusIndicator: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
-  statusText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: colors.text,
-  },
-  deviceInfo: {
-    fontSize: 12,
-    color: colors.grey,
-    marginLeft: 'auto',
+  placeholder: {
+    width: 40,
   },
   loadingContainer: {
     alignItems: 'center',

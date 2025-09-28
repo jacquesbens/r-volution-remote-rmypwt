@@ -55,30 +55,6 @@ export const commonStyles = StyleSheet.create({
     color: colors.text,
     marginBottom: 10
   },
-  // Style spécial pour le texte R_Volution avec la nouvelle typographie
-  rVolutionText: {
-    fontFamily: 'Orbitron_700Bold',
-    fontSize: 36,
-    fontWeight: '700',
-    color: colors.text,
-    textAlign: 'left',
-    letterSpacing: 2,
-    textShadowColor: 'rgba(255, 255, 255, 0.1)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
-  },
-  // Style pour le texte Remote qui accompagne R_Volution
-  remoteText: {
-    fontFamily: 'Orbitron_700Bold',
-    fontSize: 32,
-    fontWeight: '700',
-    color: colors.white,
-    textAlign: 'left',
-    letterSpacing: 2,
-    textShadowColor: 'rgba(255, 255, 255, 0.1)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
-  },
   text: {
     fontSize: 16,
     fontWeight: '500',
