@@ -1,9 +1,9 @@
 
 import React, { useState, useRef } from 'react';
-import { View, Text, TextInput, StyleSheet, Alert, Modal, TouchableOpacity, ActivityIndicator, ScrollView, KeyboardAvoidingView } from 'react-native';
+import { View, Text, TextInput, StyleSheet, Alert, Modal, TouchableOpacity, ActivityIndicator, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import Button from './Button';
 import { colors } from '../styles/commonStyles';
-import SimpleIcon from './SimpleIcon';
+import Icon from './Icon';
 
 interface AddDeviceModalProps {
   visible: boolean;
@@ -112,12 +112,12 @@ const AddDeviceModal: React.FC<AddDeviceModalProps> = ({ visible, onClose, onAdd
     >
       <KeyboardAvoidingView 
         style={styles.container}
-        behavior="padding"
-        keyboardVerticalOffset={0}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
       >
         <View style={styles.header}>
           <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
-            <SimpleIcon name="close" size={24} color={colors.text} />
+            <Icon name="close" size={24} color={colors.text} />
           </TouchableOpacity>
           <Text style={styles.title}>Ajouter un appareil</Text>
           <View style={styles.placeholder} />
@@ -158,7 +158,7 @@ const AddDeviceModal: React.FC<AddDeviceModalProps> = ({ visible, onClose, onAdd
           </View>
 
           <View style={styles.protocolInfoSection}>
-            <SimpleIcon name="information-circle" size={20} color={colors.primary} />
+            <Icon name="information-circle" size={20} color={colors.primary} />
             <View style={styles.protocolInfoContent}>
               <Text style={styles.protocolInfoTitle}>Protocole utilisé :</Text>
               <Text style={styles.protocolInfoText}>HTTP sur port 80 (protocole web standard) - utilisé automatiquement</Text>
@@ -178,7 +178,7 @@ const AddDeviceModal: React.FC<AddDeviceModalProps> = ({ visible, onClose, onAdd
           </View>
 
           <View style={styles.infoSection}>
-            <SimpleIcon name="information-circle" size={20} color={colors.primary} />
+            <Icon name="information-circle" size={20} color={colors.primary} />
             <View style={styles.infoContent}>
               <Text style={styles.infoTitle}>Conseils pour HTTP :</Text>
               <Text style={styles.infoText}>• Assurez-vous que l'appareil est allumé et connecté au Wi-Fi</Text>

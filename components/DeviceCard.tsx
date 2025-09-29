@@ -1,11 +1,11 @@
 
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Platform } from 'react-native';
 import { RVolutionDevice } from '../types/Device';
 import { colors, commonStyles } from '../styles/commonStyles';
 import { useNativeAlert } from '../hooks/useNativeAlert';
 import { useNativeConfirm } from '../hooks/useNativeConfirm';
-import SimpleIcon from './SimpleIcon';
+import Icon from './Icon';
 
 interface DeviceCardProps {
   device: RVolutionDevice;
@@ -29,7 +29,7 @@ const DeviceCard: React.FC<DeviceCardProps> = ({ device, onPress, onRemove, onEd
   const handleTestConnection = async () => {
     if (!onTest || isTesting) return;
     
-    console.log(`🧪 Testing device: ${device.name} (${device.ip}:${device.port})`);
+    console.log(`🧪 Testing device: ${device.name} (${device.ip}:${device.port}) - Platform: ${Platform.OS}`);
     setIsTesting(true);
     
     try {
@@ -89,7 +89,7 @@ const DeviceCard: React.FC<DeviceCardProps> = ({ device, onPress, onRemove, onEd
 
   // CORRECTION: Fonction de suppression utilisant correctement le hook personnalisé
   const handleRemoveDevice = React.useCallback(() => {
-    console.log(`🗑️  Remove device requested: ${device.name}`);
+    console.log(`🗑️  Remove device requested: ${device.name} (Platform: ${Platform.OS})`);
     
     const executeRemoval = () => {
       console.log(`🗑️  Executing removal of device: ${device.name}`);
@@ -123,7 +123,7 @@ const DeviceCard: React.FC<DeviceCardProps> = ({ device, onPress, onRemove, onEd
 
   // CORRECTION: Fonction d'information utilisant correctement le hook personnalisé
   const handleShowInfo = React.useCallback(() => {
-    console.log(`ℹ️  Show info requested: ${device.name}`);
+    console.log(`ℹ️  Show info requested: ${device.name} (Platform: ${Platform.OS})`);
     
     const lastSeenText = isValidLastSeen(device.lastSeen) 
       ? formatLastSeen(device.lastSeen instanceof Date ? device.lastSeen : new Date(device.lastSeen))
@@ -173,7 +173,7 @@ const DeviceCard: React.FC<DeviceCardProps> = ({ device, onPress, onRemove, onEd
 
         {lastTestResult && (
           <View style={styles.testResult}>
-            <SimpleIcon 
+            <Icon 
               name={lastTestResult.success ? 'checkmark-circle' : 'close-circle'} 
               size={12} 
               color={lastTestResult.success ? '#4CAF50' : '#F44336'} 
@@ -198,7 +198,7 @@ const DeviceCard: React.FC<DeviceCardProps> = ({ device, onPress, onRemove, onEd
             }
           }}
         >
-          <SimpleIcon name="information-circle" size={16} color={colors.grey} />
+          <Icon name="information-circle" size={16} color={colors.grey} />
         </TouchableOpacity>
 
         {onEdit && (
@@ -213,7 +213,7 @@ const DeviceCard: React.FC<DeviceCardProps> = ({ device, onPress, onRemove, onEd
               }
             }}
           >
-            <SimpleIcon name="create-outline" size={16} color="#FFFFFF" />
+            <Icon name="create-outline" size={16} color="#FFFFFF" />
           </TouchableOpacity>
         )}
 
@@ -228,7 +228,7 @@ const DeviceCard: React.FC<DeviceCardProps> = ({ device, onPress, onRemove, onEd
             }
           }}
         >
-          <SimpleIcon name="trash" size={16} color="#F44336" />
+          <Icon name="trash" size={16} color="#F44336" />
         </TouchableOpacity>
       </View>
     </View>

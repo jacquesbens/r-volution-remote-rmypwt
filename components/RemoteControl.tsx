@@ -1,11 +1,11 @@
 
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Platform } from 'react-native';
 import { useDeviceControl } from '../hooks/useDeviceControl';
 import { useCustomIRCodes } from '../hooks/useCustomIRCodes';
 import { useNativeAlert } from '../hooks/useNativeAlert';
 import { RVolutionDevice } from '../types/Device';
-import SimpleIcon from './SimpleIcon';
+import Icon from './Icon';
 import { colors } from '../styles/commonStyles';
 import Constants from 'expo-constants';
 import * as Haptics from 'expo-haptics';
@@ -569,7 +569,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
 
   // CORRECTION: Fonction handleLongPress utilisant correctement le hook personnalisé et incluant defaultIRCodes dans les dépendances
   const handleLongPress = React.useCallback((buttonName: string, buttonKey: string) => {
-    console.log(`📋 Long press detected for ${buttonName} (${buttonKey})`);
+    console.log(`📋 Long press detected for ${buttonName} (${buttonKey}) - Environment: ${Platform.OS}`);
     
     // L'appui long affiche seulement le code IR enregistré
     const irCode = defaultIRCodes[buttonKey as keyof typeof defaultIRCodes];
@@ -628,17 +628,17 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
     
     // Gestion ultra-robuste des événements tactiles
     const handlePressIn = React.useCallback(() => {
-      console.log(`🔘 Press in: ${buttonKey}`);
+      console.log(`🔘 Press in: ${buttonKey} (Platform: ${Platform.OS})`);
       setPressed(true);
     }, [buttonKey]);
     
     const handlePressOut = React.useCallback(() => {
-      console.log(`🔘 Press out: ${buttonKey}`);
+      console.log(`🔘 Press out: ${buttonKey} (Platform: ${Platform.OS})`);
       setPressed(false);
     }, [buttonKey]);
     
     const handlePress = React.useCallback(() => {
-      console.log(`🔘 Press: ${buttonKey}`);
+      console.log(`🔘 Press: ${buttonKey} (Platform: ${Platform.OS})`);
       try {
         onPress();
         console.log(`✅ Press handler completed for ${buttonKey}`);
@@ -648,7 +648,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
     }, [buttonKey, onPress]);
     
     const handleLongPressEvent = React.useCallback(() => {
-      console.log(`🔘 Long press: ${buttonKey}`);
+      console.log(`🔘 Long press: ${buttonKey} - Environment: ${Platform.OS}`);
       try {
         onLongPress();
         console.log(`✅ Long press handler completed for ${buttonKey}`);
@@ -657,9 +657,12 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
       }
     }, [buttonKey, onLongPress]);
     
-    // Délai standard pour une meilleure compatibilité
+    // Délais adaptés selon la plateforme pour une meilleure compatibilité
     const getLongPressDelay = React.useCallback(() => {
-      return 1000; // Délai standard
+      if (Platform.OS === 'web') {
+        return 1200; // Plus long sur web/Preview pour éviter les déclenchements accidentels
+      }
+      return 800; // Standard sur mobile
     }, []);
     
     return (
@@ -707,7 +710,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
             textStyle={styles.standardButtonText}
             buttonKey="PowerOn"
           >
-            <SimpleIcon name="power" size={16} color="#fff" />
+            <Icon name="power" size={16} color="#fff" />
             <Text style={styles.standardButtonText}>ON</Text>
           </CustomButton>
           
@@ -718,7 +721,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
             textStyle={styles.standardButtonText}
             buttonKey="PowerOff"
           >
-            <SimpleIcon name="power" size={16} color="#fff" />
+            <Icon name="power" size={16} color="#fff" />
             <Text style={styles.standardButtonText}>OFF</Text>
           </CustomButton>
 
@@ -729,7 +732,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
             textStyle={styles.standardButtonText}
             buttonKey="Dimmer"
           >
-            <SimpleIcon name="sunny" size={16} color="#fff" />
+            <Icon name="sunny" size={16} color="#fff" />
             <Text style={styles.standardButtonText}>Dimmer</Text>
           </CustomButton>
         </View>
@@ -745,7 +748,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
             textStyle={styles.standardButtonText}
             buttonKey="ChannelDown"
           >
-            <SimpleIcon name="play-skip-back" size={20} color="#fff" />
+            <Icon name="play-skip-back" size={20} color="#fff" />
           </CustomButton>
           
           <CustomButton
@@ -765,7 +768,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
             textStyle={styles.standardButtonText}
             buttonKey="ChannelUp"
           >
-            <SimpleIcon name="play-skip-forward" size={20} color="#fff" />
+            <Icon name="play-skip-forward" size={20} color="#fff" />
           </CustomButton>
         </View>
 
@@ -778,7 +781,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
             textStyle={styles.standardButtonText}
             buttonKey="FastRewind"
           >
-            <SimpleIcon name="play-back" size={20} color="#fff" />
+            <Icon name="play-back" size={20} color="#fff" />
           </CustomButton>
           
           <CustomButton
@@ -788,7 +791,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
             textStyle={styles.standardButtonText}
             buttonKey="Stop"
           >
-            <SimpleIcon name="stop" size={20} color="#fff" />
+            <Icon name="stop" size={20} color="#fff" />
           </CustomButton>
           
           <CustomButton
@@ -798,7 +801,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
             textStyle={styles.standardButtonText}
             buttonKey="FastForward"
           >
-            <SimpleIcon name="play-forward" size={20} color="#fff" />
+            <Icon name="play-forward" size={20} color="#fff" />
           </CustomButton>
         </View>
 
@@ -811,7 +814,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
             textStyle={styles.smallButtonText}
             buttonKey="Skip60Rewind"
           >
-            <SimpleIcon name="play-back" size={12} color="#fff" />
+            <Icon name="play-back" size={12} color="#fff" />
             <Text style={styles.smallButtonText}>-60s</Text>
           </CustomButton>
           
@@ -822,7 +825,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
             textStyle={styles.smallButtonText}
             buttonKey="Skip10Rewind"
           >
-            <SimpleIcon name="play-back" size={12} color="#fff" />
+            <Icon name="play-back" size={12} color="#fff" />
             <Text style={styles.smallButtonText}>-10s</Text>
           </CustomButton>
           
@@ -833,7 +836,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
             textStyle={styles.smallButtonText}
             buttonKey="Skip10Forward"
           >
-            <SimpleIcon name="play-forward" size={12} color="#fff" />
+            <Icon name="play-forward" size={12} color="#fff" />
             <Text style={styles.smallButtonText}>+10s</Text>
           </CustomButton>
           
@@ -844,7 +847,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
             textStyle={styles.smallButtonText}
             buttonKey="Skip60Forward"
           >
-            <SimpleIcon name="play-forward" size={12} color="#fff" />
+            <Icon name="play-forward" size={12} color="#fff" />
             <Text style={styles.smallButtonText}>+60s</Text>
           </CustomButton>
         </View>
@@ -858,7 +861,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
             textStyle={styles.standardButtonText}
             buttonKey="Repeat"
           >
-            <SimpleIcon name="repeat" size={16} color="#fff" />
+            <Icon name="repeat" size={16} color="#fff" />
             <Text style={styles.standardButtonText}>Repeat</Text>
           </CustomButton>
           
@@ -869,7 +872,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
             textStyle={styles.standardButtonText}
             buttonKey="Subtitle"
           >
-            <SimpleIcon name="text" size={16} color="#fff" />
+            <Icon name="text" size={16} color="#fff" />
             <Text style={styles.standardButtonText}>Subtitle</Text>
           </CustomButton>
           
@@ -880,7 +883,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
             textStyle={styles.standardButtonText}
             buttonKey="Audio"
           >
-            <SimpleIcon name="musical-notes" size={16} color="#fff" />
+            <Icon name="musical-notes" size={16} color="#fff" />
             <Text style={styles.standardButtonText}>Audio</Text>
           </CustomButton>
         </View>
@@ -907,7 +910,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
             textStyle={styles.standardButtonText}
             buttonKey="3D"
           >
-            <SimpleIcon name="cube" size={16} color="#fff" />
+            <Icon name="cube" size={16} color="#fff" />
             <Text style={styles.standardButtonText}>3D</Text>
           </CustomButton>
           
@@ -918,7 +921,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
             textStyle={styles.standardButtonText}
             buttonKey="Zoom"
           >
-            <SimpleIcon name="search" size={16} color="#fff" />
+            <Icon name="search" size={16} color="#fff" />
             <Text style={styles.standardButtonText}>Zoom</Text>
           </CustomButton>
         </View>
@@ -932,7 +935,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
               style={[styles.navButton, styles.navButtonUp]}
               buttonKey="CursorUp"
             >
-              <SimpleIcon name="chevron-up" size={28} color="#fff" />
+              <Icon name="chevron-up" size={28} color="#fff" />
             </CustomButton>
             
             <CustomButton
@@ -941,7 +944,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
               style={[styles.navButton, styles.navButtonLeft]}
               buttonKey="CursorLeft"
             >
-              <SimpleIcon name="chevron-back" size={28} color="#fff" />
+              <Icon name="chevron-back" size={28} color="#fff" />
             </CustomButton>
             
             <CustomButton
@@ -959,7 +962,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
               style={[styles.navButton, styles.navButtonRight]}
               buttonKey="CursorRight"
             >
-              <SimpleIcon name="chevron-forward" size={28} color="#fff" />
+              <Icon name="chevron-forward" size={28} color="#fff" />
             </CustomButton>
             
             <CustomButton
@@ -968,7 +971,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
               style={[styles.navButton, styles.navButtonDown]}
               buttonKey="CursorDown"
             >
-              <SimpleIcon name="chevron-down" size={28} color="#fff" />
+              <Icon name="chevron-down" size={28} color="#fff" />
             </CustomButton>
           </View>
         </View>
@@ -982,7 +985,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
             textStyle={styles.standardButtonText}
             buttonKey="Home"
           >
-            <SimpleIcon name="home" size={16} color="#fff" />
+            <Icon name="home" size={16} color="#fff" />
             <Text style={styles.standardButtonText}>Home</Text>
           </CustomButton>
           
@@ -993,7 +996,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
             textStyle={styles.standardButtonText}
             buttonKey="Menu"
           >
-            <SimpleIcon name="menu" size={16} color="#fff" />
+            <Icon name="menu" size={16} color="#fff" />
             <Text style={styles.standardButtonText}>Menu</Text>
           </CustomButton>
 
@@ -1004,7 +1007,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
             textStyle={styles.standardButtonText}
             buttonKey="Return"
           >
-            <SimpleIcon name="arrow-back" size={16} color="#fff" />
+            <Icon name="arrow-back" size={16} color="#fff" />
             <Text style={styles.standardButtonText}>Back</Text>
           </CustomButton>
         </View>
@@ -1060,7 +1063,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
               style={styles.numberButton}
               buttonKey="Delete"
             >
-              <SimpleIcon name="backspace" size={22} color="#fff" />
+              <Icon name="backspace" size={22} color="#fff" />
             </CustomButton>
             <CustomButton
               onPress={() => handleNumber(0)}
@@ -1076,7 +1079,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
               style={styles.numberButton}
               buttonKey="Info"
             >
-              <SimpleIcon name="information-circle" size={22} color="#fff" />
+              <Icon name="information-circle" size={22} color="#fff" />
             </CustomButton>
           </View>
         </View>
@@ -1092,7 +1095,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
             textStyle={styles.fourButtonsButtonText}
             buttonKey="PageDown"
           >
-            <SimpleIcon name="arrow-down" size={14} color="#fff" />
+            <Icon name="arrow-down" size={14} color="#fff" />
             <Text style={styles.fourButtonsButtonText}>Page -</Text>
           </CustomButton>
           
@@ -1103,7 +1106,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
             textStyle={styles.fourButtonsButtonText}
             buttonKey="RVideo"
           >
-            <SimpleIcon name="videocam" size={14} color="#fff" />
+            <Icon name="videocam" size={14} color="#fff" />
             <Text style={styles.fourButtonsButtonText}>R_video</Text>
           </CustomButton>
           
@@ -1114,7 +1117,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
             textStyle={styles.fourButtonsButtonText}
             buttonKey="Explorer"
           >
-            <SimpleIcon name="folder" size={14} color="#fff" />
+            <Icon name="folder" size={14} color="#fff" />
             <Text style={styles.fourButtonsButtonText}>Explorer</Text>
           </CustomButton>
           
@@ -1125,7 +1128,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
             textStyle={styles.fourButtonsButtonText}
             buttonKey="PageUp"
           >
-            <SimpleIcon name="arrow-up" size={14} color="#fff" />
+            <Icon name="arrow-up" size={14} color="#fff" />
             <Text style={styles.fourButtonsButtonText}>Page +</Text>
           </CustomButton>
         </View>
@@ -1139,7 +1142,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
             textStyle={styles.standardButtonText}
             buttonKey="VolumeDown"
           >
-            <SimpleIcon name="volume-low" size={16} color="#fff" />
+            <Icon name="volume-low" size={16} color="#fff" />
             <Text style={styles.standardButtonText}>Vol -</Text>
           </CustomButton>
           
@@ -1150,7 +1153,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
             textStyle={styles.standardButtonText}
             buttonKey="Mute"
           >
-            <SimpleIcon name="volume-mute" size={16} color="#fff" />
+            <Icon name="volume-mute" size={16} color="#fff" />
             <Text style={styles.standardButtonText}>Mute</Text>
           </CustomButton>
           
@@ -1161,7 +1164,7 @@ const RemoteControl: React.FC<RemoteControlProps> = ({ device }) => {
             textStyle={styles.standardButtonText}
             buttonKey="VolumeUp"
           >
-            <SimpleIcon name="volume-high" size={16} color="#fff" />
+            <Icon name="volume-high" size={16} color="#fff" />
             <Text style={styles.standardButtonText}>Vol +</Text>
           </CustomButton>
         </View>

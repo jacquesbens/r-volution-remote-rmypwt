@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, TextInput, StyleSheet, Alert, Modal, TouchableOpacity, ActivityIndicator, ScrollView } from 'react-native';
 import { RVolutionDevice } from '../types/Device';
 import Button from './Button';
-import SimpleIcon from './SimpleIcon';
+import Icon from './Icon';
 import { colors } from '../styles/commonStyles';
 
 interface EditDeviceModalProps {
@@ -151,7 +151,7 @@ const EditDeviceModal: React.FC<EditDeviceModalProps> = ({ visible, device, onCl
       <View style={styles.container}>
         <View style={styles.header}>
           <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
-            <SimpleIcon name="close" size={24} color={colors.text} />
+            <Icon name="close" size={24} color={colors.text} />
           </TouchableOpacity>
           <Text style={styles.title}>Modifier l'appareil</Text>
           <View style={styles.placeholder} />

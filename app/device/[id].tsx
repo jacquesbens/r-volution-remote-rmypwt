@@ -7,7 +7,7 @@ import { RVolutionDevice } from '../../types/Device';
 import { colors, commonStyles } from '../../styles/commonStyles';
 import { useDeviceDiscovery } from '../../hooks/useDeviceDiscovery';
 import RemoteControl from '../../components/RemoteControl';
-import SimpleIcon from '../../components/SimpleIcon';
+import Icon from '../../components/Icon';
 
 export default function DeviceControlScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -122,7 +122,7 @@ export default function DeviceControlScreen() {
       <SafeAreaView style={commonStyles.container}>
         <View style={styles.header}>
           <TouchableOpacity onPress={handleBackToAddDevices} style={styles.backButton}>
-            <SimpleIcon name="arrow-back" size={24} color={colors.text} />
+            <Icon name="arrow-back" size={24} color={colors.text} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>
             {retryCount > 0 ? `Recherche... (${retryCount}/3)` : 'Chargement...'}
@@ -131,7 +131,7 @@ export default function DeviceControlScreen() {
         </View>
         
         <View style={styles.loadingContainer}>
-          <SimpleIcon name="refresh" size={32} color={colors.primary} />
+          <Icon name="refresh" size={32} color={colors.primary} />
           <Text style={styles.loadingText}>
             {retryCount > 0 
               ? `Recherche de l'appareil... (tentative ${retryCount}/3)`
@@ -154,14 +154,14 @@ export default function DeviceControlScreen() {
       <SafeAreaView style={commonStyles.container}>
         <View style={styles.header}>
           <TouchableOpacity onPress={handleBackToAddDevices} style={styles.backButton}>
-            <SimpleIcon name="arrow-back" size={24} color={colors.text} />
+            <Icon name="arrow-back" size={24} color={colors.text} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Erreur</Text>
           <View style={styles.placeholder} />
         </View>
         
         <View style={styles.errorContainer}>
-          <SimpleIcon name="alert-circle" size={48} color={colors.accent} />
+          <Icon name="alert-circle" size={48} color={colors.accent} />
           <Text style={styles.errorTitle}>Appareil non trouvé</Text>
           <Text style={styles.errorText}>
             L'appareil sélectionné n'a pas été trouvé dans la liste. 
@@ -176,7 +176,7 @@ export default function DeviceControlScreen() {
               style={styles.retryButton} 
               onPress={handleRetrySearch}
             >
-              <SimpleIcon name="refresh" size={16} color={colors.white} />
+              <Icon name="refresh" size={16} color={colors.white} />
               <Text style={styles.retryButtonText}>Réessayer</Text>
             </TouchableOpacity>
             
@@ -184,7 +184,7 @@ export default function DeviceControlScreen() {
               style={styles.backToDevicesButton} 
               onPress={handleAddDevices}
             >
-              <SimpleIcon name="list" size={16} color={colors.primary} />
+              <Icon name="list" size={16} color={colors.primary} />
               <Text style={styles.backToDevicesButtonText}>Voir tous les appareils</Text>
             </TouchableOpacity>
           </View>
@@ -197,11 +197,11 @@ export default function DeviceControlScreen() {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={handleBackToAddDevices} style={styles.backButton}>
-          <SimpleIcon name="arrow-back" size={24} color={colors.text} />
+          <Icon name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{device.name}</Text>
         <TouchableOpacity onPress={handleAddDevices} style={styles.addButton}>
-          <SimpleIcon name="add" size={24} color={colors.text} />
+          <Icon name="add" size={24} color={colors.text} />
         </TouchableOpacity>
       </View>
 

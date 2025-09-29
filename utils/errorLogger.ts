@@ -1,5 +1,7 @@
 // Global error logging for runtime errors
 
+import { Platform } from "react-native";
+
 // Simple debouncing to prevent duplicate errors
 const recentErrors: { [key: string]: boolean } = {};
 const clearErrorAfterDelay = (errorKey: string) => {
@@ -112,8 +114,9 @@ export const setupErrorLogging = () => {
       sendErrorToParent('error', 'JavaScript Runtime Error', errorData);
       return false; // Don't prevent default error handling
     };
-    // Capture unhandled promise rejections (web environment)
-    if (typeof window !== 'undefined') {
+    // check if platform is web
+    if (Platform.OS === 'web') {
+      // Capture unhandled promise rejections
       window.addEventListener('unhandledrejection', (event) => {
           const errorData = {
           reason: event.reason,
