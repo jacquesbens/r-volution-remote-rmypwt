@@ -9,7 +9,6 @@ import {
   ScrollView,
   TextInput,
   Alert,
-  Platform,
 } from 'react-native';
 import { colors } from '../styles/commonStyles';
 import Icon from './Icon';
@@ -128,10 +127,13 @@ const NetworkHelpModal: React.FC<NetworkHelpModalProps> = ({
   ];
 
   const handleScenarioSelect = (scenarioId: string) => {
+    console.log('Scenario selected:', scenarioId);
     setSelectedScenario(selectedScenario === scenarioId ? null : scenarioId);
   };
 
   const handleManualAdd = () => {
+    console.log('Manual add attempt:', { ip: manualIP, name: manualName });
+    
     if (!manualIP.trim()) {
       Alert.alert('Erreur', 'Veuillez entrer une adresse IP.');
       return;
@@ -469,7 +471,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: colors.text,
-    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    fontFamily: 'monospace',
     marginBottom: 2,
   },
   ipRangeDescription: {
