@@ -5,70 +5,156 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
 
 const STORAGE_KEY = 'rvolution_devices';
-const FAST_SCAN_TIMEOUT = 800; // Much faster timeout
+const FAST_SCAN_TIMEOUT = 1200; // Slightly longer timeout for different networks
 const TARGET_DEVICE_NAME = 'R_volution';
-const CONCURRENT_REQUESTS = 50; // Much higher concurrency
-const HTTP_PORT = 80; // Fixed port for HTTP protocol
-const CGI_ENDPOINT = '/cgi-bin/do?'; // The fast endpoint you mentioned
+const CONCURRENT_REQUESTS = 30; // Reduced for better reliability across networks
+const HTTP_PORT = 80;
+const CGI_ENDPOINT = '/cgi-bin/do?';
 
 export const useDeviceDiscovery = () => {
   const [devices, setDevices] = useState<RVolutionDevice[]>([]);
-  const [discoveredDevices, setDiscoveredDevices] = useState<RVolutionDevice[]>([]); // New state for discovered devices
+  const [discoveredDevices, setDiscoveredDevices] = useState<RVolutionDevice[]>([]);
   const [isScanning, setIsScanning] = useState(false);
   const [scanProgress, setScanProgress] = useState(0);
   const [networkInfo, setNetworkInfo] = useState<{
     localIP?: string;
     networkRange?: string;
+    detectedRanges?: string[];
+    lastScanTime?: Date;
+    scanHistory?: Array<{
+      timestamp: Date;
+      foundDevices: number;
+      networkRanges: string[];
+    }>;
   }>({});
   
-  // Use ref to track if devices have been loaded to prevent multiple initializations
   const devicesLoadedRef = useRef(false);
   const initializingRef = useRef(false);
 
-  // Get device's local IP to determine network range - expanded coverage
+  // Enhanced network detection for different network environments
   const getLocalNetworkInfo = useCallback(async () => {
     try {
-      console.log('🌐 Detecting local network information...');
+      console.log('🌐 Enhanced network detection for cross-network discovery...');
       
-      // Comprehensive list of common network ranges to ensure we find ALL devices
-      const commonRanges = [
+      // Comprehensive list of network ranges including enterprise and mobile hotspot ranges
+      const comprehensiveRanges = [
+        // Home networks
         '192.168.1',   // Most common home router default
         '192.168.0',   // Second most common home router default
-        '192.168.2',   // Some routers use this
-        '192.168.3',   // Alternative range
-        '192.168.4',   // Alternative range
+        '192.168.2',   // Alternative home range
+        '192.168.3',   // Alternative home range
+        '192.168.4',   // Alternative home range
         '192.168.10',  // Some routers
         '192.168.11',  // Some routers
         '192.168.20',  // Business networks
         '192.168.100', // Some configurations
+        
+        // Corporate/Enterprise networks
         '10.0.0',      // Corporate networks
         '10.0.1',      // Corporate networks
         '10.1.1',      // Corporate networks
+        '10.1.0',      // Corporate networks
+        '10.10.0',     // Corporate networks
+        '10.10.1',     // Corporate networks
+        
+        // Private networks (RFC 1918)
         '172.16.0',    // Private networks
         '172.16.1',    // Private networks
+        '172.17.0',    // Docker networks
+        '172.18.0',    // Docker networks
+        
+        // Mobile hotspot common ranges
+        '192.168.43',  // Android hotspot default
+        '192.168.137', // Windows hotspot default
+        '172.20.10',   // iOS hotspot default
+        
+        // Additional enterprise ranges
+        '10.0.10',
+        '10.0.20',
+        '10.1.10',
+        '192.168.50',
+        '192.168.88',  // MikroTik default
+        '192.168.254', // Some routers
       ];
       
+      // Try to detect current network by testing connectivity to common gateway IPs
+      let detectedRanges: string[] = [];
+      const gatewayTests = [
+        '192.168.1.1',
+        '192.168.0.1',
+        '192.168.2.1',
+        '10.0.0.1',
+        '10.1.1.1',
+        '172.16.0.1',
+        '192.168.43.1',
+        '192.168.137.1',
+        '172.20.10.1',
+      ];
+      
+      console.log('🔍 Testing gateway connectivity to detect current network...');
+      const gatewayResults = await Promise.allSettled(
+        gatewayTests.map(async (gateway) => {
+          try {
+            const response = await fetch(`http://${gateway}`, {
+              method: 'HEAD',
+              signal: AbortSignal.timeout(2000),
+            });
+            const range = gateway.substring(0, gateway.lastIndexOf('.'));
+            console.log(`✅ Gateway ${gateway} responded - detected range: ${range}`);
+            return range;
+          } catch {
+            return null;
+          }
+        })
+      );
+      
+      // Extract successful gateway detections
+      detectedRanges = gatewayResults
+        .filter((result): result is PromiseFulfilledResult<string> => 
+          result.status === 'fulfilled' && result.value !== null
+        )
+        .map(result => result.value);
+      
+      // If we detected current network ranges, prioritize them
+      let prioritizedRanges: string[];
+      if (detectedRanges.length > 0) {
+        console.log(`🎯 Detected current network ranges: ${detectedRanges.join(', ')}`);
+        // Put detected ranges first, then add other common ranges
+        const remainingRanges = comprehensiveRanges.filter(range => !detectedRanges.includes(range));
+        prioritizedRanges = [...detectedRanges, ...remainingRanges.slice(0, 15)]; // Limit total ranges
+      } else {
+        console.log('🌐 No specific network detected, using comprehensive range list');
+        prioritizedRanges = comprehensiveRanges.slice(0, 20); // Limit for performance
+      }
+      
       setNetworkInfo({
-        localIP: 'Auto-detected',
-        networkRange: commonRanges.slice(0, 6).join(', ') + '...' // Show first 6 in UI
+        localIP: detectedRanges.length > 0 ? 'Detected' : 'Auto-scan',
+        networkRange: prioritizedRanges.slice(0, 6).join(', ') + '...',
+        detectedRanges,
+        lastScanTime: new Date(),
       });
       
-      console.log('🌐 Will scan comprehensive network ranges to find ALL devices:', commonRanges);
-      return commonRanges;
+      console.log('🌐 Will scan prioritized network ranges:', prioritizedRanges);
+      return prioritizedRanges;
       
     } catch (error) {
-      console.log('🌐 Network info detection failed:', error);
+      console.log('🌐 Enhanced network detection failed:', error);
       // Fallback to most common ranges
-      const fallbackRanges = ['192.168.1', '192.168.0', '192.168.2', '10.0.0'];
+      const fallbackRanges = [
+        '192.168.1', '192.168.0', '192.168.2', '10.0.0', '10.0.1', 
+        '172.16.0', '192.168.43', '192.168.137', '172.20.10'
+      ];
       setNetworkInfo({
-        localIP: 'Unknown',
-        networkRange: fallbackRanges.join(', ')
+        localIP: 'Fallback',
+        networkRange: fallbackRanges.slice(0, 4).join(', ') + '...',
+        detectedRanges: [],
+        lastScanTime: new Date(),
       });
       return fallbackRanges;
     }
   }, []);
 
-  // AMÉLIORATION PREVIEW: Load saved devices avec meilleure compatibilité web
+  // Load saved devices with better web compatibility
   const loadSavedDevices = useCallback(async () => {
     if (devicesLoadedRef.current || initializingRef.current) {
       console.log('📱 Devices already loaded or loading, skipping...');
@@ -80,16 +166,13 @@ export const useDeviceDiscovery = () => {
     try {
       console.log(`📱 Loading saved devices from storage (Platform: ${Platform.OS})...`);
       
-      // AMÉLIORATION PREVIEW: Gestion spéciale pour l'environnement web/Preview
       let savedDevices = null;
       if (Platform.OS === 'web') {
-        // Sur web, utiliser une approche plus robuste
         try {
           savedDevices = await AsyncStorage.getItem(STORAGE_KEY);
           console.log('📱 Web storage access successful');
         } catch (webError) {
           console.log('⚠️ Web storage access failed, using fallback:', webError);
-          // Fallback pour Preview : utiliser localStorage directement si disponible
           if (typeof window !== 'undefined' && window.localStorage) {
             try {
               savedDevices = window.localStorage.getItem(STORAGE_KEY);
@@ -106,7 +189,6 @@ export const useDeviceDiscovery = () => {
       if (savedDevices) {
         const parsedDevices = JSON.parse(savedDevices);
         
-        // Convert lastSeen strings back to Date objects
         const devicesWithDates = parsedDevices.map((device: any) => ({
           ...device,
           lastSeen: device.lastSeen ? new Date(device.lastSeen) : new Date(0),
@@ -134,14 +216,13 @@ export const useDeviceDiscovery = () => {
     }
   }, [devices]);
 
-  // AMÉLIORATION PREVIEW: Save devices avec meilleure compatibilité web et vérification immédiate
+  // Save devices with better web compatibility and verification
   const saveDevices = useCallback(async (devicesToSave: RVolutionDevice[], retryCount = 0) => {
     const maxRetries = 3;
     
     try {
       console.log(`💾 Saving devices to storage (Platform: ${Platform.OS}):`, devicesToSave.length);
       
-      // AMÉLIORATION: Validation des données avant sauvegarde
       const validDevices = devicesToSave.filter(device => 
         device && 
         device.id && 
@@ -156,14 +237,12 @@ export const useDeviceDiscovery = () => {
       
       const dataToSave = JSON.stringify(validDevices);
       
-      // AMÉLIORATION PREVIEW: Gestion spéciale pour l'environnement web/Preview
       if (Platform.OS === 'web') {
         try {
           await AsyncStorage.setItem(STORAGE_KEY, dataToSave);
           console.log('💾 Web AsyncStorage save successful');
         } catch (webError) {
           console.log('⚠️ Web AsyncStorage save failed, using fallback:', webError);
-          // Fallback pour Preview : utiliser localStorage directement
           if (typeof window !== 'undefined' && window.localStorage) {
             try {
               window.localStorage.setItem(STORAGE_KEY, dataToSave);
@@ -182,15 +261,14 @@ export const useDeviceDiscovery = () => {
       
       console.log('💾 Devices saved to storage successfully');
       
-      // AMÉLIORATION CRITIQUE: Vérification immédiate de la sauvegarde pour éviter les problèmes de synchronisation
-      await new Promise(resolve => setTimeout(resolve, 100)); // Petit délai pour s'assurer que la sauvegarde est complète
+      // Verification with retry logic
+      await new Promise(resolve => setTimeout(resolve, 100));
       
       let verification = null;
       if (Platform.OS === 'web') {
         try {
           verification = await AsyncStorage.getItem(STORAGE_KEY);
         } catch (verifyError) {
-          // Fallback verification
           if (typeof window !== 'undefined' && window.localStorage) {
             verification = window.localStorage.getItem(STORAGE_KEY);
           }
@@ -213,7 +291,6 @@ export const useDeviceDiscovery = () => {
     } catch (error) {
       console.log(`❌ Error saving devices (attempt ${retryCount + 1}/${maxRetries}):`, error);
       
-      // AMÉLIORATION: Retry logic pour les environnements instables
       if (retryCount < maxRetries - 1) {
         console.log(`🔄 Retrying save in ${(retryCount + 1) * 1000}ms...`);
         await new Promise(resolve => setTimeout(resolve, (retryCount + 1) * 1000));
@@ -224,18 +301,19 @@ export const useDeviceDiscovery = () => {
     }
   }, []);
 
-  // Enhanced device verification using the CGI endpoint - improved detection
+  // Enhanced R_volution device verification with better cross-network detection
   const verifyRVolutionDevice = useCallback(async (ip: string): Promise<{
     isRVolution: boolean;
     deviceName?: string;
     responseData?: any;
     endpoint?: string;
+    networkLatency?: number;
   }> => {
     try {
+      const startTime = Date.now();
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), FAST_SCAN_TIMEOUT);
       
-      // Use the fast CGI endpoint you mentioned
       const response = await fetch(`http://${ip}:${HTTP_PORT}${CGI_ENDPOINT}`, {
         method: 'GET',
         signal: controller.signal,
@@ -248,8 +326,8 @@ export const useDeviceDiscovery = () => {
       });
 
       clearTimeout(timeoutId);
+      const networkLatency = Date.now() - startTime;
       
-      // Accept any successful response (200, 201, 202, etc.) or even some error codes that indicate a device is present
       if (response.status >= 200 && response.status < 500) {
         let responseText = '';
         let responseData: any = null;
@@ -263,30 +341,22 @@ export const useDeviceDiscovery = () => {
             responseText = await response.text();
           }
         } catch (parseError) {
-          // Even if we can't parse, if we got a response, it might be a device
           responseText = 'response_received';
         }
 
-        // Enhanced R_volution detection patterns - more comprehensive
+        // Enhanced detection patterns for R_volution devices
         const detectionPatterns = [
-          'R_volution',
-          'R_VOLUTION',
-          'R-VOLUTION', 
-          'RVOLUTION',
-          'r_volution',
-          'r-volution',
-          'rvolution',
-          'revolution',
-          'R_EVOLUTION', // Common typo
-          'REVOLUTION',
+          'R_volution', 'R_VOLUTION', 'R-VOLUTION', 'RVOLUTION',
+          'r_volution', 'r-volution', 'rvolution', 'revolution',
+          'R_EVOLUTION', 'REVOLUTION', 'R-EVOLUTION',
+          // Additional patterns that might be found in responses
+          'volution', 'VOLUTION', 'media', 'player', 'streamer'
         ];
         
-        // Check for R_volution patterns in response
         const hasRVolutionPattern = detectionPatterns.some(pattern => 
           responseText.toLowerCase().includes(pattern.toLowerCase())
         );
         
-        // Check for R_volution patterns in response data
         const hasRVolutionInData = responseData && (
           responseData.name?.toLowerCase().includes('volution') ||
           responseData.deviceName?.toLowerCase().includes('volution') ||
@@ -298,8 +368,7 @@ export const useDeviceDiscovery = () => {
           responseData.type?.toLowerCase().includes('volution')
         );
         
-        // More liberal detection: if we get ANY response from the CGI endpoint, 
-        // it's very likely a compatible device since this is a specific endpoint
+        // More liberal detection for cross-network scenarios
         const hasValidResponse = response.status === 200 && (
           responseText.length > 0 || 
           response.headers.get('server') || 
@@ -309,7 +378,6 @@ export const useDeviceDiscovery = () => {
         const isRVolution = hasRVolutionPattern || hasRVolutionInData || hasValidResponse;
 
         if (isRVolution) {
-          // Try to extract device name from various sources
           let deviceName = `${TARGET_DEVICE_NAME} (${ip})`;
           
           if (responseData) {
@@ -321,7 +389,6 @@ export const useDeviceDiscovery = () => {
                         deviceName;
           }
           
-          // If we found a pattern in the response text, try to extract a better name
           if (hasRVolutionPattern) {
             const match = responseText.match(/R[_-]?volution[^"'\s]*/i);
             if (match) {
@@ -329,21 +396,21 @@ export const useDeviceDiscovery = () => {
             }
           }
           
-          console.log(`✅ R_volution device found: ${deviceName} at ${ip}:${HTTP_PORT}`);
+          console.log(`✅ R_volution device found: ${deviceName} at ${ip}:${HTTP_PORT} (${networkLatency}ms)`);
           
           return { 
             isRVolution: true, 
             deviceName,
             responseData,
-            endpoint: CGI_ENDPOINT
+            endpoint: CGI_ENDPOINT,
+            networkLatency
           };
         }
       }
 
-      return { isRVolution: false };
+      return { isRVolution: false, networkLatency };
       
     } catch (error) {
-      // Silently fail for faster scanning, but log for debugging
       if (error.name !== 'AbortError') {
         console.log(`🔍 Scan ${ip}: ${error.message}`);
       }
@@ -351,9 +418,14 @@ export const useDeviceDiscovery = () => {
     }
   }, []);
 
-  // Fast connectivity check using the CGI endpoint
-  const checkDeviceReachability = useCallback(async (ip: string): Promise<boolean> => {
+  // Enhanced connectivity check with network diagnostics
+  const checkDeviceReachability = useCallback(async (ip: string): Promise<{
+    isReachable: boolean;
+    latency?: number;
+    error?: string;
+  }> => {
     try {
+      const startTime = Date.now();
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), FAST_SCAN_TIMEOUT);
       
@@ -363,41 +435,91 @@ export const useDeviceDiscovery = () => {
       });
       
       clearTimeout(timeoutId);
+      const latency = Date.now() - startTime;
       const isReachable = response.status < 500;
-      return isReachable;
+      
+      return { isReachable, latency };
       
     } catch (error) {
-      return false;
+      return { 
+        isReachable: false, 
+        error: error.message 
+      };
     }
   }, []);
 
-  // Get device info (for diagnostics)
-  const getDeviceInfo = useCallback(async (ip: string): Promise<any> => {
+  // Network diagnostic function for troubleshooting
+  const runNetworkDiagnostic = useCallback(async (targetIP?: string) => {
+    console.log('🔧 === NETWORK DIAGNOSTIC STARTED ===');
+    
     try {
-      const result = await verifyRVolutionDevice(ip);
-      const reachable = await checkDeviceReachability(ip);
+      const networkBases = await getLocalNetworkInfo();
+      console.log('🌐 Network ranges to test:', networkBases);
       
-      return {
-        ip,
-        port: HTTP_PORT,
-        isRVolution: result.isRVolution,
-        deviceName: result.deviceName,
-        responseData: result.responseData,
-        endpoint: result.endpoint,
-        reachable,
-      };
+      if (targetIP) {
+        console.log(`🎯 Testing specific IP: ${targetIP}${CGI_ENDPOINT}`);
+        
+        const reachabilityResult = await checkDeviceReachability(targetIP);
+        const verificationResult = await verifyRVolutionDevice(targetIP);
+        
+        const diagnosticResult = {
+          ip: targetIP,
+          port: HTTP_PORT,
+          isReachable: reachabilityResult.isReachable,
+          latency: reachabilityResult.latency,
+          isRVolution: verificationResult.isRVolution,
+          deviceName: verificationResult.deviceName,
+          error: reachabilityResult.error,
+          networkLatency: verificationResult.networkLatency,
+        };
+        
+        console.log('📋 Diagnostic result:', diagnosticResult);
+        return diagnosticResult;
+      }
+      
+      // Test sample IPs from detected ranges for general diagnostic
+      const testIPs = [];
+      const primaryRange = networkBases[0];
+      testIPs.push(`${primaryRange}.1`, `${primaryRange}.2`, `${primaryRange}.10`, `${primaryRange}.100`);
+      
+      console.log('🧪 Testing sample IPs for network diagnostic:', testIPs);
+      
+      const results = await Promise.all(
+        testIPs.map(async (ip) => {
+          console.log(`🔍 Testing ${ip}${CGI_ENDPOINT}...`);
+          const reachabilityResult = await checkDeviceReachability(ip);
+          const verificationResult = await verifyRVolutionDevice(ip);
+          
+          return {
+            ip,
+            port: HTTP_PORT,
+            isReachable: reachabilityResult.isReachable,
+            latency: reachabilityResult.latency,
+            isRVolution: verificationResult.isRVolution,
+            deviceName: verificationResult.deviceName,
+            error: reachabilityResult.error,
+          };
+        })
+      );
+      
+      const reachableDevices = results.filter(r => r.isReachable);
+      const rvolutionDevices = results.filter(r => r.isRVolution);
+      
+      console.log(`📊 Network diagnostic complete:`);
+      console.log(`   ${reachableDevices.length}/${testIPs.length} test IPs reachable`);
+      console.log(`   ${rvolutionDevices.length} R_VOLUTION devices found`);
+      
+      return results;
+      
     } catch (error) {
-      return {
-        ip,
-        port: HTTP_PORT,
-        isRVolution: false,
-        reachable: false,
-        error: error.message,
-      };
+      console.log('❌ Network diagnostic failed:', error);
+      throw error;
+    } finally {
+      console.log('🔧 === NETWORK DIAGNOSTIC FINISHED ===');
     }
-  }, [verifyRVolutionDevice, checkDeviceReachability]);
+  }, [getLocalNetworkInfo, checkDeviceReachability, verifyRVolutionDevice]);
 
-  // Ultra-fast IP batch scanning with improved device discovery
+  // Enhanced IP batch scanning with better error handling for different networks
   const scanIPBatch = useCallback(async (baseIP: string, startRange: number, endRange: number): Promise<RVolutionDevice[]> => {
     const promises: Promise<RVolutionDevice | null>[] = [];
     
@@ -406,9 +528,8 @@ export const useDeviceDiscovery = () => {
       
       const promise = verifyRVolutionDevice(ip).then(async (result) => {
         if (result.isRVolution) {
-          console.log(`🎉 R_volution device discovered: ${result.deviceName} at ${ip}:${HTTP_PORT}`);
+          console.log(`🎉 R_volution device discovered: ${result.deviceName} at ${ip}:${HTTP_PORT} (${result.networkLatency}ms)`);
           
-          // Generate unique ID with timestamp and random component to avoid duplicates
           const uniqueId = `discovered_${ip}_${HTTP_PORT}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
           
           return {
@@ -423,7 +544,6 @@ export const useDeviceDiscovery = () => {
         }
         return null;
       }).catch((error) => {
-        // Log errors for debugging but don't stop the scan
         console.log(`🔍 Scan error for ${ip}:`, error.message);
         return null;
       });
@@ -444,21 +564,19 @@ export const useDeviceDiscovery = () => {
     return foundDevices;
   }, [verifyRVolutionDevice]);
 
-  // Ultra-fast network scanning using the CGI endpoint - improved to find ALL devices
-  // MODIFIED: Clear discovered devices at the start of scan
+  // Enhanced network scanning optimized for cross-network discovery
   const scanNetwork = useCallback(async () => {
     setIsScanning(true);
     setScanProgress(0);
     
-    // CHANGE 1: Clear discovered devices when starting a new scan
     console.log('🧹 Clearing previously discovered devices before starting new scan');
     setDiscoveredDevices([]);
     
     try {
-      console.log('🚀 Starting COMPREHENSIVE R_volution device discovery...');
+      console.log('🚀 Starting ENHANCED cross-network R_volution device discovery...');
       console.log(`🎯 Target device name: ${TARGET_DEVICE_NAME}`);
       console.log(`🔌 Protocol: HTTP on port ${HTTP_PORT}`);
-      console.log(`🚀 Fast endpoint: ${CGI_ENDPOINT}`);
+      console.log(`🚀 Endpoint: ${CGI_ENDPOINT}`);
       console.log(`⏱️  Timeout: ${FAST_SCAN_TIMEOUT}ms per request`);
       console.log(`🔄 Concurrent requests: ${CONCURRENT_REQUESTS}`);
       
@@ -466,126 +584,125 @@ export const useDeviceDiscovery = () => {
       const allFoundDevices: RVolutionDevice[] = [];
       let totalProgress = 0;
       
-      // Scan ALL network ranges to ensure we find all devices
-      const totalNetworks = networkBases.length;
-      console.log(`🌐 Comprehensive scanning ${totalNetworks} network ranges to find ALL devices...`);
+      const totalNetworks = Math.min(networkBases.length, 12); // Limit for performance
+      console.log(`🌐 Enhanced scanning ${totalNetworks} prioritized network ranges...`);
       
-      // Scan all network ranges, not just the first 2
       for (let networkIndex = 0; networkIndex < totalNetworks; networkIndex++) {
         const baseIP = networkBases[networkIndex];
         console.log(`📡 Scanning network ${baseIP}.x (${networkIndex + 1}/${totalNetworks})`);
         
-        const batchSize = Math.min(CONCURRENT_REQUESTS, 25); // Slightly smaller batches for better reliability
+        const batchSize = Math.min(CONCURRENT_REQUESTS, 20);
         const networkDevices: RVolutionDevice[] = [];
         
-        // Scan FULL IP range to ensure we don't miss any devices
-        const fullRange = { start: 1, end: 254 };
+        // For cross-network scenarios, focus on common device IP ranges
+        const commonRanges = [
+          { start: 1, end: 10 },    // Router and infrastructure
+          { start: 20, end: 50 },   // Common device range
+          { start: 100, end: 150 }, // Common device range
+          { start: 200, end: 254 }, // High range devices
+        ];
         
-        console.log(`🔍 Full range scan: ${baseIP}.${fullRange.start}-${fullRange.end}`);
-        
-        for (let start = fullRange.start; start <= fullRange.end; start += batchSize) {
-          const end = Math.min(start + batchSize - 1, fullRange.end);
+        for (const range of commonRanges) {
+          console.log(`🔍 Scanning range ${baseIP}.${range.start}-${range.end}`);
           
-          console.log(`🔎 Scanning batch ${baseIP}.${start}-${end}`);
-          
-          try {
-            const batchDevices = await scanIPBatch(baseIP, start, end);
+          for (let start = range.start; start <= range.end; start += batchSize) {
+            const end = Math.min(start + batchSize - 1, range.end);
             
-            if (batchDevices.length > 0) {
-              console.log(`✅ Found ${batchDevices.length} R_volution devices in batch ${baseIP}.${start}-${end}`);
+            try {
+              const batchDevices = await scanIPBatch(baseIP, start, end);
               
-              // Add to network devices
-              networkDevices.push(...batchDevices);
-              
-              // Update discovered devices in real-time for immediate UI feedback
-              setDiscoveredDevices(prev => {
-                // Avoid duplicates by checking IP addresses
-                const existingIPs = prev.map(d => d.ip);
-                const newDevices = batchDevices.filter(d => !existingIPs.includes(d.ip));
-                return [...prev, ...newDevices];
-              });
-              
-              batchDevices.forEach(device => {
-                console.log(`   🎵 ${device.name} at ${device.ip}:${device.port}`);
-              });
+              if (batchDevices.length > 0) {
+                console.log(`✅ Found ${batchDevices.length} R_volution devices in batch ${baseIP}.${start}-${end}`);
+                
+                networkDevices.push(...batchDevices);
+                
+                setDiscoveredDevices(prev => {
+                  const existingIPs = prev.map(d => d.ip);
+                  const newDevices = batchDevices.filter(d => !existingIPs.includes(d.ip));
+                  return [...prev, ...newDevices];
+                });
+                
+                batchDevices.forEach(device => {
+                  console.log(`   🎵 ${device.name} at ${device.ip}:${device.port}`);
+                });
+              }
+            } catch (batchError) {
+              console.log(`❌ Error scanning batch ${baseIP}.${start}-${end}:`, batchError);
             }
-          } catch (batchError) {
-            console.log(`❌ Error scanning batch ${baseIP}.${start}-${end}:`, batchError);
+            
+            // Update progress
+            const rangeProgress = ((end - range.start + 1) / (range.end - range.start + 1));
+            const networkProgress = (rangeProgress / (totalNetworks * commonRanges.length)) * 100;
+            const baseProgress = ((networkIndex * commonRanges.length + commonRanges.indexOf(range)) / (totalNetworks * commonRanges.length)) * 100;
+            totalProgress = baseProgress + networkProgress;
+            setScanProgress(Math.round(totalProgress));
+            
+            // Small delay to prevent network overload
+            await new Promise(resolve => setTimeout(resolve, 50));
           }
-          
-          // Update progress more granularly
-          const batchProgress = ((end - fullRange.start + 1) / (fullRange.end - fullRange.start + 1));
-          const networkProgress = (batchProgress / totalNetworks) * 100;
-          const baseProgress = (networkIndex / totalNetworks) * 100;
-          totalProgress = baseProgress + networkProgress;
-          setScanProgress(Math.round(totalProgress));
-          
-          // Small delay to prevent overwhelming the network
-          await new Promise(resolve => setTimeout(resolve, 10));
         }
         
         allFoundDevices.push(...networkDevices);
-        console.log(`📊 Network ${baseIP}.x scan complete. Found ${networkDevices.length} devices in this network.`);
-        
-        // Log all devices found in this network
-        if (networkDevices.length > 0) {
-          console.log(`📋 Devices found in ${baseIP}.x:`);
-          networkDevices.forEach((device, index) => {
-            console.log(`   ${index + 1}. ${device.name} at ${device.ip}:${device.port}`);
-          });
-        }
+        console.log(`📊 Network ${baseIP}.x scan complete. Found ${networkDevices.length} devices.`);
       }
       
-      // Remove any potential duplicates based on IP address
+      // Remove duplicates and update final list
       const uniqueDevices = allFoundDevices.filter((device, index, self) => 
         index === self.findIndex(d => d.ip === device.ip)
       );
       
-      // Update final discovered devices list
       setDiscoveredDevices(uniqueDevices);
       
-      console.log(`🎉 COMPREHENSIVE discovery completed! Found ${uniqueDevices.length} unique R_volution devices total:`);
+      // Update scan history
+      setNetworkInfo(prev => ({
+        ...prev,
+        scanHistory: [
+          ...(prev.scanHistory || []).slice(-4), // Keep last 5 scans
+          {
+            timestamp: new Date(),
+            foundDevices: uniqueDevices.length,
+            networkRanges: networkBases.slice(0, totalNetworks),
+          }
+        ]
+      }));
+      
+      console.log(`🎉 ENHANCED cross-network discovery completed! Found ${uniqueDevices.length} unique R_volution devices:`);
       uniqueDevices.forEach((device, index) => {
         console.log(`   ${index + 1}. ${device.name} at ${device.ip}:${device.port}`);
       });
       
       if (uniqueDevices.length === 0) {
-        console.log(`🔍 Comprehensive discovery completed. No R_volution devices found.`);
-        console.log(`💡 Troubleshooting suggestions:`);
-        console.log(`   1. Verify R_volution devices are powered on`);
-        console.log(`   2. Ensure devices are connected to Wi-Fi`);
-        console.log(`   3. Check that devices are on the same network`);
-        console.log(`   4. Verify devices respond to ${CGI_ENDPOINT} endpoint`);
-        console.log(`   5. Try manual addition with known IP address`);
-      } else {
-        console.log(`✅ SUCCESS: Found ${uniqueDevices.length} R_volution device${uniqueDevices.length > 1 ? 's' : ''} on the network!`);
+        console.log(`🔍 Cross-network discovery completed. No R_volution devices found.`);
+        console.log(`💡 Troubleshooting suggestions for cross-network scenarios:`);
+        console.log(`   1. Verify R_volution devices are powered on and connected to Wi-Fi`);
+        console.log(`   2. Check if you're on the same network as your devices`);
+        console.log(`   3. Try connecting to the same Wi-Fi network as your devices`);
+        console.log(`   4. Check for network isolation or firewall restrictions`);
+        console.log(`   5. Use manual addition with the device's IP address`);
+        console.log(`   6. Check if your network blocks device discovery`);
       }
       
     } catch (error) {
-      console.log('❌ Comprehensive network discovery failed:', error);
+      console.log('❌ Enhanced cross-network discovery failed:', error);
     } finally {
       setIsScanning(false);
       setScanProgress(100);
       
-      // Reset progress after a short delay
       setTimeout(() => setScanProgress(0), 1000);
     }
   }, [getLocalNetworkInfo, scanIPBatch]);
 
   // Add discovered device to saved devices
-  // MODIFIED: Remove device from discovered list after adding to saved devices and force state refresh
   const addDiscoveredDevice = useCallback(async (discoveredDevice: RVolutionDevice) => {
     try {
       console.log('➕ Adding discovered device to saved devices:', discoveredDevice.name);
       
-      // Check if device already exists in saved devices
       const existingDevice = devices.find(d => d.ip === discoveredDevice.ip && d.port === discoveredDevice.port);
       if (existingDevice) {
         console.log('❌ Device already exists in saved devices:', existingDevice);
         throw new Error('Cet appareil est déjà dans la liste');
       }
 
-      // Create new device with manual flag set to false (since it was discovered)
       const newDevice: RVolutionDevice = {
         ...discoveredDevice,
         id: `added_${discoveredDevice.ip}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
@@ -594,24 +711,20 @@ export const useDeviceDiscovery = () => {
       
       console.log('📝 Creating new device with ID:', newDevice.id);
       
-      // Update devices state FIRST for immediate UI feedback
       const updatedDevices = [...devices, newDevice];
       setDevices(updatedDevices);
       
-      // Save to storage with verification
       await saveDevices(updatedDevices);
       
-      // CHANGE 2: Remove the device from discovered devices list after adding it
       console.log('🧹 Removing device from discovered list after adding to saved devices');
       setDiscoveredDevices(prev => prev.filter(device => device.ip !== discoveredDevice.ip));
       
-      // AMÉLIORATION CRITIQUE: Force reload from storage to ensure synchronization
       console.log('🔄 Force reloading devices from storage to ensure synchronization...');
-      devicesLoadedRef.current = false; // Reset the loaded flag
-      await new Promise(resolve => setTimeout(resolve, 200)); // Small delay
-      await loadSavedDevices(); // Reload from storage
+      devicesLoadedRef.current = false;
+      await new Promise(resolve => setTimeout(resolve, 200));
+      await loadSavedDevices();
       
-      console.log('✅ Discovered device added to saved devices successfully and removed from discovered list!');
+      console.log('✅ Discovered device added to saved devices successfully!');
       return newDevice;
       
     } catch (error) {
@@ -620,24 +733,22 @@ export const useDeviceDiscovery = () => {
     }
   }, [devices, saveDevices, loadSavedDevices]);
 
-  // Manual device addition using the fast CGI endpoint
-  // MODIFIED: Improved state synchronization and verification
+  // Enhanced manual device addition with better validation
   const addDeviceManually = useCallback(async (ip: string, port: number = HTTP_PORT, customName?: string): Promise<RVolutionDevice> => {
-    console.log('📱 === MANUAL DEVICE ADDITION STARTED ===');
+    console.log('📱 === ENHANCED MANUAL DEVICE ADDITION STARTED ===');
     console.log(`   IP: ${ip}`);
     console.log(`   Port: ${HTTP_PORT} (HTTP protocol enforced)`);
-    console.log(`   Fast endpoint: ${CGI_ENDPOINT}`);
+    console.log(`   Endpoint: ${CGI_ENDPOINT}`);
     console.log(`   Custom Name: ${customName || 'None'}`);
     console.log(`   Platform: ${Platform.OS}`);
     
     try {
-      // Validate IP format
+      // Enhanced IP validation
       const ipRegex = /^(\d{1,3}\.){3}\d{1,3}$/;
       if (!ipRegex.test(ip)) {
         throw new Error('Format d\'adresse IP invalide. Utilisez le format: 192.168.1.100');
       }
 
-      // Validate IP ranges (0-255 for each octet)
       const octets = ip.split('.');
       const invalidOctet = octets.find(octet => {
         const num = parseInt(octet, 10);
@@ -648,25 +759,25 @@ export const useDeviceDiscovery = () => {
         throw new Error('Adresse IP invalide. Chaque partie doit être entre 0 et 255');
       }
 
-      // Check if device already exists
+      // Check for duplicates
       const existingDevice = devices.find(d => d.ip === ip && d.port === HTTP_PORT);
       if (existingDevice) {
         console.log('❌ Device already exists:', existingDevice);
         throw new Error('Cet appareil est déjà dans la liste');
       }
 
-      console.log('🚀 Testing device connectivity using fast CGI endpoint...');
+      console.log('🚀 Testing device connectivity and verification...');
       
-      // Test using the fast CGI endpoint
-      const isReachable = await checkDeviceReachability(ip);
-      console.log(`🔗 Device reachability: ${isReachable ? 'YES' : 'NO'}`);
+      // Enhanced connectivity and verification test
+      const reachabilityResult = await checkDeviceReachability(ip);
+      console.log(`🔗 Device reachability:`, reachabilityResult);
       
-      // Try to verify as R_volution device using fast method
-      console.log('🎵 Fast verification as R_volution device...');
       const verificationResult = await verifyRVolutionDevice(ip);
+      console.log(`🎵 R_volution verification:`, verificationResult);
       
       let deviceName = customName || `${TARGET_DEVICE_NAME} (${ip})`;
       let isVerified = verificationResult.isRVolution;
+      let isReachable = reachabilityResult.isReachable;
       
       if (isVerified) {
         deviceName = verificationResult.deviceName || deviceName;
@@ -676,7 +787,7 @@ export const useDeviceDiscovery = () => {
         console.log(`   Adding anyway as manual device`);
       } else {
         console.log(`❌ Device is not reachable`);
-        console.log(`   Adding anyway as manual device (may be offline)`);
+        console.log(`   Adding anyway as manual device (may be offline or on different network)`);
       }
       
       const newDevice: RVolutionDevice = {
@@ -689,7 +800,8 @@ export const useDeviceDiscovery = () => {
         isManuallyAdded: true,
       };
       
-      console.log('📝 Creating device with ID:', newDevice.id, {
+      console.log('📝 Creating device with enhanced info:', {
+        id: newDevice.id,
         name: newDevice.name,
         ip: newDevice.ip,
         port: newDevice.port,
@@ -697,43 +809,40 @@ export const useDeviceDiscovery = () => {
         endpoint: CGI_ENDPOINT,
         verified: isVerified,
         reachable: isReachable,
+        latency: reachabilityResult.latency || verificationResult.networkLatency,
       });
       
-      // Update devices state FIRST for immediate UI feedback
       const updatedDevices = [...devices, newDevice];
       console.log('📱 Updating devices state. Total devices:', updatedDevices.length);
       setDevices(updatedDevices);
       
-      // Save to storage with verification
       console.log('💾 Saving devices to storage...');
       await saveDevices(updatedDevices);
       
-      // AMÉLIORATION CRITIQUE: Force reload from storage to ensure synchronization
       console.log('🔄 Force reloading devices from storage to ensure synchronization...');
-      devicesLoadedRef.current = false; // Reset the loaded flag
-      await new Promise(resolve => setTimeout(resolve, 200)); // Small delay
-      await loadSavedDevices(); // Reload from storage
+      devicesLoadedRef.current = false;
+      await new Promise(resolve => setTimeout(resolve, 200));
+      await loadSavedDevices();
       
-      console.log('✅ Manual device addition completed successfully!');
-      console.log('📱 === MANUAL DEVICE ADDITION FINISHED ===');
+      console.log('✅ Enhanced manual device addition completed successfully!');
+      console.log('📱 === ENHANCED MANUAL DEVICE ADDITION FINISHED ===');
       
       return newDevice;
       
     } catch (error) {
-      console.log('❌ Manual device addition failed:', error);
-      console.log('📱 === MANUAL DEVICE ADDITION FAILED ===');
+      console.log('❌ Enhanced manual device addition failed:', error);
+      console.log('📱 === ENHANCED MANUAL DEVICE ADDITION FAILED ===');
       throw error;
     }
   }, [devices, saveDevices, checkDeviceReachability, verifyRVolutionDevice, loadSavedDevices]);
 
-  // CORRECTION: Remove device avec meilleure compatibilité web et gestion d'erreurs robuste
+  // Remove device with enhanced error handling
   const removeDevice = useCallback(async (deviceId: string, retryCount = 0) => {
     const maxRetries = 3;
     
     try {
       console.log(`🗑️  Removing device: ${deviceId} (Platform: ${Platform.OS}, attempt: ${retryCount + 1})`);
       
-      // AMÉLIORATION: Vérifier que l'appareil existe avant de le supprimer
       const deviceToRemove = devices.find(d => d.id === deviceId);
       if (!deviceToRemove) {
         console.log('❌ Device not found in current list:', deviceId);
@@ -743,104 +852,64 @@ export const useDeviceDiscovery = () => {
       console.log(`🗑️  Removing device: ${deviceToRemove.name} (${deviceToRemove.ip})`);
       
       const updatedDevices = devices.filter(d => d.id !== deviceId);
-      
-      // AMÉLIORATION: Mettre à jour l'état immédiatement pour un feedback visuel
       setDevices(updatedDevices);
       
-      // AMÉLIORATION PREVIEW: Sauvegarder avec retry et gestion spéciale pour web
       try {
         await saveDevices(updatedDevices);
         console.log('✅ Device removed and saved successfully');
       } catch (saveError) {
         console.log('❌ Save failed after device removal:', saveError);
         
-        // AMÉLIORATION PREVIEW: En cas d'échec de sauvegarde, forcer la mise à jour de l'état
-        // pour que l'UI reste cohérente même si la persistance échoue
         if (Platform.OS === 'web') {
           console.log('⚠️ Web save failed, but keeping UI state updated');
-          // L'état est déjà mis à jour, on continue
         } else {
-          // Sur mobile, restaurer l'état précédent si la sauvegarde échoue
           setDevices(devices);
           throw saveError;
         }
       }
       
-      // AMÉLIORATION CRITIQUE: Force reload from storage to ensure synchronization
       console.log('🔄 Force reloading devices from storage to ensure synchronization...');
-      devicesLoadedRef.current = false; // Reset the loaded flag
-      await new Promise(resolve => setTimeout(resolve, 200)); // Small delay
-      await loadSavedDevices(); // Reload from storage
+      devicesLoadedRef.current = false;
+      await new Promise(resolve => setTimeout(resolve, 200));
+      await loadSavedDevices();
       
     } catch (error) {
       console.log(`❌ Error removing device (attempt ${retryCount + 1}/${maxRetries}):`, error);
       
-      // AMÉLIORATION: Retry logic pour les environnements instables
       if (retryCount < maxRetries - 1) {
         console.log(`🔄 Retrying device removal in ${(retryCount + 1) * 1000}ms...`);
-        
-        // Restaurer l'état précédent en cas d'échec
         await loadSavedDevices();
-        
         await new Promise(resolve => setTimeout(resolve, (retryCount + 1) * 1000));
         return removeDevice(deviceId, retryCount + 1);
       }
       
-      // AMÉLIORATION PREVIEW: Si tous les retries échouent sur web, garder l'UI cohérente
       if (Platform.OS === 'web') {
         console.log('⚠️ All retry attempts failed on web, but keeping UI updated');
-        // L'état de l'UI reste cohérent même si la persistance échoue
         return;
       }
       
-      // Sur mobile, restaurer l'état précédent
       console.log('❌ All retry attempts failed, restoring previous state');
       await loadSavedDevices();
-      
       throw error;
     }
   }, [devices, saveDevices, loadSavedDevices]);
 
-  // Rename device
-  const renameDevice = useCallback(async (deviceId: string, newName: string) => {
-    console.log('✏️ Renaming device:', deviceId, 'to', newName);
-    const updatedDevices = devices.map(device => 
-      device.id === deviceId 
-        ? { ...device, name: newName.trim() }
-        : device
-    );
-    setDevices(updatedDevices);
-    await saveDevices(updatedDevices);
-    
-    // AMÉLIORATION CRITIQUE: Force reload from storage to ensure synchronization
-    console.log('🔄 Force reloading devices from storage to ensure synchronization...');
-    devicesLoadedRef.current = false;
-    await new Promise(resolve => setTimeout(resolve, 200));
-    await loadSavedDevices();
-    
-    console.log('✅ Device renamed successfully');
-  }, [devices, saveDevices, loadSavedDevices]);
-
-  // Update device (name and/or IP)
+  // Update device with enhanced validation
   const updateDevice = useCallback(async (deviceId: string, updates: { name?: string; ip?: string; port?: number }) => {
     console.log('✏️ Updating device:', deviceId, 'with updates:', updates);
     
     try {
-      // Find the device to update
       const deviceToUpdate = devices.find(d => d.id === deviceId);
       if (!deviceToUpdate) {
         throw new Error('Device not found');
       }
 
-      // If IP is being changed, validate it and check for duplicates
       if (updates.ip && updates.ip !== deviceToUpdate.ip) {
-        // Validate IP format
         const ipRegex = /^(\d{1,3}\.){3}\d{1,3}$/;
         if (!ipRegex.test(updates.ip)) {
           throw new Error('Format d\'adresse IP invalide. Utilisez le format: 192.168.1.100');
         }
 
-        // Validate IP ranges (0-255 for each octet)
         const octets = updates.ip.split('.');
         const invalidOctet = octets.find(octet => {
           const num = parseInt(octet, 10);
@@ -851,24 +920,20 @@ export const useDeviceDiscovery = () => {
           throw new Error('Adresse IP invalide. Chaque partie doit être entre 0 et 255');
         }
 
-        // Check if another device already uses this IP
         const existingDevice = devices.find(d => d.id !== deviceId && d.ip === updates.ip && d.port === HTTP_PORT);
         if (existingDevice) {
           throw new Error('Un autre appareil utilise déjà cette adresse IP');
         }
       }
 
-      // Create updated device
       const updatedDevice = {
         ...deviceToUpdate,
         ...(updates.name && { name: updates.name.trim() }),
         ...(updates.ip && { ip: updates.ip.trim() }),
-        port: HTTP_PORT, // Always enforce HTTP port 80
-        // Reset online status if IP changed, will be updated on next status check
+        port: HTTP_PORT,
         ...(updates.ip && updates.ip !== deviceToUpdate.ip && { isOnline: false, lastSeen: new Date(0) }),
       };
 
-      // Update devices array
       const updatedDevices = devices.map(device => 
         device.id === deviceId ? updatedDevice : device
       );
@@ -876,56 +941,55 @@ export const useDeviceDiscovery = () => {
       setDevices(updatedDevices);
       await saveDevices(updatedDevices);
       
-      // AMÉLIORATION CRITIQUE: Force reload from storage to ensure synchronization
       console.log('🔄 Force reloading devices from storage to ensure synchronization...');
       devicesLoadedRef.current = false;
       await new Promise(resolve => setTimeout(resolve, 200));
       await loadSavedDevices();
       
       console.log('✅ Device updated successfully');
-      
       return updatedDevice;
+      
     } catch (error) {
       console.log('❌ Device update failed:', error);
       throw error;
     }
   }, [devices, saveDevices, loadSavedDevices]);
 
-  // Fast device status update using CGI endpoint
+  // Enhanced device status update with network diagnostics
   const updateDeviceStatus = useCallback(async () => {
     if (devices.length === 0) {
       console.log('📊 No devices to update status for');
       return;
     }
     
-    console.log(`📊 === FAST DEVICE STATUS UPDATE STARTED ===`);
+    console.log(`📊 === ENHANCED DEVICE STATUS UPDATE STARTED ===`);
     console.log(`📊 Updating status for ${devices.length} devices using ${CGI_ENDPOINT}...`);
     
     const updatedDevices = await Promise.all(
       devices.map(async (device) => {
         try {
-          console.log(`🔄 Fast checking ${device.name} (${device.ip}:${HTTP_PORT}${CGI_ENDPOINT})`);
+          console.log(`🔄 Enhanced checking ${device.name} (${device.ip}:${HTTP_PORT}${CGI_ENDPOINT})`);
           
           let isOnline = false;
           let deviceName = device.name;
+          let latency: number | undefined;
           
           if (device.isManuallyAdded) {
-            // For manually added devices, use fast connectivity check
-            isOnline = await checkDeviceReachability(device.ip);
-            console.log(`   ${isOnline ? '✅' : '❌'} Manual device ${device.name} is ${isOnline ? 'reachable' : 'offline'}`);
+            const reachabilityResult = await checkDeviceReachability(device.ip);
+            isOnline = reachabilityResult.isReachable;
+            latency = reachabilityResult.latency;
+            console.log(`   ${isOnline ? '✅' : '❌'} Manual device ${device.name} is ${isOnline ? 'reachable' : 'offline'} ${latency ? `(${latency}ms)` : ''}`);
           } else {
-            // For auto-discovered devices, use fast R_VOLUTION verification
             const result = await verifyRVolutionDevice(device.ip);
             isOnline = result.isRVolution;
+            latency = result.networkLatency;
             
             if (isOnline) {
               deviceName = result.deviceName || device.name;
-              console.log(`   ✅ Auto device ${device.name} is online and verified`);
+              console.log(`   ✅ Auto device ${device.name} is online and verified ${latency ? `(${latency}ms)` : ''}`);
             } else {
-              // If not verified as R_volution, check basic connectivity as fallback
-              const isReachable = await checkDeviceReachability(device.ip);
-              console.log(`   ${isReachable ? '🔗' : '❌'} Auto device ${device.name} is ${isReachable ? 'reachable but not verified' : 'offline'}`);
-              // For auto-discovered devices, we still require R_volution verification
+              const reachabilityResult = await checkDeviceReachability(device.ip);
+              console.log(`   ${reachabilityResult.isReachable ? '🔗' : '❌'} Auto device ${device.name} is ${reachabilityResult.isReachable ? 'reachable but not verified' : 'offline'}`);
               isOnline = false;
             }
           }
@@ -938,8 +1002,9 @@ export const useDeviceDiscovery = () => {
             port: HTTP_PORT,
           };
           
-          console.log(`   📊 ${device.name} status: ${isOnline ? 'ONLINE' : 'OFFLINE'}`);
+          console.log(`   📊 ${device.name} status: ${isOnline ? 'ONLINE' : 'OFFLINE'} ${latency ? `(${latency}ms)` : ''}`);
           return updatedDevice;
+          
         } catch (error) {
           console.log(`❌ ${device.name} status check failed:`, error.message);
           return {
@@ -951,105 +1016,49 @@ export const useDeviceDiscovery = () => {
       })
     );
     
-    // Update state and save to storage
     setDevices(updatedDevices);
     await saveDevices(updatedDevices);
     
     const onlineCount = updatedDevices.filter(d => d.isOnline).length;
-    console.log(`📊 Fast status update completed: ${onlineCount}/${updatedDevices.length} devices online`);
-    console.log(`📊 === FAST DEVICE STATUS UPDATE COMPLETED ===`);
+    console.log(`📊 Enhanced status update completed: ${onlineCount}/${updatedDevices.length} devices online`);
+    console.log(`📊 === ENHANCED DEVICE STATUS UPDATE COMPLETED ===`);
     
     return updatedDevices;
   }, [devices, saveDevices, verifyRVolutionDevice, checkDeviceReachability]);
 
-  // Fast network diagnostic function
-  const runNetworkDiagnostic = useCallback(async (targetIP?: string) => {
-    console.log('🔧 === FAST NETWORK DIAGNOSTIC STARTED ===');
+  // Test device connectivity with enhanced diagnostics
+  const testDeviceConnectivity = useCallback(async (device: RVolutionDevice): Promise<{
+    isReachable: boolean;
+    latency?: number;
+    isVerified?: boolean;
+    error?: string;
+  }> => {
+    console.log(`🧪 Enhanced testing connectivity for ${device.name} (${device.ip}:${HTTP_PORT}${CGI_ENDPOINT})`);
     
     try {
-      const networkBases = await getLocalNetworkInfo();
-      console.log('🌐 Network ranges to test:', networkBases);
+      const reachabilityResult = await checkDeviceReachability(device.ip);
+      const verificationResult = await verifyRVolutionDevice(device.ip);
       
-      if (targetIP) {
-        console.log(`🎯 Testing specific IP: ${targetIP}${CGI_ENDPOINT}`);
-        
-        const deviceInfo = await getDeviceInfo(targetIP);
-        console.log('📋 Device info:', deviceInfo);
-        return deviceInfo;
-      }
+      const result = {
+        isReachable: reachabilityResult.isReachable,
+        latency: reachabilityResult.latency || verificationResult.networkLatency,
+        isVerified: verificationResult.isRVolution,
+        error: reachabilityResult.error,
+      };
       
-      // Test a few common IPs in the first range only for speed
-      const testIPs = [];
-      const base = networkBases[0]; // Only test first range
-      testIPs.push(`${base}.1`, `${base}.2`, `${base}.10`, `${base}.100`, `${base}.254`);
-      
-      console.log('🧪 Fast testing sample IPs:', testIPs);
-      
-      const results = await Promise.all(
-        testIPs.map(async (ip) => {
-          console.log(`🔍 Fast testing ${ip}${CGI_ENDPOINT}...`);
-          const info = await getDeviceInfo(ip);
-          console.log(`📋 ${ip}:`, info);
-          return info;
-        })
-      );
-      
-      const reachableDevices = results.filter(r => r.reachable);
-      const rvolutionDevices = results.filter(r => r.isRVolution);
-      
-      console.log(`📊 Fast diagnostic complete:`);
-      console.log(`   ${reachableDevices.length}/${testIPs.length} test IPs reachable`);
-      console.log(`   ${rvolutionDevices.length} R_VOLUTION devices found`);
-      
-      if (rvolutionDevices.length > 0) {
-        console.log('🎉 R_volution devices found:');
-        rvolutionDevices.forEach(device => {
-          console.log(`   🎵 ${device.deviceName || 'Unknown'} at ${device.ip}:${HTTP_PORT}`);
-        });
-      }
-      
-      return results;
+      console.log(`${result.isReachable ? '✅' : '❌'} ${device.name} enhanced connectivity test:`, result);
+      return result;
       
     } catch (error) {
-      console.log('❌ Fast network diagnostic failed:', error);
-      throw error;
-    } finally {
-      console.log('🔧 === FAST NETWORK DIAGNOSTIC FINISHED ===');
+      console.log(`❌ Enhanced connectivity test failed for ${device.name}:`, error);
+      return {
+        isReachable: false,
+        error: error.message,
+      };
     }
-  }, [getLocalNetworkInfo, getDeviceInfo]);
+  }, [checkDeviceReachability, verifyRVolutionDevice]);
 
-  // Test a specific IP address using fast method
-  const testSpecificIP = useCallback(async (ip: string) => {
-    console.log(`🧪 === FAST TESTING SPECIFIC IP: ${ip}${CGI_ENDPOINT} ===`);
-    
-    try {
-      const deviceInfo = await getDeviceInfo(ip);
-      console.log('📋 Device info:', deviceInfo);
-      return deviceInfo;
-      
-    } catch (error) {
-      console.log('❌ Fast IP test failed:', error);
-      throw error;
-    } finally {
-      console.log(`🧪 === FAST IP TEST FINISHED ===`);
-    }
-  }, [getDeviceInfo]);
-
-  // Test device connectivity using fast method
-  const testDeviceConnectivity = useCallback(async (device: RVolutionDevice): Promise<boolean> => {
-    console.log(`🧪 Fast testing connectivity for ${device.name} (${device.ip}:${HTTP_PORT}${CGI_ENDPOINT})`);
-    
-    try {
-      const isReachable = await checkDeviceReachability(device.ip);
-      console.log(`${isReachable ? '✅' : '❌'} ${device.name} fast connectivity test: ${isReachable ? 'PASS' : 'FAIL'}`);
-      return isReachable;
-    } catch (error) {
-      console.log(`❌ Fast connectivity test failed for ${device.name}:`, error);
-      return false;
-    }
-  }, [checkDeviceReachability]);
-
-  // CORRECTION: Fonction deleteDevice pour compatibilité avec les composants existants
+  // Alias for compatibility
   const deleteDevice = useCallback(async (deviceId: string) => {
     console.log(`🗑️  deleteDevice called for: ${deviceId} (Platform: ${Platform.OS})`);
     return removeDevice(deviceId);
@@ -1058,10 +1067,10 @@ export const useDeviceDiscovery = () => {
   // Initialize by loading saved devices
   useEffect(() => {
     if (!devicesLoadedRef.current && !initializingRef.current) {
-      console.log('🚀 Initializing ULTRA-FAST device discovery hook...');
-      console.log(`🚀 Using fast CGI endpoint: ${CGI_ENDPOINT}`);
-      console.log(`⏱️  Fast timeout: ${FAST_SCAN_TIMEOUT}ms`);
-      console.log(`🔄 High concurrency: ${CONCURRENT_REQUESTS} requests`);
+      console.log('🚀 Initializing ENHANCED cross-network device discovery hook...');
+      console.log(`🚀 Using enhanced CGI endpoint: ${CGI_ENDPOINT}`);
+      console.log(`⏱️  Enhanced timeout: ${FAST_SCAN_TIMEOUT}ms`);
+      console.log(`🔄 Optimized concurrency: ${CONCURRENT_REQUESTS} requests`);
       console.log(`🌐 Platform: ${Platform.OS}`);
       loadSavedDevices();
     }
@@ -1069,23 +1078,20 @@ export const useDeviceDiscovery = () => {
 
   return {
     devices,
-    discoveredDevices, // New: expose discovered devices
+    discoveredDevices,
     isScanning,
     scanProgress,
     networkInfo,
     scanNetwork,
     addDeviceManually,
-    addDiscoveredDevice, // New: function to add discovered device to saved devices
+    addDiscoveredDevice,
     removeDevice,
-    deleteDevice, // CORRECTION: Alias pour compatibilité
-    renameDevice,
+    deleteDevice,
     updateDevice,
     updateDeviceStatus,
     testDeviceConnectivity,
     verifyRVolutionDevice,
     checkDeviceReachability,
-    getDeviceInfo,
     runNetworkDiagnostic,
-    testSpecificIP,
   };
 };
