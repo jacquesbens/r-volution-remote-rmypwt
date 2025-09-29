@@ -1,6 +1,6 @@
 
 import { useState, useCallback } from 'react';
-import { Alert, Platform } from 'react-native';
+import { Alert } from 'react-native';
 
 export const useNativeConfirm = () => {
   const [isShowing, setIsShowing] = useState(false);
@@ -13,7 +13,7 @@ export const useNativeConfirm = () => {
     confirmText: string = 'OK',
     cancelText: string = 'Annuler'
   ) => {
-    console.log(`❓ Confirm requested: ${title} - ${message} (Platform: ${Platform.OS})`);
+    console.log(`❓ Confirm requested: ${title} - ${message}`);
     
     if (isShowing) {
       console.log('⚠️ Confirm already showing, ignoring new request');
@@ -45,7 +45,7 @@ export const useNativeConfirm = () => {
     };
 
     // Gestion spéciale pour l'environnement web/Preview
-    if (Platform.OS === 'web') {
+    if (typeof window !== 'undefined') {
       try {
         // Essayer d'abord Alert React Native
         Alert.alert(

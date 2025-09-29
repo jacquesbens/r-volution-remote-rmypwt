@@ -1,7 +1,6 @@
 
 import { useState, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Platform } from 'react-native';
 
 interface CommandHistoryEntry {
   id: string;
@@ -28,16 +27,12 @@ export const useCommandHistory = () => {
       console.log('📜 Loading command history from storage...');
       
       let savedHistory = null;
-      if (Platform.OS === 'web') {
-        try {
-          savedHistory = await AsyncStorage.getItem(HISTORY_STORAGE_KEY);
-        } catch (webError) {
-          if (typeof window !== 'undefined' && window.localStorage) {
-            savedHistory = window.localStorage.getItem(HISTORY_STORAGE_KEY);
-          }
-        }
-      } else {
+      try {
         savedHistory = await AsyncStorage.getItem(HISTORY_STORAGE_KEY);
+      } catch (webError) {
+        if (typeof window !== 'undefined' && window.localStorage) {
+          savedHistory = window.localStorage.getItem(HISTORY_STORAGE_KEY);
+        }
       }
 
       if (savedHistory) {
@@ -62,16 +57,12 @@ export const useCommandHistory = () => {
     try {
       const dataToSave = JSON.stringify(history);
       
-      if (Platform.OS === 'web') {
-        try {
-          await AsyncStorage.setItem(HISTORY_STORAGE_KEY, dataToSave);
-        } catch (webError) {
-          if (typeof window !== 'undefined' && window.localStorage) {
-            window.localStorage.setItem(HISTORY_STORAGE_KEY, dataToSave);
-          }
-        }
-      } else {
+      try {
         await AsyncStorage.setItem(HISTORY_STORAGE_KEY, dataToSave);
+      } catch (webError) {
+        if (typeof window !== 'undefined' && window.localStorage) {
+          window.localStorage.setItem(HISTORY_STORAGE_KEY, dataToSave);
+        }
       }
       
       console.log('💾 Command history saved successfully');

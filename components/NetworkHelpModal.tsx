@@ -19,7 +19,6 @@ interface NetworkHelpModalProps {
   onAddManualDevice?: (ip: string, name: string) => void;
 }
 
-// Safe color constants
 const COLORS = {
   primary: '#162456',
   background: '#101824',
@@ -31,7 +30,6 @@ const COLORS = {
   error: '#FF5252',
 };
 
-// Helper functions with safe implementations
 const getPriorityColor = (priority: string): string => {
   switch (priority) {
     case 'high': return COLORS.error;
@@ -59,12 +57,11 @@ const NetworkHelpModal: React.FC<NetworkHelpModalProps> = ({
   const [manualIP, setManualIP] = useState('');
   const [manualName, setManualName] = useState('');
 
-  // Network scenarios with safe static data
   const networkScenarios = [
     {
       id: 'different_network',
       title: 'Je suis sur un réseau différent',
-      icon: 'wifi-outline' as const,
+      icon: 'wifi-outline' as any,
       color: COLORS.warning,
       description: 'Vous n\'êtes pas sur le même réseau Wi-Fi que vos appareils R_volution',
       solutions: [
@@ -74,12 +71,12 @@ const NetworkHelpModal: React.FC<NetworkHelpModalProps> = ({
         'Redémarrez votre connexion Wi-Fi',
         'Utilisez l\'ajout manuel avec l\'adresse IP de l\'appareil',
       ],
-      priority: 'high' as const
+      priority: 'high'
     },
     {
       id: 'enterprise_network',
       title: 'Réseau d\'entreprise ou public',
-      icon: 'business' as const,
+      icon: 'business' as any,
       color: COLORS.error,
       description: 'Les réseaux d\'entreprise bloquent souvent la découverte d\'appareils',
       solutions: [
@@ -89,12 +86,12 @@ const NetworkHelpModal: React.FC<NetworkHelpModalProps> = ({
         'Connectez-vous à un réseau domestique si possible',
         'Créez un hotspot mobile temporaire',
       ],
-      priority: 'high' as const
+      priority: 'high'
     },
     {
       id: 'firewall_blocking',
       title: 'Pare-feu ou sécurité',
-      icon: 'shield-checkmark' as const,
+      icon: 'shield-checkmark' as any,
       color: COLORS.primary,
       description: 'Un pare-feu bloque la communication avec vos appareils',
       solutions: [
@@ -104,12 +101,12 @@ const NetworkHelpModal: React.FC<NetworkHelpModalProps> = ({
         'Désactivez le mode "isolation des clients" sur votre routeur',
         'Redémarrez votre routeur',
       ],
-      priority: 'medium' as const
+      priority: 'medium'
     },
     {
       id: 'device_offline',
       title: 'Appareil éteint ou déconnecté',
-      icon: 'power' as const,
+      icon: 'power' as any,
       color: COLORS.grey,
       description: 'Vos appareils R_volution ne sont pas accessibles',
       solutions: [
@@ -119,12 +116,12 @@ const NetworkHelpModal: React.FC<NetworkHelpModalProps> = ({
         'Vérifiez la connexion Wi-Fi dans le menu de l\'appareil',
         'Reconnectez l\'appareil au Wi-Fi si nécessaire',
       ],
-      priority: 'medium' as const
+      priority: 'medium'
     },
     {
       id: 'ip_changed',
       title: 'Adresse IP changée',
-      icon: 'refresh' as const,
+      icon: 'refresh' as any,
       color: COLORS.success,
       description: 'L\'adresse IP de votre appareil a changé',
       solutions: [
@@ -134,7 +131,7 @@ const NetworkHelpModal: React.FC<NetworkHelpModalProps> = ({
         'Utilisez l\'ajout manuel avec la nouvelle adresse IP',
         'Supprimez l\'ancien appareil et ajoutez-le avec la nouvelle IP',
       ],
-      priority: 'low' as const
+      priority: 'low'
     }
   ];
 
@@ -156,7 +153,6 @@ const NetworkHelpModal: React.FC<NetworkHelpModalProps> = ({
       return;
     }
 
-    // Validate IP format
     const ipRegex = /^(\d{1,3}\.){3}\d{1,3}$/;
     if (!ipRegex.test(manualIP.trim())) {
       Alert.alert('Erreur', 'Veuillez entrer une adresse IP valide (ex: 192.168.1.20).');
@@ -188,7 +184,6 @@ const NetworkHelpModal: React.FC<NetworkHelpModalProps> = ({
         </View>
 
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-          {/* Quick Manual Add Section */}
           <View style={styles.quickAddSection}>
             <View style={styles.quickAddHeader}>
               <Icon name="add-circle" size={24} color={COLORS.primary} />
@@ -226,7 +221,6 @@ const NetworkHelpModal: React.FC<NetworkHelpModalProps> = ({
             </View>
           </View>
 
-          {/* Scenarios Section */}
           <View style={styles.scenariosSection}>
             <Text style={styles.sectionTitle}>Diagnostiquer votre problème</Text>
             <Text style={styles.sectionDescription}>
@@ -274,7 +268,6 @@ const NetworkHelpModal: React.FC<NetworkHelpModalProps> = ({
             ))}
           </View>
 
-          {/* Common IP Ranges */}
           <View style={styles.ipRangesSection}>
             <Text style={styles.sectionTitle}>Adresses IP communes</Text>
             <Text style={styles.sectionDescription}>
@@ -297,7 +290,6 @@ const NetworkHelpModal: React.FC<NetworkHelpModalProps> = ({
             </View>
           </View>
 
-          {/* Contact Support */}
           <View style={styles.supportSection}>
             <View style={styles.supportHeader}>
               <Icon name="help-circle" size={24} color={COLORS.primary} />

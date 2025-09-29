@@ -3,7 +3,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../styles/commonStyles';
 
 interface IconProps {
-  name: keyof typeof Ionicons.glyphMap;
+  name: any;
   size?: number;
   style?: object;
   color?: string;

@@ -1,12 +1,12 @@
 
 import { useState, useCallback } from 'react';
-import { Alert, Platform } from 'react-native';
+import { Alert } from 'react-native';
 
 export const useNativeAlert = () => {
   const [isShowing, setIsShowing] = useState(false);
 
   const showAlert = useCallback((title: string, message?: string, buttons?: {text: string, onPress?: () => void, style?: 'default' | 'cancel' | 'destructive'}[]) => {
-    console.log(`🚨 Alert requested: ${title} - ${message} (Platform: ${Platform.OS})`);
+    console.log(`🚨 Alert requested: ${title} - ${message}`);
     
     if (isShowing) {
       console.log('⚠️ Alert already showing, ignoring new request');
@@ -21,7 +21,7 @@ export const useNativeAlert = () => {
     };
 
     // Gestion spéciale pour l'environnement web/Preview
-    if (Platform.OS === 'web') {
+    if (typeof window !== 'undefined') {
       try {
         // Essayer d'abord Alert React Native
         Alert.alert(
