@@ -2,7 +2,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, Animated } from 'react-native';
 import { colors } from '../styles/commonStyles';
-import Icon from './Icon';
+import SimpleIcon from './SimpleIcon';
 
 interface StatusIndicatorProps {
   status: 'online' | 'offline' | 'connecting' | 'error';
@@ -96,7 +96,7 @@ const StatusIndicator: React.FC<StatusIndicatorProps> = ({
             },
           ]}
         >
-          <Icon 
+          <SimpleIcon 
             name={config.icon} 
             size={currentSize.iconSize} 
             color={config.color} 

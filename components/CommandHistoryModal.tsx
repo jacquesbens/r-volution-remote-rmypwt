@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { colors } from '../styles/commonStyles';
 import { useCommandHistory } from '../hooks/useCommandHistory';
-import Icon from './Icon';
+import SimpleIcon from './SimpleIcon';
 import LoadingSpinner from './LoadingSpinner';
 
 interface CommandHistoryModalProps {
@@ -92,7 +92,7 @@ const CommandHistoryModal: React.FC<CommandHistoryModalProps> = ({
             {deviceId ? 'Historique de l\'appareil' : 'Historique des commandes'}
           </Text>
           <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-            <Icon name="close" size={24} color={colors.text} />
+            <SimpleIcon name="close" size={24} color={colors.text} />
           </TouchableOpacity>
         </View>
 
@@ -152,7 +152,7 @@ const CommandHistoryModal: React.FC<CommandHistoryModalProps> = ({
                     onPress={handleClearHistory}
                     style={styles.clearButton}
                   >
-                    <Icon name="trash" size={16} color={colors.accent} />
+                    <SimpleIcon name="trash" size={16} color={colors.accent} />
                     <Text style={styles.clearButtonText}>Effacer</Text>
                   </TouchableOpacity>
                 )}
@@ -160,7 +160,7 @@ const CommandHistoryModal: React.FC<CommandHistoryModalProps> = ({
 
               {displayHistory.length === 0 ? (
                 <View style={styles.emptyState}>
-                  <Icon name="time" size={48} color={colors.grey} />
+                  <SimpleIcon name="time" size={48} color={colors.grey} />
                   <Text style={styles.emptyStateTitle}>Aucun historique</Text>
                   <Text style={styles.emptyStateText}>
                     Les commandes exécutées apparaîtront ici
@@ -172,7 +172,7 @@ const CommandHistoryModal: React.FC<CommandHistoryModalProps> = ({
                     <View key={entry.id} style={styles.historyItem}>
                       <View style={styles.historyItemHeader}>
                         <View style={styles.historyItemInfo}>
-                          <Icon
+                          <SimpleIcon
                             name={entry.success ? 'checkmark-circle' : 'close-circle'}
                             size={16}
                             color={entry.success ? colors.success : colors.accent}

@@ -10,7 +10,7 @@ import {
   TextInput,
   Alert,
 } from 'react-native';
-import Icon from './Icon';
+import SimpleIcon from './SimpleIcon';
 import Button from './Button';
 
 interface NetworkHelpModalProps {
@@ -185,7 +185,7 @@ const NetworkHelpModal: React.FC<NetworkHelpModalProps> = ({
       <View style={styles.container}>
         <View style={styles.header}>
           <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-            <Icon name="close" size={24} color={MODAL_COLORS.text} />
+            <SimpleIcon name="close" size={24} color={MODAL_COLORS.text} />
           </TouchableOpacity>
           <Text style={styles.title}>Aide réseau</Text>
           <View style={styles.placeholder} />
@@ -194,7 +194,7 @@ const NetworkHelpModal: React.FC<NetworkHelpModalProps> = ({
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
           <View style={styles.quickAddSection}>
             <View style={styles.quickAddHeader}>
-              <Icon name="add-circle" size={24} color={MODAL_COLORS.primary} />
+              <SimpleIcon name="add-circle" size={24} color={MODAL_COLORS.primary} />
               <Text style={styles.quickAddTitle}>Ajout rapide</Text>
             </View>
             <Text style={styles.quickAddDescription}>
@@ -242,7 +242,7 @@ const NetworkHelpModal: React.FC<NetworkHelpModalProps> = ({
                   onPress={() => handleScenarioSelect(scenario.id)}
                 >
                   <View style={styles.scenarioHeaderLeft}>
-                    <Icon name={scenario.icon} size={24} color={scenario.color} />
+                    <SimpleIcon name={scenario.icon} size={24} color={scenario.color} />
                     <View style={styles.scenarioHeaderText}>
                       <Text style={styles.scenarioTitle}>{scenario.title}</Text>
                       <Text style={[styles.scenarioPriority, { color: getPriorityColor(scenario.priority) }]}>
@@ -250,7 +250,7 @@ const NetworkHelpModal: React.FC<NetworkHelpModalProps> = ({
                       </Text>
                     </View>
                   </View>
-                  <Icon 
+                  <SimpleIcon 
                     name={selectedScenario === scenario.id ? "chevron-up" : "chevron-down"} 
                     size={20} 
                     color={MODAL_COLORS.grey} 
@@ -308,7 +308,7 @@ const NetworkHelpModal: React.FC<NetworkHelpModalProps> = ({
 
           <View style={styles.supportSection}>
             <View style={styles.supportHeader}>
-              <Icon name="help-circle" size={24} color={MODAL_COLORS.primary} />
+              <SimpleIcon name="help-circle" size={24} color={MODAL_COLORS.primary} />
               <Text style={styles.supportTitle}>Besoin d&apos;aide supplémentaire ?</Text>
             </View>
             <Text style={styles.supportText}>

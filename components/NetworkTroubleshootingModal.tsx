@@ -12,7 +12,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { colors } from '../styles/commonStyles';
-import Icon from './Icon';
+import SimpleIcon from './SimpleIcon';
 import Button from './Button';
 
 interface NetworkTroubleshootingModalProps {
@@ -158,7 +158,7 @@ const NetworkTroubleshootingModal: React.FC<NetworkTroubleshootingModalProps> = 
       <View style={styles.container}>
         <View style={styles.header}>
           <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-            <Icon name="close" size={24} color={colors.text} />
+            <SimpleIcon name="close" size={24} color={colors.text} />
           </TouchableOpacity>
           <Text style={styles.title}>Dépannage réseau</Text>
           <View style={styles.placeholder} />
@@ -168,7 +168,7 @@ const NetworkTroubleshootingModal: React.FC<NetworkTroubleshootingModalProps> = 
           {/* Status Summary */}
           <View style={styles.statusSection}>
             <View style={styles.statusHeader}>
-              <Icon name="information-circle" size={24} color={colors.primary} />
+              <SimpleIcon name="information-circle" size={24} color={colors.primary} />
               <Text style={styles.statusTitle}>État actuel</Text>
             </View>
             
@@ -226,7 +226,7 @@ const NetworkTroubleshootingModal: React.FC<NetworkTroubleshootingModalProps> = 
                   {isTestingIP ? (
                     <ActivityIndicator size="small" color={colors.white} />
                   ) : (
-                    <Icon name="search" size={16} color={colors.white} />
+                    <SimpleIcon name="search" size={16} color={colors.white} />
                   )}
                 </TouchableOpacity>
               </View>
@@ -244,10 +244,10 @@ const NetworkTroubleshootingModal: React.FC<NetworkTroubleshootingModalProps> = 
                   onPress={() => toggleSection(section.id)}
                 >
                   <View style={styles.troubleshootingHeaderLeft}>
-                    <Icon name={section.icon} size={20} color={section.color} />
+                    <SimpleIcon name={section.icon} size={20} color={section.color} />
                     <Text style={styles.troubleshootingTitle}>{section.title}</Text>
                   </View>
-                  <Icon 
+                  <SimpleIcon 
                     name={expandedSection === section.id ? "chevron-up" : "chevron-down"} 
                     size={20} 
                     color={colors.grey} 
@@ -288,7 +288,7 @@ const NetworkTroubleshootingModal: React.FC<NetworkTroubleshootingModalProps> = 
           {/* Contact Support */}
           <View style={styles.supportSection}>
             <View style={styles.supportHeader}>
-              <Icon name="help-circle" size={24} color={colors.primary} />
+              <SimpleIcon name="help-circle" size={24} color={colors.primary} />
               <Text style={styles.supportTitle}>Besoin d'aide ?</Text>
             </View>
             <Text style={styles.supportText}>
@@ -498,12 +498,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
     color: colors.text,
-    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    fontFamily: 'monospace',
   },
   ipRangeExample: {
     fontSize: 12,
     color: colors.grey,
-    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    fontFamily: 'monospace',
   },
   supportSection: {
     backgroundColor: colors.primary + '10',

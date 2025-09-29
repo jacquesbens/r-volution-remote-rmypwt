@@ -11,7 +11,7 @@ import {
   KeyboardAvoidingView,
 } from 'react-native';
 import { colors } from '../styles/commonStyles';
-import Icon from './Icon';
+import SimpleIcon from './SimpleIcon';
 import Button from './Button';
 
 interface IRCodeEditModalProps {
@@ -218,19 +218,19 @@ const IRCodeEditModal: React.FC<IRCodeEditModalProps> = ({
             onPress={() => {}}
           >
             <View style={styles.header}>
-              <Icon name="settings" size={20} color={colors.primary} />
+              <SimpleIcon name="settings" size={20} color={colors.primary} />
               <Text style={styles.title}>Modifier le code IR</Text>
               <TouchableOpacity
                 style={styles.closeButton}
                 onPress={onClose}
               >
-                <Icon name="close" size={20} color={colors.textSecondary} />
+                <SimpleIcon name="close" size={20} color={colors.textSecondary} />
               </TouchableOpacity>
             </View>
 
             {hasCustomCode && (
               <View style={styles.customIndicator}>
-                <Icon name="checkmark-circle" size={16} color={colors.primary} />
+                <SimpleIcon name="checkmark-circle" size={16} color={colors.primary} />
                 <Text style={styles.customIndicatorText}>
                   Code personnalisé actif
                 </Text>

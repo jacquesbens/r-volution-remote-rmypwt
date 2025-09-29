@@ -3,7 +3,7 @@ import React, { useState, useRef } from 'react';
 import { View, Text, TextInput, StyleSheet, Alert, Modal, TouchableOpacity, ActivityIndicator, ScrollView, KeyboardAvoidingView } from 'react-native';
 import Button from './Button';
 import { colors } from '../styles/commonStyles';
-import Icon from './Icon';
+import SimpleIcon from './SimpleIcon';
 
 interface AddDeviceModalProps {
   visible: boolean;
@@ -117,7 +117,7 @@ const AddDeviceModal: React.FC<AddDeviceModalProps> = ({ visible, onClose, onAdd
       >
         <View style={styles.header}>
           <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
-            <Icon name="close" size={24} color={colors.text} />
+            <SimpleIcon name="close" size={24} color={colors.text} />
           </TouchableOpacity>
           <Text style={styles.title}>Ajouter un appareil</Text>
           <View style={styles.placeholder} />
@@ -158,7 +158,7 @@ const AddDeviceModal: React.FC<AddDeviceModalProps> = ({ visible, onClose, onAdd
           </View>
 
           <View style={styles.protocolInfoSection}>
-            <Icon name="information-circle" size={20} color={colors.primary} />
+            <SimpleIcon name="information-circle" size={20} color={colors.primary} />
             <View style={styles.protocolInfoContent}>
               <Text style={styles.protocolInfoTitle}>Protocole utilisé :</Text>
               <Text style={styles.protocolInfoText}>HTTP sur port 80 (protocole web standard) - utilisé automatiquement</Text>
@@ -178,7 +178,7 @@ const AddDeviceModal: React.FC<AddDeviceModalProps> = ({ visible, onClose, onAdd
           </View>
 
           <View style={styles.infoSection}>
-            <Icon name="information-circle" size={20} color={colors.primary} />
+            <SimpleIcon name="information-circle" size={20} color={colors.primary} />
             <View style={styles.infoContent}>
               <Text style={styles.infoTitle}>Conseils pour HTTP :</Text>
               <Text style={styles.infoText}>• Assurez-vous que l'appareil est allumé et connecté au Wi-Fi</Text>

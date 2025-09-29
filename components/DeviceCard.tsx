@@ -5,7 +5,7 @@ import { RVolutionDevice } from '../types/Device';
 import { colors, commonStyles } from '../styles/commonStyles';
 import { useNativeAlert } from '../hooks/useNativeAlert';
 import { useNativeConfirm } from '../hooks/useNativeConfirm';
-import Icon from './Icon';
+import SimpleIcon from './SimpleIcon';
 
 interface DeviceCardProps {
   device: RVolutionDevice;
@@ -173,7 +173,7 @@ const DeviceCard: React.FC<DeviceCardProps> = ({ device, onPress, onRemove, onEd
 
         {lastTestResult && (
           <View style={styles.testResult}>
-            <Icon 
+            <SimpleIcon 
               name={lastTestResult.success ? 'checkmark-circle' : 'close-circle'} 
               size={12} 
               color={lastTestResult.success ? '#4CAF50' : '#F44336'} 
@@ -198,7 +198,7 @@ const DeviceCard: React.FC<DeviceCardProps> = ({ device, onPress, onRemove, onEd
             }
           }}
         >
-          <Icon name="information-circle" size={16} color={colors.grey} />
+          <SimpleIcon name="information-circle" size={16} color={colors.grey} />
         </TouchableOpacity>
 
         {onEdit && (
@@ -213,7 +213,7 @@ const DeviceCard: React.FC<DeviceCardProps> = ({ device, onPress, onRemove, onEd
               }
             }}
           >
-            <Icon name="create-outline" size={16} color="#FFFFFF" />
+            <SimpleIcon name="create-outline" size={16} color="#FFFFFF" />
           </TouchableOpacity>
         )}
 
@@ -228,7 +228,7 @@ const DeviceCard: React.FC<DeviceCardProps> = ({ device, onPress, onRemove, onEd
             }
           }}
         >
-          <Icon name="trash" size={16} color="#F44336" />
+          <SimpleIcon name="trash" size={16} color="#F44336" />
         </TouchableOpacity>
       </View>
     </View>

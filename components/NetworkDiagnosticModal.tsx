@@ -10,7 +10,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { colors } from '../styles/commonStyles';
-import Icon from './Icon';
+import SimpleIcon from './SimpleIcon';
 import Button from './Button';
 
 interface NetworkDiagnosticModalProps {
@@ -201,13 +201,13 @@ const NetworkDiagnosticModal: React.FC<NetworkDiagnosticModalProps> = ({
       case 'running':
         return <ActivityIndicator size="small" color={colors.primary} />;
       case 'success':
-        return <Icon name="checkmark-circle" size={20} color={colors.success} />;
+        return <SimpleIcon name="checkmark-circle" size={20} color={colors.success} />;
       case 'warning':
-        return <Icon name="warning" size={20} color={colors.warning} />;
+        return <SimpleIcon name="warning" size={20} color={colors.warning} />;
       case 'error':
-        return <Icon name="close-circle" size={20} color={colors.error} />;
+        return <SimpleIcon name="close-circle" size={20} color={colors.error} />;
       default:
-        return <Icon name="help-circle" size={20} color={colors.grey} />;
+        return <SimpleIcon name="help-circle" size={20} color={colors.grey} />;
     }
   };
 
@@ -234,18 +234,18 @@ const NetworkDiagnosticModal: React.FC<NetworkDiagnosticModalProps> = ({
       <View style={styles.container}>
         <View style={styles.header}>
           <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-            <Icon name="close" size={24} color={colors.text} />
+            <SimpleIcon name="close" size={24} color={colors.text} />
           </TouchableOpacity>
           <Text style={styles.title}>Diagnostic réseau</Text>
           <TouchableOpacity onPress={runDiagnostics} style={styles.retryButton}>
-            <Icon name="refresh" size={20} color={colors.primary} />
+            <SimpleIcon name="refresh" size={20} color={colors.primary} />
           </TouchableOpacity>
         </View>
 
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
           {targetIP && (
             <View style={styles.targetSection}>
-              <Icon name="target" size={20} color={colors.primary} />
+              <SimpleIcon name="target" size={20} color={colors.primary} />
               <Text style={styles.targetText}>Cible : {targetIP}</Text>
             </View>
           )}
@@ -262,7 +262,7 @@ const NetworkDiagnosticModal: React.FC<NetworkDiagnosticModalProps> = ({
             
             {diagnosticResults.length === 0 && !isRunning && (
               <View style={styles.emptyState}>
-                <Icon name="play-circle" size={48} color={colors.grey} />
+                <SimpleIcon name="play-circle" size={48} color={colors.grey} />
                 <Text style={styles.emptyStateText}>Appuyez sur le bouton de rafraîchissement pour lancer le diagnostic</Text>
               </View>
             )}
@@ -391,7 +391,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
     color: colors.text,
-    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    fontFamily: 'monospace',
   },
   currentTestSection: {
     flexDirection: 'row',

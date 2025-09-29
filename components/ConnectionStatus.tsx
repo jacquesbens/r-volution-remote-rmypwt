@@ -5,7 +5,7 @@ import { colors } from '../styles/commonStyles';
 import { RVolutionDevice } from '../types/Device';
 import { useDeviceDiscovery } from '../hooks/useDeviceDiscovery';
 import StatusIndicator from './StatusIndicator';
-import Icon from './Icon';
+import SimpleIcon from './SimpleIcon';
 
 interface ConnectionStatusProps {
   device: RVolutionDevice;
@@ -105,7 +105,7 @@ const ConnectionStatus: React.FC<ConnectionStatusProps> = ({
           onPress={handleTestConnection}
           disabled={isTestingConnection}
         >
-          <Icon 
+          <SimpleIcon 
             name={isTestingConnection ? "sync" : "refresh"} 
             size={16} 
             color={colors.primary} 
@@ -119,7 +119,7 @@ const ConnectionStatus: React.FC<ConnectionStatusProps> = ({
       {showDetails && (
         <View style={styles.detailsContainer}>
           <View style={styles.detailRow}>
-            <Icon name="globe" size={14} color={colors.grey} />
+            <SimpleIcon name="globe" size={14} color={colors.grey} />
             <Text style={styles.detailText}>
               {device.ip}:{device.port}
             </Text>
@@ -127,7 +127,7 @@ const ConnectionStatus: React.FC<ConnectionStatusProps> = ({
           
           {isValidLastSeen(device.lastSeen) && (
             <View style={styles.detailRow}>
-              <Icon name="time" size={14} color={colors.grey} />
+              <SimpleIcon name="time" size={14} color={colors.grey} />
               <Text style={styles.detailText}>
                 {formatLastSeen(device.lastSeen)}
               </Text>
@@ -136,7 +136,7 @@ const ConnectionStatus: React.FC<ConnectionStatusProps> = ({
           
           {lastTestTime && (
             <View style={styles.detailRow}>
-              <Icon name="checkmark" size={14} color={colors.success} />
+              <SimpleIcon name="checkmark" size={14} color={colors.success} />
               <Text style={styles.detailText}>
                 Testé {formatLastSeen(lastTestTime)}
               </Text>
@@ -145,7 +145,7 @@ const ConnectionStatus: React.FC<ConnectionStatusProps> = ({
           
           {device.isManuallyAdded && (
             <View style={styles.detailRow}>
-              <Icon name="person" size={14} color={colors.warning} />
+              <SimpleIcon name="person" size={14} color={colors.warning} />
               <Text style={styles.detailText}>Ajouté manuellement</Text>
             </View>
           )}

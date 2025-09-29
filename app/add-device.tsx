@@ -4,7 +4,7 @@ import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, ActivityInd
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { colors } from '../styles/commonStyles';
-import Icon from '../components/Icon';
+import SimpleIcon from '../components/SimpleIcon';
 import Button from '../components/Button';
 import DeviceCard from '../components/DeviceCard';
 import EditDeviceModal from '../components/EditDeviceModal';
@@ -274,14 +274,14 @@ const AddDeviceScreen: React.FC = () => {
           {/* Network Status Info */}
           <View style={styles.networkStatusSection}>
             <View style={styles.networkStatusHeader}>
-              <Icon name="wifi" size={20} color={getNetworkStatusColor()} />
+              <SimpleIcon name="wifi" size={20} color={getNetworkStatusColor()} />
               <Text style={styles.networkStatusTitle}>État du réseau</Text>
               <View style={styles.networkStatusActions}>
                 <TouchableOpacity onPress={handleShowNetworkHelp} style={styles.helpButton}>
-                  <Icon name="help-circle" size={18} color={colors.grey} />
+                  <SimpleIcon name="help-circle" size={18} color={colors.grey} />
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => setHelpModalVisible(true)} style={styles.helpButton}>
-                  <Icon name="information-circle" size={18} color={colors.primary} />
+                  <SimpleIcon name="information-circle" size={18} color={colors.primary} />
                 </TouchableOpacity>
               </View>
             </View>
@@ -298,7 +298,7 @@ const AddDeviceScreen: React.FC = () => {
 
             {scanAttempts >= 2 && discoveredDevices.length === 0 && (
               <View style={styles.networkWarning}>
-                <Icon name="warning" size={16} color={colors.warning} />
+                <SimpleIcon name="warning" size={16} color={colors.warning} />
                 <Text style={styles.networkWarningText}>
                   Vous semblez être sur un réseau différent de vos appareils R_volution
                 </Text>
@@ -325,14 +325,14 @@ const AddDeviceScreen: React.FC = () => {
                   onPress={() => handleRunDiagnostic()}
                   style={styles.actionButton}
                 >
-                  <Icon name="analytics" size={14} color={colors.grey} />
+                  <SimpleIcon name="analytics" size={14} color={colors.grey} />
                   <Text style={styles.actionButtonText}>Diagnostic</Text>
                 </TouchableOpacity>
                 <TouchableOpacity 
                   onPress={() => setTroubleshootingModalVisible(true)}
                   style={styles.actionButton}
                 >
-                  <Icon name="settings" size={14} color={colors.grey} />
+                  <SimpleIcon name="settings" size={14} color={colors.grey} />
                   <Text style={styles.actionButtonText}>Dépannage</Text>
                 </TouchableOpacity>
               </View>
@@ -378,7 +378,7 @@ const AddDeviceScreen: React.FC = () => {
                   <View key={device.id} style={styles.discoveredDeviceCard}>
                     <View style={styles.discoveredDeviceInfo}>
                       <View style={styles.discoveredDeviceHeader}>
-                        <Icon name="wifi" size={20} color={colors.success} />
+                        <SimpleIcon name="wifi" size={20} color={colors.success} />
                         <Text style={styles.discoveredDeviceName}>{device.name}</Text>
                       </View>
                       <Text style={styles.discoveredDeviceDetails}>
@@ -394,13 +394,13 @@ const AddDeviceScreen: React.FC = () => {
                         style={styles.diagnosticButton}
                         onPress={() => handleRunDiagnostic(device.ip)}
                       >
-                        <Icon name="analytics" size={16} color={colors.grey} />
+                        <SimpleIcon name="analytics" size={16} color={colors.grey} />
                       </TouchableOpacity>
                       <TouchableOpacity
                         style={styles.addDiscoveredButton}
                         onPress={() => handleAddDiscoveredDevice(device)}
                       >
-                        <Icon name="add" size={20} color={colors.white} />
+                        <SimpleIcon name="add" size={20} color={colors.white} />
                         <Text style={styles.addDiscoveredButtonText}>Ajouter</Text>
                       </TouchableOpacity>
                     </View>
@@ -418,7 +418,7 @@ const AddDeviceScreen: React.FC = () => {
                 onPress={() => setHelpModalVisible(true)}
                 style={styles.actionButton}
               >
-                <Icon name="help-circle" size={14} color={colors.primary} />
+                <SimpleIcon name="help-circle" size={14} color={colors.primary} />
                 <Text style={[styles.actionButtonText, { color: colors.primary }]}>Aide</Text>
               </TouchableOpacity>
             </View>
@@ -468,7 +468,7 @@ const AddDeviceScreen: React.FC = () => {
                   style={styles.testButton}
                   onPress={() => handleRunDiagnostic(ipAddress.trim())}
                 >
-                  <Icon name="analytics" size={16} color={colors.primary} />
+                  <SimpleIcon name="analytics" size={16} color={colors.primary} />
                   <Text style={styles.testButtonText}>Tester</Text>
                 </TouchableOpacity>
               )}
@@ -507,7 +507,7 @@ const AddDeviceScreen: React.FC = () => {
           {/* Empty state with enhanced help */}
           {devices.length === 0 && discoveredDevices.length === 0 && !isScanning && (
             <View style={styles.emptyState}>
-              <Icon name="wifi-outline" size={64} color={colors.grey} />
+              <SimpleIcon name="wifi-outline" size={64} color={colors.grey} />
               <Text style={styles.emptyStateTitle}>Aucun appareil trouvé</Text>
               <Text style={styles.emptyStateDescription}>
                 {scanAttempts === 0 
@@ -535,7 +535,7 @@ const AddDeviceScreen: React.FC = () => {
                   onPress={() => setHelpModalVisible(true)}
                   style={styles.helpLink}
                 >
-                  <Icon name="help-circle" size={16} color={colors.primary} />
+                  <SimpleIcon name="help-circle" size={16} color={colors.primary} />
                   <Text style={styles.helpLinkText}>
                     {scanAttempts >= 2 ? "Je suis sur un autre réseau" : "Besoin d'aide ?"}
                   </Text>
