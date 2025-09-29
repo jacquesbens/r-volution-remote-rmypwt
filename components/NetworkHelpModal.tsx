@@ -30,6 +30,24 @@ const NetworkHelpModal: React.FC<NetworkHelpModalProps> = ({
   const [manualIP, setManualIP] = useState('');
   const [manualName, setManualName] = useState('');
 
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'high': return colors.error;
+      case 'medium': return colors.warning;
+      case 'low': return colors.success;
+      default: return colors.grey;
+    }
+  };
+
+  const getPriorityText = (priority: string) => {
+    switch (priority) {
+      case 'high': return 'Priorité élevée';
+      case 'medium': return 'Priorité moyenne';
+      case 'low': return 'Priorité faible';
+      default: return '';
+    }
+  };
+
   const networkScenarios = [
     {
       id: 'different_network',
@@ -135,24 +153,6 @@ const NetworkHelpModal: React.FC<NetworkHelpModalProps> = ({
       setManualIP('');
       setManualName('');
       onClose();
-    }
-  };
-
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'high': return colors.error;
-      case 'medium': return colors.warning;
-      case 'low': return colors.success;
-      default: return colors.grey;
-    }
-  };
-
-  const getPriorityText = (priority: string) => {
-    switch (priority) {
-      case 'high': return 'Priorité élevée';
-      case 'medium': return 'Priorité moyenne';
-      case 'low': return 'Priorité faible';
-      default: return '';
     }
   };
 
