@@ -2,7 +2,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { RVolutionDevice, NetworkScanResult } from '../types/Device';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Platform } from 'react-native';
 
 const STORAGE_KEY = 'rvolution_devices';
 const FAST_SCAN_TIMEOUT = 1200; // Slightly longer timeout for different networks
@@ -164,26 +163,22 @@ export const useDeviceDiscovery = () => {
     initializingRef.current = true;
     
     try {
-      console.log(`📱 Loading saved devices from storage (Platform: ${Platform.OS})...`);
+      console.log(`📱 Loading saved devices from storage...`);
       
       let savedDevices = null;
-      if (Platform.OS === 'web') {
-        try {
-          savedDevices = await AsyncStorage.getItem(STORAGE_KEY);
-          console.log('📱 Web storage access successful');
-        } catch (webError) {
-          console.log('⚠️ Web storage access failed, using fallback:', webError);
-          if (typeof window !== 'undefined' && window.localStorage) {
-            try {
-              savedDevices = window.localStorage.getItem(STORAGE_KEY);
-              console.log('📱 Fallback to localStorage successful');
-            } catch (localStorageError) {
-              console.log('❌ localStorage fallback failed:', localStorageError);
-            }
+      try {
+        savedDevices = await AsyncStorage.getItem(STORAGE_KEY);
+        console.log('📱 Storage access successful');
+      } catch (storageError) {
+        console.log('⚠️ Storage access failed, using fallback:', storageError);
+        if (typeof window !== 'undefined' && window.localStorage) {
+          try {
+            savedDevices = window.localStorage.getItem(STORAGE_KEY);
+            console.log('📱 Fallback to localStorage successful');
+          } catch (localStorageError) {
+            console.log('❌ localStorage fallback failed:', localStorageError);
           }
         }
-      } else {
-        savedDevices = await AsyncStorage.getItem(STORAGE_KEY);
       }
       
       if (savedDevices) {
@@ -221,7 +216,7 @@ export const useDeviceDiscovery = () => {
     const maxRetries = 3;
     
     try {
-      console.log(`💾 Saving devices to storage (Platform: ${Platform.OS}):`, devicesToSave.length);
+      console.log(`💾 Saving devices to storage:`, devicesToSave.length);
       
       const validDevices = devicesToSave.filter(device => 
         device && 
@@ -237,26 +232,22 @@ export const useDeviceDiscovery = () => {
       
       const dataToSave = JSON.stringify(validDevices);
       
-      if (Platform.OS === 'web') {
-        try {
-          await AsyncStorage.setItem(STORAGE_KEY, dataToSave);
-          console.log('💾 Web AsyncStorage save successful');
-        } catch (webError) {
-          console.log('⚠️ Web AsyncStorage save failed, using fallback:', webError);
-          if (typeof window !== 'undefined' && window.localStorage) {
-            try {
-              window.localStorage.setItem(STORAGE_KEY, dataToSave);
-              console.log('💾 Fallback to localStorage successful');
-            } catch (localStorageError) {
-              console.log('❌ localStorage fallback failed:', localStorageError);
-              throw localStorageError;
-            }
-          } else {
-            throw new Error('No storage mechanism available');
-          }
-        }
-      } else {
+      try {
         await AsyncStorage.setItem(STORAGE_KEY, dataToSave);
+        console.log('💾 AsyncStorage save successful');
+      } catch (storageError) {
+        console.log('⚠️ AsyncStorage save failed, using fallback:', storageError);
+        if (typeof window !== 'undefined' && window.localStorage) {
+          try {
+            window.localStorage.setItem(STORAGE_KEY, dataToSave);
+            console.log('💾 Fallback to localStorage successful');
+          } catch (localStorageError) {
+            console.log('❌ localStorage fallback failed:', localStorageError);
+            throw localStorageError;
+          }
+        } else {
+          throw new Error('No storage mechanism available');
+        }
       }
       
       console.log('💾 Devices saved to storage successfully');
@@ -265,16 +256,12 @@ export const useDeviceDiscovery = () => {
       await new Promise(resolve => setTimeout(resolve, 100));
       
       let verification = null;
-      if (Platform.OS === 'web') {
-        try {
-          verification = await AsyncStorage.getItem(STORAGE_KEY);
-        } catch (verifyError) {
-          if (typeof window !== 'undefined' && window.localStorage) {
-            verification = window.localStorage.getItem(STORAGE_KEY);
-          }
-        }
-      } else {
+      try {
         verification = await AsyncStorage.getItem(STORAGE_KEY);
+      } catch (verifyError) {
+        if (typeof window !== 'undefined' && window.localStorage) {
+          verification = window.localStorage.getItem(STORAGE_KEY);
+        }
       }
       
       if (!verification) {
@@ -740,7 +727,6 @@ export const useDeviceDiscovery = () => {
     console.log(`   Port: ${HTTP_PORT} (HTTP protocol enforced)`);
     console.log(`   Endpoint: ${CGI_ENDPOINT}`);
     console.log(`   Custom Name: ${customName || 'None'}`);
-    console.log(`   Platform: ${Platform.OS}`);
     
     try {
       // Enhanced IP validation
@@ -841,7 +827,7 @@ export const useDeviceDiscovery = () => {
     const maxRetries = 3;
     
     try {
-      console.log(`🗑️  Removing device: ${deviceId} (Platform: ${Platform.OS}, attempt: ${retryCount + 1})`);
+      console.log(`🗑️  Removing device: ${deviceId} (attempt: ${retryCount + 1})`);
       
       const deviceToRemove = devices.find(d => d.id === deviceId);
       if (!deviceToRemove) {
@@ -860,12 +846,8 @@ export const useDeviceDiscovery = () => {
       } catch (saveError) {
         console.log('❌ Save failed after device removal:', saveError);
         
-        if (Platform.OS === 'web') {
-          console.log('⚠️ Web save failed, but keeping UI state updated');
-        } else {
-          setDevices(devices);
-          throw saveError;
-        }
+        // Try to keep UI state updated regardless of storage issues
+        console.log('⚠️ Save failed, but keeping UI state updated');
       }
       
       console.log('🔄 Force reloading devices from storage to ensure synchronization...');
@@ -883,14 +865,8 @@ export const useDeviceDiscovery = () => {
         return removeDevice(deviceId, retryCount + 1);
       }
       
-      if (Platform.OS === 'web') {
-        console.log('⚠️ All retry attempts failed on web, but keeping UI updated');
-        return;
-      }
-      
-      console.log('❌ All retry attempts failed, restoring previous state');
-      await loadSavedDevices();
-      throw error;
+      console.log('⚠️ All retry attempts failed, but keeping UI updated');
+      return;
     }
   }, [devices, saveDevices, loadSavedDevices]);
 
@@ -1060,7 +1036,7 @@ export const useDeviceDiscovery = () => {
 
   // Alias for compatibility
   const deleteDevice = useCallback(async (deviceId: string) => {
-    console.log(`🗑️  deleteDevice called for: ${deviceId} (Platform: ${Platform.OS})`);
+    console.log(`🗑️  deleteDevice called for: ${deviceId}`);
     return removeDevice(deviceId);
   }, [removeDevice]);
 
@@ -1071,7 +1047,6 @@ export const useDeviceDiscovery = () => {
       console.log(`🚀 Using enhanced CGI endpoint: ${CGI_ENDPOINT}`);
       console.log(`⏱️  Enhanced timeout: ${FAST_SCAN_TIMEOUT}ms`);
       console.log(`🔄 Optimized concurrency: ${CONCURRENT_REQUESTS} requests`);
-      console.log(`🌐 Platform: ${Platform.OS}`);
       loadSavedDevices();
     }
   }, [loadSavedDevices]);

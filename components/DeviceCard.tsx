@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import { RVolutionDevice } from '../types/Device';
 import { colors, commonStyles } from '../styles/commonStyles';
 import { useNativeAlert } from '../hooks/useNativeAlert';
@@ -29,7 +29,7 @@ const DeviceCard: React.FC<DeviceCardProps> = ({ device, onPress, onRemove, onEd
   const handleTestConnection = async () => {
     if (!onTest || isTesting) return;
     
-    console.log(`🧪 Testing device: ${device.name} (${device.ip}:${device.port}) - Platform: ${Platform.OS}`);
+    console.log(`🧪 Testing device: ${device.name} (${device.ip}:${device.port})`);
     setIsTesting(true);
     
     try {
@@ -89,7 +89,7 @@ const DeviceCard: React.FC<DeviceCardProps> = ({ device, onPress, onRemove, onEd
 
   // CORRECTION: Fonction de suppression utilisant correctement le hook personnalisé
   const handleRemoveDevice = React.useCallback(() => {
-    console.log(`🗑️  Remove device requested: ${device.name} (Platform: ${Platform.OS})`);
+    console.log(`🗑️  Remove device requested: ${device.name}`);
     
     const executeRemoval = () => {
       console.log(`🗑️  Executing removal of device: ${device.name}`);
@@ -123,7 +123,7 @@ const DeviceCard: React.FC<DeviceCardProps> = ({ device, onPress, onRemove, onEd
 
   // CORRECTION: Fonction d'information utilisant correctement le hook personnalisé
   const handleShowInfo = React.useCallback(() => {
-    console.log(`ℹ️  Show info requested: ${device.name} (Platform: ${Platform.OS})`);
+    console.log(`ℹ️  Show info requested: ${device.name}`);
     
     const lastSeenText = isValidLastSeen(device.lastSeen) 
       ? formatLastSeen(device.lastSeen instanceof Date ? device.lastSeen : new Date(device.lastSeen))

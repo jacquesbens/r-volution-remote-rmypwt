@@ -10,7 +10,6 @@ import {
   TextInput,
   Alert,
 } from 'react-native';
-import { colors } from '../styles/commonStyles';
 import Icon from './Icon';
 import Button from './Button';
 
@@ -20,19 +19,29 @@ interface NetworkHelpModalProps {
   onAddManualDevice?: (ip: string, name: string) => void;
 }
 
-// Move helper functions outside the component to ensure proper scope
-const getPriorityColor = (priority: string) => {
-  console.log('Getting priority color for:', priority);
+// Safe color constants
+const COLORS = {
+  primary: '#162456',
+  background: '#101824',
+  backgroundAlt: '#162133',
+  text: '#e3e3e3',
+  grey: '#90CAF9',
+  success: '#4CAF50',
+  warning: '#FF9800',
+  error: '#FF5252',
+};
+
+// Helper functions with safe implementations
+const getPriorityColor = (priority: string): string => {
   switch (priority) {
-    case 'high': return colors.error || '#FF5252';
-    case 'medium': return colors.warning || '#FF9800';
-    case 'low': return colors.success || '#4CAF50';
-    default: return colors.grey || '#9E9E9E';
+    case 'high': return COLORS.error;
+    case 'medium': return COLORS.warning;
+    case 'low': return COLORS.success;
+    default: return COLORS.grey;
   }
 };
 
-const getPriorityText = (priority: string) => {
-  console.log('Getting priority text for:', priority);
+const getPriorityText = (priority: string): string => {
   switch (priority) {
     case 'high': return 'Priorité élevée';
     case 'medium': return 'Priorité moyenne';
@@ -50,12 +59,13 @@ const NetworkHelpModal: React.FC<NetworkHelpModalProps> = ({
   const [manualIP, setManualIP] = useState('');
   const [manualName, setManualName] = useState('');
 
+  // Network scenarios with safe static data
   const networkScenarios = [
     {
       id: 'different_network',
       title: 'Je suis sur un réseau différent',
-      icon: 'wifi-outline',
-      color: colors.warning || '#FF9800',
+      icon: 'wifi-outline' as const,
+      color: COLORS.warning,
       description: 'Vous n\'êtes pas sur le même réseau Wi-Fi que vos appareils R_volution',
       solutions: [
         'Connectez-vous au même réseau Wi-Fi que vos appareils R_volution',
@@ -64,13 +74,13 @@ const NetworkHelpModal: React.FC<NetworkHelpModalProps> = ({
         'Redémarrez votre connexion Wi-Fi',
         'Utilisez l\'ajout manuel avec l\'adresse IP de l\'appareil',
       ],
-      priority: 'high'
+      priority: 'high' as const
     },
     {
       id: 'enterprise_network',
       title: 'Réseau d\'entreprise ou public',
-      icon: 'business',
-      color: colors.error || '#FF5252',
+      icon: 'business' as const,
+      color: COLORS.error,
       description: 'Les réseaux d\'entreprise bloquent souvent la découverte d\'appareils',
       solutions: [
         'Contactez votre administrateur réseau pour autoriser la découverte',
@@ -79,13 +89,13 @@ const NetworkHelpModal: React.FC<NetworkHelpModalProps> = ({
         'Connectez-vous à un réseau domestique si possible',
         'Créez un hotspot mobile temporaire',
       ],
-      priority: 'high'
+      priority: 'high' as const
     },
     {
       id: 'firewall_blocking',
       title: 'Pare-feu ou sécurité',
-      icon: 'shield-checkmark',
-      color: colors.primary,
+      icon: 'shield-checkmark' as const,
+      color: COLORS.primary,
       description: 'Un pare-feu bloque la communication avec vos appareils',
       solutions: [
         'Désactivez temporairement le pare-feu de votre appareil',
@@ -94,13 +104,13 @@ const NetworkHelpModal: React.FC<NetworkHelpModalProps> = ({
         'Désactivez le mode "isolation des clients" sur votre routeur',
         'Redémarrez votre routeur',
       ],
-      priority: 'medium'
+      priority: 'medium' as const
     },
     {
       id: 'device_offline',
       title: 'Appareil éteint ou déconnecté',
-      icon: 'power',
-      color: colors.grey,
+      icon: 'power' as const,
+      color: COLORS.grey,
       description: 'Vos appareils R_volution ne sont pas accessibles',
       solutions: [
         'Vérifiez que vos appareils R_volution sont allumés',
@@ -109,13 +119,13 @@ const NetworkHelpModal: React.FC<NetworkHelpModalProps> = ({
         'Vérifiez la connexion Wi-Fi dans le menu de l\'appareil',
         'Reconnectez l\'appareil au Wi-Fi si nécessaire',
       ],
-      priority: 'medium'
+      priority: 'medium' as const
     },
     {
       id: 'ip_changed',
       title: 'Adresse IP changée',
-      icon: 'refresh',
-      color: colors.success || '#4CAF50',
+      icon: 'refresh' as const,
+      color: COLORS.success,
       description: 'L\'adresse IP de votre appareil a changé',
       solutions: [
         'Consultez l\'interface de votre routeur pour voir les appareils connectés',
@@ -124,7 +134,7 @@ const NetworkHelpModal: React.FC<NetworkHelpModalProps> = ({
         'Utilisez l\'ajout manuel avec la nouvelle adresse IP',
         'Supprimez l\'ancien appareil et ajoutez-le avec la nouvelle IP',
       ],
-      priority: 'low'
+      priority: 'low' as const
     }
   ];
 
@@ -171,7 +181,7 @@ const NetworkHelpModal: React.FC<NetworkHelpModalProps> = ({
       <View style={styles.container}>
         <View style={styles.header}>
           <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-            <Icon name="close" size={24} color={colors.text} />
+            <Icon name="close" size={24} color={COLORS.text} />
           </TouchableOpacity>
           <Text style={styles.title}>Aide réseau</Text>
           <View style={styles.placeholder} />
@@ -181,7 +191,7 @@ const NetworkHelpModal: React.FC<NetworkHelpModalProps> = ({
           {/* Quick Manual Add Section */}
           <View style={styles.quickAddSection}>
             <View style={styles.quickAddHeader}>
-              <Icon name="add-circle" size={24} color={colors.primary} />
+              <Icon name="add-circle" size={24} color={COLORS.primary} />
               <Text style={styles.quickAddTitle}>Ajout rapide</Text>
             </View>
             <Text style={styles.quickAddDescription}>
@@ -194,7 +204,7 @@ const NetworkHelpModal: React.FC<NetworkHelpModalProps> = ({
                 value={manualName}
                 onChangeText={setManualName}
                 placeholder="Nom de l'appareil"
-                placeholderTextColor={colors.grey}
+                placeholderTextColor={COLORS.grey}
               />
               
               <TextInput
@@ -202,7 +212,7 @@ const NetworkHelpModal: React.FC<NetworkHelpModalProps> = ({
                 value={manualIP}
                 onChangeText={setManualIP}
                 placeholder="192.168.1.20"
-                placeholderTextColor={colors.grey}
+                placeholderTextColor={COLORS.grey}
                 keyboardType="numbers-and-punctuation"
                 autoCapitalize="none"
                 autoCorrect={false}
@@ -241,7 +251,7 @@ const NetworkHelpModal: React.FC<NetworkHelpModalProps> = ({
                   <Icon 
                     name={selectedScenario === scenario.id ? "chevron-up" : "chevron-down"} 
                     size={20} 
-                    color={colors.grey} 
+                    color={COLORS.grey} 
                   />
                 </TouchableOpacity>
                 
@@ -290,7 +300,7 @@ const NetworkHelpModal: React.FC<NetworkHelpModalProps> = ({
           {/* Contact Support */}
           <View style={styles.supportSection}>
             <View style={styles.supportHeader}>
-              <Icon name="help-circle" size={24} color={colors.primary} />
+              <Icon name="help-circle" size={24} color={COLORS.primary} />
               <Text style={styles.supportTitle}>Besoin d'aide supplémentaire ?</Text>
             </View>
             <Text style={styles.supportText}>
@@ -310,7 +320,7 @@ const NetworkHelpModal: React.FC<NetworkHelpModalProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: COLORS.background,
   },
   header: {
     flexDirection: 'row',
@@ -319,7 +329,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: colors.grey + '20',
+    borderBottomColor: COLORS.grey + '20',
   },
   closeButton: {
     padding: 4,
@@ -327,7 +337,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: '600',
-    color: colors.text,
+    color: COLORS.text,
   },
   placeholder: {
     width: 32,
@@ -337,7 +347,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   quickAddSection: {
-    backgroundColor: colors.primary + '10',
+    backgroundColor: COLORS.primary + '10',
     borderRadius: 12,
     padding: 16,
     marginTop: 20,
@@ -351,11 +361,11 @@ const styles = StyleSheet.create({
   quickAddTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: colors.text,
+    color: COLORS.text,
   },
   quickAddDescription: {
     fontSize: 14,
-    color: colors.grey,
+    color: COLORS.grey,
     marginBottom: 16,
     lineHeight: 20,
   },
@@ -363,17 +373,17 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   quickAddInput: {
-    backgroundColor: colors.background,
+    backgroundColor: COLORS.background,
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 10,
     fontSize: 14,
-    color: colors.text,
+    color: COLORS.text,
     borderWidth: 1,
-    borderColor: colors.grey + '30',
+    borderColor: COLORS.grey + '30',
   },
   quickAddButton: {
-    backgroundColor: colors.primary,
+    backgroundColor: COLORS.primary,
     borderRadius: 8,
   },
   scenariosSection: {
@@ -382,17 +392,17 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: colors.text,
+    color: COLORS.text,
     marginBottom: 8,
   },
   sectionDescription: {
     fontSize: 14,
-    color: colors.grey,
+    color: COLORS.grey,
     marginBottom: 16,
     lineHeight: 20,
   },
   scenarioItem: {
-    backgroundColor: colors.backgroundAlt,
+    backgroundColor: COLORS.backgroundAlt,
     borderRadius: 8,
     marginBottom: 8,
     overflow: 'hidden',
@@ -415,7 +425,7 @@ const styles = StyleSheet.create({
   scenarioTitle: {
     fontSize: 16,
     fontWeight: '500',
-    color: colors.text,
+    color: COLORS.text,
     marginBottom: 2,
   },
   scenarioPriority: {
@@ -426,18 +436,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingBottom: 16,
     borderTopWidth: 1,
-    borderTopColor: colors.grey + '20',
+    borderTopColor: COLORS.grey + '20',
   },
   scenarioDescription: {
     fontSize: 14,
-    color: colors.grey,
+    color: COLORS.grey,
     marginBottom: 16,
     lineHeight: 20,
   },
   solutionsTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: colors.text,
+    color: COLORS.text,
     marginBottom: 12,
   },
   solutionItem: {
@@ -447,14 +457,14 @@ const styles = StyleSheet.create({
   },
   solutionNumber: {
     fontSize: 14,
-    color: colors.primary,
+    color: COLORS.primary,
     fontWeight: '600',
     minWidth: 20,
   },
   solutionText: {
     flex: 1,
     fontSize: 14,
-    color: colors.grey,
+    color: COLORS.grey,
     lineHeight: 20,
   },
   ipRangesSection: {
@@ -464,7 +474,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   ipRangeItem: {
-    backgroundColor: colors.backgroundAlt,
+    backgroundColor: COLORS.backgroundAlt,
     borderRadius: 6,
     paddingHorizontal: 12,
     paddingVertical: 10,
@@ -472,16 +482,16 @@ const styles = StyleSheet.create({
   ipRangeText: {
     fontSize: 14,
     fontWeight: '600',
-    color: colors.text,
+    color: COLORS.text,
     fontFamily: 'monospace',
     marginBottom: 2,
   },
   ipRangeDescription: {
     fontSize: 12,
-    color: colors.grey,
+    color: COLORS.grey,
   },
   supportSection: {
-    backgroundColor: colors.backgroundAlt,
+    backgroundColor: COLORS.backgroundAlt,
     borderRadius: 12,
     padding: 16,
     marginTop: 24,
@@ -496,17 +506,17 @@ const styles = StyleSheet.create({
   supportTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: colors.text,
+    color: COLORS.text,
   },
   supportText: {
     fontSize: 14,
-    color: colors.grey,
+    color: COLORS.grey,
     lineHeight: 20,
     marginBottom: 12,
   },
   supportTip: {
     fontSize: 13,
-    color: colors.primary,
+    color: COLORS.primary,
     fontStyle: 'italic',
     lineHeight: 18,
   },

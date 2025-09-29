@@ -9,7 +9,6 @@ import {
   TouchableOpacity,
   Alert,
   KeyboardAvoidingView,
-  Platform,
 } from 'react-native';
 import { colors } from '../styles/commonStyles';
 import Icon from './Icon';
@@ -74,7 +73,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     marginBottom: 16,
-    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    fontFamily: 'monospace',
   },
   inputFocused: {
     borderColor: colors.primary,
@@ -206,7 +205,7 @@ const IRCodeEditModal: React.FC<IRCodeEditModalProps> = ({
     >
       <KeyboardAvoidingView
         style={styles.overlay}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior="padding"
       >
         <TouchableOpacity
           style={styles.overlay}
