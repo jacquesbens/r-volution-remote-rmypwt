@@ -21,6 +21,25 @@ interface NetworkHelpModalProps {
   onAddManualDevice?: (ip: string, name: string) => void;
 }
 
+// Move helper functions outside the component to ensure proper scope
+const getPriorityColor = (priority: string) => {
+  switch (priority) {
+    case 'high': return colors.error;
+    case 'medium': return colors.warning;
+    case 'low': return colors.success;
+    default: return colors.grey;
+  }
+};
+
+const getPriorityText = (priority: string) => {
+  switch (priority) {
+    case 'high': return 'Priorité élevée';
+    case 'medium': return 'Priorité moyenne';
+    case 'low': return 'Priorité faible';
+    default: return '';
+  }
+};
+
 const NetworkHelpModal: React.FC<NetworkHelpModalProps> = ({
   visible,
   onClose,
@@ -29,24 +48,6 @@ const NetworkHelpModal: React.FC<NetworkHelpModalProps> = ({
   const [selectedScenario, setSelectedScenario] = useState<string | null>(null);
   const [manualIP, setManualIP] = useState('');
   const [manualName, setManualName] = useState('');
-
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'high': return colors.error;
-      case 'medium': return colors.warning;
-      case 'low': return colors.success;
-      default: return colors.grey;
-    }
-  };
-
-  const getPriorityText = (priority: string) => {
-    switch (priority) {
-      case 'high': return 'Priorité élevée';
-      case 'medium': return 'Priorité moyenne';
-      case 'low': return 'Priorité faible';
-      default: return '';
-    }
-  };
 
   const networkScenarios = [
     {
