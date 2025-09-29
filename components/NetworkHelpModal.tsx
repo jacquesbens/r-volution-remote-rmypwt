@@ -9,6 +9,7 @@ import {
   ScrollView,
   TextInput,
   Alert,
+  Platform,
 } from 'react-native';
 import { colors } from '../styles/commonStyles';
 import Icon from './Icon';
