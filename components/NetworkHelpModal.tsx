@@ -19,8 +19,7 @@ interface NetworkHelpModalProps {
   onAddManualDevice?: (ip: string, name: string) => void;
 }
 
-// Local color constants to avoid any external dependencies
-const LOCAL_COLORS = {
+const MODAL_COLORS = {
   primary: '#162456',
   background: '#101824',
   backgroundAlt: '#162133',
@@ -31,17 +30,94 @@ const LOCAL_COLORS = {
   error: '#FF5252',
 };
 
-// Helper functions moved outside component to avoid any scope issues
+const NETWORK_SCENARIOS = [
+  {
+    id: 'different_network',
+    title: 'Je suis sur un réseau différent',
+    icon: 'wifi-outline',
+    color: MODAL_COLORS.warning,
+    description: 'Vous n\'êtes pas sur le même réseau Wi-Fi que vos appareils R_volution',
+    solutions: [
+      'Connectez-vous au même réseau Wi-Fi que vos appareils R_volution',
+      'Vérifiez le nom du réseau Wi-Fi dans les paramètres de votre appareil',
+      'Si vous utilisez un réseau invité, passez au réseau principal',
+      'Redémarrez votre connexion Wi-Fi',
+      'Utilisez l\'ajout manuel avec l\'adresse IP de l\'appareil',
+    ],
+    priority: 'high'
+  },
+  {
+    id: 'enterprise_network',
+    title: 'Réseau d\'entreprise ou public',
+    icon: 'business',
+    color: MODAL_COLORS.error,
+    description: 'Les réseaux d\'entreprise bloquent souvent la découverte d\'appareils',
+    solutions: [
+      'Contactez votre administrateur réseau pour autoriser la découverte',
+      'Demandez l\'ouverture du port 80 pour HTTP',
+      'Utilisez exclusivement l\'ajout manuel',
+      'Connectez-vous à un réseau domestique si possible',
+      'Créez un hotspot mobile temporaire',
+    ],
+    priority: 'high'
+  },
+  {
+    id: 'firewall_blocking',
+    title: 'Pare-feu ou sécurité',
+    icon: 'shield-checkmark',
+    color: MODAL_COLORS.primary,
+    description: 'Un pare-feu bloque la communication avec vos appareils',
+    solutions: [
+      'Désactivez temporairement le pare-feu de votre appareil',
+      'Autorisez l\'application dans les paramètres de sécurité',
+      'Vérifiez les paramètres de sécurité de votre routeur',
+      'Désactivez le mode "isolation des clients" sur votre routeur',
+      'Redémarrez votre routeur',
+    ],
+    priority: 'medium'
+  },
+  {
+    id: 'device_offline',
+    title: 'Appareil éteint ou déconnecté',
+    icon: 'power',
+    color: MODAL_COLORS.grey,
+    description: 'Vos appareils R_volution ne sont pas accessibles',
+    solutions: [
+      'Vérifiez que vos appareils R_volution sont allumés',
+      'Contrôlez que le voyant réseau est allumé sur l\'appareil',
+      'Redémarrez vos appareils R_volution',
+      'Vérifiez la connexion Wi-Fi dans le menu de l\'appareil',
+      'Reconnectez l\'appareil au Wi-Fi si nécessaire',
+    ],
+    priority: 'medium'
+  },
+  {
+    id: 'ip_changed',
+    title: 'Adresse IP changée',
+    icon: 'refresh',
+    color: MODAL_COLORS.success,
+    description: 'L\'adresse IP de votre appareil a changé',
+    solutions: [
+      'Consultez l\'interface de votre routeur pour voir les appareils connectés',
+      'Vérifiez l\'adresse IP dans les paramètres de l\'appareil R_volution',
+      'Configurez une IP fixe sur votre appareil si possible',
+      'Utilisez l\'ajout manuel avec la nouvelle adresse IP',
+      'Supprimez l\'ancien appareil et ajoutez-le avec la nouvelle IP',
+    ],
+    priority: 'low'
+  }
+];
+
 function getPriorityColor(priority: string): string {
   switch (priority) {
     case 'high': 
-      return LOCAL_COLORS.error;
+      return MODAL_COLORS.error;
     case 'medium': 
-      return LOCAL_COLORS.warning;
+      return MODAL_COLORS.warning;
     case 'low': 
-      return LOCAL_COLORS.success;
+      return MODAL_COLORS.success;
     default: 
-      return LOCAL_COLORS.grey;
+      return MODAL_COLORS.grey;
   }
 }
 
@@ -57,85 +133,6 @@ function getPriorityText(priority: string): string {
       return '';
   }
 }
-
-// Static scenarios data to avoid any dynamic issues
-const NETWORK_SCENARIOS = [
-  {
-    id: 'different_network',
-    title: 'Je suis sur un réseau différent',
-    icon: 'wifi-outline',
-    color: LOCAL_COLORS.warning,
-    description: 'Vous n\'êtes pas sur le même réseau Wi-Fi que vos appareils R_volution',
-    solutions: [
-      'Connectez-vous au même réseau Wi-Fi que vos appareils R_volution',
-      'Vérifiez le nom du réseau Wi-Fi dans les paramètres de votre appareil',
-      'Si vous utilisez un réseau invité, passez au réseau principal',
-      'Redémarrez votre connexion Wi-Fi',
-      'Utilisez l\'ajout manuel avec l\'adresse IP de l\'appareil',
-    ],
-    priority: 'high'
-  },
-  {
-    id: 'enterprise_network',
-    title: 'Réseau d\'entreprise ou public',
-    icon: 'business',
-    color: LOCAL_COLORS.error,
-    description: 'Les réseaux d\'entreprise bloquent souvent la découverte d\'appareils',
-    solutions: [
-      'Contactez votre administrateur réseau pour autoriser la découverte',
-      'Demandez l\'ouverture du port 80 pour HTTP',
-      'Utilisez exclusivement l\'ajout manuel',
-      'Connectez-vous à un réseau domestique si possible',
-      'Créez un hotspot mobile temporaire',
-    ],
-    priority: 'high'
-  },
-  {
-    id: 'firewall_blocking',
-    title: 'Pare-feu ou sécurité',
-    icon: 'shield-checkmark',
-    color: LOCAL_COLORS.primary,
-    description: 'Un pare-feu bloque la communication avec vos appareils',
-    solutions: [
-      'Désactivez temporairement le pare-feu de votre appareil',
-      'Autorisez l\'application dans les paramètres de sécurité',
-      'Vérifiez les paramètres de sécurité de votre routeur',
-      'Désactivez le mode "isolation des clients" sur votre routeur',
-      'Redémarrez votre routeur',
-    ],
-    priority: 'medium'
-  },
-  {
-    id: 'device_offline',
-    title: 'Appareil éteint ou déconnecté',
-    icon: 'power',
-    color: LOCAL_COLORS.grey,
-    description: 'Vos appareils R_volution ne sont pas accessibles',
-    solutions: [
-      'Vérifiez que vos appareils R_volution sont allumés',
-      'Contrôlez que le voyant réseau est allumé sur l\'appareil',
-      'Redémarrez vos appareils R_volution',
-      'Vérifiez la connexion Wi-Fi dans le menu de l\'appareil',
-      'Reconnectez l\'appareil au Wi-Fi si nécessaire',
-    ],
-    priority: 'medium'
-  },
-  {
-    id: 'ip_changed',
-    title: 'Adresse IP changée',
-    icon: 'refresh',
-    color: LOCAL_COLORS.success,
-    description: 'L\'adresse IP de votre appareil a changé',
-    solutions: [
-      'Consultez l\'interface de votre routeur pour voir les appareils connectés',
-      'Vérifiez l\'adresse IP dans les paramètres de l\'appareil R_volution',
-      'Configurez une IP fixe sur votre appareil si possible',
-      'Utilisez l\'ajout manuel avec la nouvelle adresse IP',
-      'Supprimez l\'ancien appareil et ajoutez-le avec la nouvelle IP',
-    ],
-    priority: 'low'
-  }
-];
 
 const NetworkHelpModal: React.FC<NetworkHelpModalProps> = ({
   visible,
@@ -188,7 +185,7 @@ const NetworkHelpModal: React.FC<NetworkHelpModalProps> = ({
       <View style={styles.container}>
         <View style={styles.header}>
           <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-            <Icon name="close" size={24} color={LOCAL_COLORS.text} />
+            <Icon name="close" size={24} color={MODAL_COLORS.text} />
           </TouchableOpacity>
           <Text style={styles.title}>Aide réseau</Text>
           <View style={styles.placeholder} />
@@ -197,7 +194,7 @@ const NetworkHelpModal: React.FC<NetworkHelpModalProps> = ({
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
           <View style={styles.quickAddSection}>
             <View style={styles.quickAddHeader}>
-              <Icon name="add-circle" size={24} color={LOCAL_COLORS.primary} />
+              <Icon name="add-circle" size={24} color={MODAL_COLORS.primary} />
               <Text style={styles.quickAddTitle}>Ajout rapide</Text>
             </View>
             <Text style={styles.quickAddDescription}>
@@ -210,7 +207,7 @@ const NetworkHelpModal: React.FC<NetworkHelpModalProps> = ({
                 value={manualName}
                 onChangeText={setManualName}
                 placeholder="Nom de l'appareil"
-                placeholderTextColor={LOCAL_COLORS.grey}
+                placeholderTextColor={MODAL_COLORS.grey}
               />
               
               <TextInput
@@ -218,7 +215,7 @@ const NetworkHelpModal: React.FC<NetworkHelpModalProps> = ({
                 value={manualIP}
                 onChangeText={setManualIP}
                 placeholder="192.168.1.20"
-                placeholderTextColor={LOCAL_COLORS.grey}
+                placeholderTextColor={MODAL_COLORS.grey}
                 keyboardType="numbers-and-punctuation"
                 autoCapitalize="none"
                 autoCorrect={false}
@@ -256,7 +253,7 @@ const NetworkHelpModal: React.FC<NetworkHelpModalProps> = ({
                   <Icon 
                     name={selectedScenario === scenario.id ? "chevron-up" : "chevron-down"} 
                     size={20} 
-                    color={LOCAL_COLORS.grey} 
+                    color={MODAL_COLORS.grey} 
                   />
                 </TouchableOpacity>
                 
@@ -311,7 +308,7 @@ const NetworkHelpModal: React.FC<NetworkHelpModalProps> = ({
 
           <View style={styles.supportSection}>
             <View style={styles.supportHeader}>
-              <Icon name="help-circle" size={24} color={LOCAL_COLORS.primary} />
+              <Icon name="help-circle" size={24} color={MODAL_COLORS.primary} />
               <Text style={styles.supportTitle}>Besoin d&apos;aide supplémentaire ?</Text>
             </View>
             <Text style={styles.supportText}>
@@ -331,7 +328,7 @@ const NetworkHelpModal: React.FC<NetworkHelpModalProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: LOCAL_COLORS.background,
+    backgroundColor: MODAL_COLORS.background,
   },
   header: {
     flexDirection: 'row',
@@ -340,7 +337,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: LOCAL_COLORS.grey + '20',
+    borderBottomColor: MODAL_COLORS.grey + '20',
   },
   closeButton: {
     padding: 4,
@@ -348,7 +345,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: '600',
-    color: LOCAL_COLORS.text,
+    color: MODAL_COLORS.text,
   },
   placeholder: {
     width: 32,
@@ -358,7 +355,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   quickAddSection: {
-    backgroundColor: LOCAL_COLORS.primary + '10',
+    backgroundColor: MODAL_COLORS.primary + '10',
     borderRadius: 12,
     padding: 16,
     marginTop: 20,
@@ -372,11 +369,11 @@ const styles = StyleSheet.create({
   quickAddTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: LOCAL_COLORS.text,
+    color: MODAL_COLORS.text,
   },
   quickAddDescription: {
     fontSize: 14,
-    color: LOCAL_COLORS.grey,
+    color: MODAL_COLORS.grey,
     marginBottom: 16,
     lineHeight: 20,
   },
@@ -384,17 +381,17 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   quickAddInput: {
-    backgroundColor: LOCAL_COLORS.background,
+    backgroundColor: MODAL_COLORS.background,
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 10,
     fontSize: 14,
-    color: LOCAL_COLORS.text,
+    color: MODAL_COLORS.text,
     borderWidth: 1,
-    borderColor: LOCAL_COLORS.grey + '30',
+    borderColor: MODAL_COLORS.grey + '30',
   },
   quickAddButton: {
-    backgroundColor: LOCAL_COLORS.primary,
+    backgroundColor: MODAL_COLORS.primary,
     borderRadius: 8,
   },
   scenariosSection: {
@@ -403,17 +400,17 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: LOCAL_COLORS.text,
+    color: MODAL_COLORS.text,
     marginBottom: 8,
   },
   sectionDescription: {
     fontSize: 14,
-    color: LOCAL_COLORS.grey,
+    color: MODAL_COLORS.grey,
     marginBottom: 16,
     lineHeight: 20,
   },
   scenarioItem: {
-    backgroundColor: LOCAL_COLORS.backgroundAlt,
+    backgroundColor: MODAL_COLORS.backgroundAlt,
     borderRadius: 8,
     marginBottom: 8,
     overflow: 'hidden',
@@ -436,7 +433,7 @@ const styles = StyleSheet.create({
   scenarioTitle: {
     fontSize: 16,
     fontWeight: '500',
-    color: LOCAL_COLORS.text,
+    color: MODAL_COLORS.text,
     marginBottom: 2,
   },
   scenarioPriority: {
@@ -447,18 +444,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingBottom: 16,
     borderTopWidth: 1,
-    borderTopColor: LOCAL_COLORS.grey + '20',
+    borderTopColor: MODAL_COLORS.grey + '20',
   },
   scenarioDescription: {
     fontSize: 14,
-    color: LOCAL_COLORS.grey,
+    color: MODAL_COLORS.grey,
     marginBottom: 16,
     lineHeight: 20,
   },
   solutionsTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: LOCAL_COLORS.text,
+    color: MODAL_COLORS.text,
     marginBottom: 12,
   },
   solutionItem: {
@@ -468,14 +465,14 @@ const styles = StyleSheet.create({
   },
   solutionNumber: {
     fontSize: 14,
-    color: LOCAL_COLORS.primary,
+    color: MODAL_COLORS.primary,
     fontWeight: '600',
     minWidth: 20,
   },
   solutionText: {
     flex: 1,
     fontSize: 14,
-    color: LOCAL_COLORS.grey,
+    color: MODAL_COLORS.grey,
     lineHeight: 20,
   },
   ipRangesSection: {
@@ -485,7 +482,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   ipRangeItem: {
-    backgroundColor: LOCAL_COLORS.backgroundAlt,
+    backgroundColor: MODAL_COLORS.backgroundAlt,
     borderRadius: 6,
     paddingHorizontal: 12,
     paddingVertical: 10,
@@ -493,16 +490,16 @@ const styles = StyleSheet.create({
   ipRangeText: {
     fontSize: 14,
     fontWeight: '600',
-    color: LOCAL_COLORS.text,
+    color: MODAL_COLORS.text,
     fontFamily: 'monospace',
     marginBottom: 2,
   },
   ipRangeDescription: {
     fontSize: 12,
-    color: LOCAL_COLORS.grey,
+    color: MODAL_COLORS.grey,
   },
   supportSection: {
-    backgroundColor: LOCAL_COLORS.backgroundAlt,
+    backgroundColor: MODAL_COLORS.backgroundAlt,
     borderRadius: 12,
     padding: 16,
     marginTop: 24,
@@ -517,17 +514,17 @@ const styles = StyleSheet.create({
   supportTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: LOCAL_COLORS.text,
+    color: MODAL_COLORS.text,
   },
   supportText: {
     fontSize: 14,
-    color: LOCAL_COLORS.grey,
+    color: MODAL_COLORS.grey,
     lineHeight: 20,
     marginBottom: 12,
   },
   supportTip: {
     fontSize: 13,
-    color: LOCAL_COLORS.primary,
+    color: MODAL_COLORS.primary,
     fontStyle: 'italic',
     lineHeight: 18,
   },
