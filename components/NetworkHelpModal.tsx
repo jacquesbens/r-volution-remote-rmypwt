@@ -9,6 +9,7 @@ import {
   ScrollView,
   TextInput,
   Alert,
+  Platform,
 } from 'react-native';
 import { colors } from '../styles/commonStyles';
 import Icon from './Icon';
@@ -22,15 +23,17 @@ interface NetworkHelpModalProps {
 
 // Move helper functions outside the component to ensure proper scope
 const getPriorityColor = (priority: string) => {
+  console.log('Getting priority color for:', priority);
   switch (priority) {
-    case 'high': return colors.error;
-    case 'medium': return colors.warning;
-    case 'low': return colors.success;
-    default: return colors.grey;
+    case 'high': return colors.error || '#FF5252';
+    case 'medium': return colors.warning || '#FF9800';
+    case 'low': return colors.success || '#4CAF50';
+    default: return colors.grey || '#9E9E9E';
   }
 };
 
 const getPriorityText = (priority: string) => {
+  console.log('Getting priority text for:', priority);
   switch (priority) {
     case 'high': return 'Priorité élevée';
     case 'medium': return 'Priorité moyenne';
@@ -53,7 +56,7 @@ const NetworkHelpModal: React.FC<NetworkHelpModalProps> = ({
       id: 'different_network',
       title: 'Je suis sur un réseau différent',
       icon: 'wifi-outline',
-      color: colors.warning,
+      color: colors.warning || '#FF9800',
       description: 'Vous n\'êtes pas sur le même réseau Wi-Fi que vos appareils R_volution',
       solutions: [
         'Connectez-vous au même réseau Wi-Fi que vos appareils R_volution',
@@ -68,7 +71,7 @@ const NetworkHelpModal: React.FC<NetworkHelpModalProps> = ({
       id: 'enterprise_network',
       title: 'Réseau d\'entreprise ou public',
       icon: 'business',
-      color: colors.error,
+      color: colors.error || '#FF5252',
       description: 'Les réseaux d\'entreprise bloquent souvent la découverte d\'appareils',
       solutions: [
         'Contactez votre administrateur réseau pour autoriser la découverte',
@@ -113,7 +116,7 @@ const NetworkHelpModal: React.FC<NetworkHelpModalProps> = ({
       id: 'ip_changed',
       title: 'Adresse IP changée',
       icon: 'refresh',
-      color: colors.success,
+      color: colors.success || '#4CAF50',
       description: 'L\'adresse IP de votre appareil a changé',
       solutions: [
         'Consultez l\'interface de votre routeur pour voir les appareils connectés',
@@ -471,7 +474,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: colors.text,
-    fontFamily: 'monospace',
+    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
     marginBottom: 2,
   },
   ipRangeDescription: {
