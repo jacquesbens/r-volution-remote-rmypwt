@@ -200,9 +200,7 @@ export default function DeviceControlScreen() {
           <Icon name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{device.name}</Text>
-        <TouchableOpacity onPress={handleAddDevices} style={styles.addButton}>
-          <Icon name="add" size={24} color={colors.text} />
-        </TouchableOpacity>
+        <View style={styles.placeholder} />
       </View>
 
       {/* Device Status Indicator - Only show when device is offline */}
@@ -237,11 +235,6 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.backgroundAlt,
   },
   backButton: {
-    padding: 8,
-    borderRadius: 8,
-    backgroundColor: colors.backgroundAlt,
-  },
-  addButton: {
     padding: 8,
     borderRadius: 8,
     backgroundColor: colors.backgroundAlt,
